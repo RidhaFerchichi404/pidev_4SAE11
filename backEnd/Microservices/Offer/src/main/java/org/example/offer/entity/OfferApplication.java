@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -32,7 +33,7 @@ public class OfferApplication {
     private BigDecimal proposedBudget;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private ApplicationStatus status;
 
     @Column(nullable = false, updatable = false)
@@ -43,5 +44,8 @@ public class OfferApplication {
     @PrePersist
     protected void onCreate() {
         appliedAt = LocalDateTime.now();
+        if (status == null) {
+            status = ApplicationStatus.PENDING;
+        }
     }
 }

@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * REST controller for User management in the Gestion User microservice.
+ * REST controller for User management in the User microservice.
  */
 @RestController
 @RequestMapping("/api/users")
