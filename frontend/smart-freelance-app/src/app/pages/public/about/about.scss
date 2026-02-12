@@ -1,0 +1,53 @@
+.about-page {
+  padding: var(--spacing-3xl) 0;
+
+  .about-header {
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+
+    h1 {
+      font-size: var(--text-5xl);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .subtitle {
+      font-size: var(--text-xl);
+      color: var(--text-secondary);
+    }
+  }
+
+  app-card {
+    h2 {
+      font-size: var(--text-2xl);
+      font-weight: 600;
+      margin-top: var(--spacing-xl);
+      margin-bottom: var(--spacing-md);
+      color: var(--text-primary);
+
+      &:first-child {
+        margin-top: 0;
+      }
+    }
+
+    p {
+      color: var(--text-secondary);
+      line-height: 1.8;
+      margin-bottom: var(--spacing-md);
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+
+      li {
+        padding: var(--spacing-sm) 0;
+        color: var(--text-secondary);
+        line-height: 1.6;
+
+        strong {
+          color: var(--text-primary);
+        }
+      }
+    }
+  }
+}

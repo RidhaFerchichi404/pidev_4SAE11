@@ -39,7 +39,13 @@ export class LoginComponent {
       next: (res) => {
         this.loading = false;
         if (res?.access_token) {
-          this.router.navigate(['/success']);
+          // Redirect based on role
+          const role = this.auth.getUserRole();
+          if (role === 'ADMIN') {
+            this.router.navigate(['/admin']);
+          } else {
+            this.router.navigate(['/dashboard']);
+          }
         } else {
           this.errorMessage = 'Invalid email or password. Please try again.';
         }

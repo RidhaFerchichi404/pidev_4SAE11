@@ -1,0 +1,30 @@
+<div class="dashboard-home-page">
+  <h1>Welcome to Freelancia! 👋</h1>
+  <p class="subtitle">You're logged in as: <strong>{{ auth.getUserRole() }}</strong></p>
+
+  <div class="cards-grid">
+    <app-card>
+      <h3>🚀 Quick Start</h3>
+      <p>Explore the sidebar to navigate to different sections of your dashboard.</p>
+    </app-card>
+
+    @if (auth.isClient()) {
+      <app-card>
+        <h3>💼 For Clients</h3>
+        <p>Post jobs, browse freelancers, and manage your projects from here.</p>
+      </app-card>
+    }
+
+    @if (auth.isFreelancer()) {
+      <app-card>
+        <h3>🎨 For Freelancers</h3>
+        <p>Browse jobs, manage applications, and build your portfolio.</p>
+      </app-card>
+    }
+
+    <app-card>
+      <h3>🎯 Coming Soon</h3>
+      <p>Full dashboard features are being developed. This is a placeholder to show the structure.</p>
+    </app-card>
+  </div>
+</div>

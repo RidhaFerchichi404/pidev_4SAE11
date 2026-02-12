@@ -1,75 +1,89 @@
-<div class="auth-card">
-  <h1>Sign up</h1>
-  <p class="subtitle">Create your account</p>
+<div class="auth-page">
+  <a routerLink="/" class="back-link">← Back to Home</a>
 
-  @if (errorMessage) {
-    <div class="error-banner" role="alert">
-      {{ errorMessage }}
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1>Join Freelancia</h1>
+      <p class="subtitle">Create your account and start collaborating</p>
     </div>
-  }
-  @if (successMessage) {
-    <div class="success-banner" role="status">
-      {{ successMessage }}
-    </div>
-  }
 
-  <form [formGroup]="form" (ngSubmit)="onSubmit()">
-    <div class="field">
-      <label for="email">Email</label>
-      <input
-        id="email"
-        type="email"
-        formControlName="email"
-        placeholder="you@example.com"
-        autocomplete="email"
-      />
-      @if (form.get('email')?.invalid && form.get('email')?.touched) {
-        <span class="field-error">Please enter a valid email.</span>
-      }
-    </div>
-    <div class="field">
-      <label for="password">Password</label>
-      <input
-        id="password"
-        type="password"
-        formControlName="password"
-        placeholder="At least 8 characters"
-        autocomplete="new-password"
-      />
-      @if (form.get('password')?.invalid && form.get('password')?.touched) {
-        <span class="field-error">Password must be at least 8 characters.</span>
-      }
-    </div>
-    <div class="row">
-      <div class="field half">
-        <label for="firstName">First name</label>
-        <input id="firstName" type="text" formControlName="firstName" placeholder="John" />
-        @if (form.get('firstName')?.invalid && form.get('firstName')?.touched) {
-          <span class="field-error">Required.</span>
+    @if (errorMessage) {
+      <div class="error-banner" role="alert">
+        {{ errorMessage }}
+      </div>
+    }
+    @if (successMessage) {
+      <div class="success-banner" role="status">
+        {{ successMessage }}
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="field">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="you@example.com"
+          autocomplete="email"
+        />
+        @if (form.get('email')?.invalid && form.get('email')?.touched) {
+          <span class="field-error">Please enter a valid email.</span>
         }
       </div>
-      <div class="field half">
-        <label for="lastName">Last name</label>
-        <input id="lastName" type="text" formControlName="lastName" placeholder="Doe" />
-        @if (form.get('lastName')?.invalid && form.get('lastName')?.touched) {
-          <span class="field-error">Required.</span>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="At least 8 characters"
+          autocomplete="new-password"
+        />
+        @if (form.get('password')?.invalid && form.get('password')?.touched) {
+          <span class="field-error">Password must be at least 8 characters.</span>
         }
       </div>
-    </div>
-    <div class="field">
-      <label for="role">Role</label>
-      <select id="role" formControlName="role">
-        @for (r of roles; track r) {
-          <option [value]="r">{{ r }}</option>
-        }
-      </select>
-    </div>
-    <button type="submit" class="btn-primary" [disabled]="loading">
-      {{ loading ? 'Creating account…' : 'Create account' }}
-    </button>
-  </form>
 
-  <p class="switch-link">
-    Already have an account? <a routerLink="/login">Log in</a>
-  </p>
+      <div class="row">
+        <div class="field half">
+          <label for="firstName">First name</label>
+          <input id="firstName" type="text" formControlName="firstName" placeholder="John" />
+          @if (form.get('firstName')?.invalid && form.get('firstName')?.touched) {
+            <span class="field-error">Required.</span>
+          }
+        </div>
+        <div class="field half">
+          <label for="lastName">Last name</label>
+          <input id="lastName" type="text" formControlName="lastName" placeholder="Doe" />
+          @if (form.get('lastName')?.invalid && form.get('lastName')?.touched) {
+            <span class="field-error">Required.</span>
+          }
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="role">I want to join as</label>
+        <select id="role" formControlName="role">
+          @for (r of roles; track r) {
+            <option [value]="r">
+              @if (r === 'CLIENT') { Client - Hire Talent }
+              @else if (r === 'FREELANCER') { Freelancer - Find Work }
+              @else { {{ r }} }
+            </option>
+          }
+        </select>
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="loading">
+        {{ loading ? 'Creating account…' : 'Create account' }}
+      </button>
+    </form>
+
+    <p class="switch-link">
+      Already have an account? <a routerLink="/login">Log in</a>
+    </p>
+  </div>
 </div>

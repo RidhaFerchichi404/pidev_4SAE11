@@ -44,6 +44,9 @@ export class AuthService {
   private tokenSignal = signal<string | null>(this.getStoredToken());
 
   isLoggedIn = computed(() => !!this.tokenSignal());
+  isAdmin = computed(() => this.getUserRole() === 'ADMIN');
+  isClient = computed(() => this.getUserRole() === 'CLIENT');
+  isFreelancer = computed(() => this.getUserRole() === 'FREELANCER');
 
   constructor(
     private http: HttpClient,
@@ -104,5 +107,39 @@ export class AuthService {
 
   getToken(): string | null {
     return this.tokenSignal();
+  }
+
+  /**
+   * Decode JWT token to extract user roles.
+   * Keycloak stores roles in the 'realm_access.roles' claim.
+   */
+  private decodeToken(token: string): any {
+    try {
+      const payload = token.split('.')[1];
+      return JSON.parse(atob(payload));
+    } catch {
+      console.error('[AuthService] Failed to decode token');
+      return null;
+    }
+  }
+
+  /**
+   * Extract user role from JWT token.
+   * Priority: ADMIN > CLIENT > FREELANCER
+   * @returns 'ADMIN' | 'CLIENT' | 'FREELANCER' | null
+   */
+  getUserRole(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    const decoded = this.decodeToken(token);
+    const roles = decoded?.realm_access?.roles || [];
+
+    // Priority order
+    if (roles.includes('ADMIN')) return 'ADMIN';
+    if (roles.includes('CLIENT')) return 'CLIENT';
+    if (roles.includes('FREELANCER')) return 'FREELANCER';
+
+    return null;
   }
 }

@@ -1,0 +1,63 @@
+<header class="header">
+  <div class="header-container">
+    <!-- Logo -->
+    <a [routerLink]="auth.isLoggedIn() ? (auth.isAdmin() ? '/admin' : '/dashboard') : '/'" class="header-logo">
+      <span class="logo-text">Freelancia</span>
+    </a>
+
+    <!-- Navigation Links (Public) -->
+    @if (variant === 'public') {
+      <nav class="header-nav" [class.open]="mobileMenuOpen()">
+        <a routerLink="/how-it-works" class="nav-link" routerLinkActive="active">How It Works</a>
+        <a routerLink="/about" class="nav-link" routerLinkActive="active">About</a>
+      </nav>
+    }
+
+    <!-- Right side actions -->
+    <div class="header-actions">
+      @if (!auth.isLoggedIn()) {
+        <!-- Public: Login/Signup buttons -->
+        <a routerLink="/login">
+          <app-button variant="ghost" size="sm">Login</app-button>
+        </a>
+        <a routerLink="/signup">
+          <app-button variant="primary" size="sm">Sign Up</app-button>
+        </a>
+      } @else {
+        <!-- Authenticated: User menu -->
+        <div class="user-menu-container">
+          <button class="user-menu-trigger" (click)="toggleUserMenu()">
+            <span class="user-avatar">{{ auth.getUserRole()?.[0] || 'U' }}</span>
+            <span class="user-name">Me</span>
+            <svg class="dropdown-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M4.427 6.427l3.396 3.396 3.396-3.396.781.782-4.177 4.177-4.177-4.177z"/>
+            </svg>
+          </button>
+
+          @if (userMenuOpen()) {
+            <div class="user-menu-dropdown">
+              @if (auth.isAdmin()) {
+                <a routerLink="/admin" class="dropdown-item" (click)="userMenuOpen.set(false)">Admin Dashboard</a>
+              } @else {
+                <a routerLink="/dashboard" class="dropdown-item" (click)="userMenuOpen.set(false)">Dashboard</a>
+              }
+              <a routerLink="/dashboard/profile" class="dropdown-item" (click)="userMenuOpen.set(false)">Profile</a>
+              <a routerLink="/dashboard/settings" class="dropdown-item" (click)="userMenuOpen.set(false)">Settings</a>
+              <div class="dropdown-divider"></div>
+              <button class="dropdown-item logout" (click)="logout()">Logout</button>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Mobile menu toggle -->
+      @if (variant === 'public') {
+        <button class="mobile-menu-toggle" (click)="toggleMobileMenu()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 12h18M3 6h18M3 18h18" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      }
+    </div>
+  </div>
+</header>

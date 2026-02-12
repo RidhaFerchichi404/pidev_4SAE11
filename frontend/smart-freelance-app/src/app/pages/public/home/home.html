@@ -1,0 +1,122 @@
+<div class="home-page">
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <h1 class="hero-title">
+          Where Talent Meets <span class="gradient-text">Opportunity</span>
+        </h1>
+        <p class="hero-subtitle">
+          Freelancia connects clients with exceptional freelancers for meaningful project collaboration.
+          Whether you're looking to hire or find work, we make it warm, simple, and effective.
+        </p>
+        <div class="hero-ctas">
+          <a routerLink="/signup">
+            <app-button variant="primary" size="lg">Post a Job</app-button>
+          </a>
+          <a routerLink="/signup">
+            <app-button variant="outline" size="lg">Find Work</app-button>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features">
+    <div class="container">
+      <h2 class="section-title text-center">Why Choose Freelancia?</h2>
+      <div class="features-grid">
+        <app-card padding="lg" [hoverable]="true">
+          <div class="feature">
+            <div class="feature-icon">🤝</div>
+            <h3>Trusted Connections</h3>
+            <p>Build lasting professional relationships with verified talent and clients in a supportive community.</p>
+          </div>
+        </app-card>
+
+        <app-card padding="lg" [hoverable]="true">
+          <div class="feature">
+            <div class="feature-icon">🎯</div>
+            <h3>Perfect Matches</h3>
+            <p>Our smart matching system connects you with the right opportunities or talent for your specific needs.</p>
+          </div>
+        </app-card>
+
+        <app-card padding="lg" [hoverable]="true">
+          <div class="feature">
+            <div class="feature-icon">🚀</div>
+            <h3>Fast & Simple</h3>
+            <p>Get started in minutes. Post jobs, apply to projects, and collaborate seamlessly all in one place.</p>
+          </div>
+        </app-card>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="how-it-works">
+    <div class="container">
+      <h2 class="section-title text-center">How Freelancia Works</h2>
+      <div class="how-grid">
+        <div class="how-item">
+          <div class="how-step">1</div>
+          <h3>Create Your Profile</h3>
+          <p>Sign up as a client or freelancer in just a few clicks</p>
+        </div>
+        <div class="how-item">
+          <div class="how-step">2</div>
+          <h3>Post or Browse</h3>
+          <p>Share your project or find the perfect opportunity</p>
+        </div>
+        <div class="how-item">
+          <div class="how-step">3</div>
+          <h3>Collaborate</h3>
+          <p>Work together and bring your projects to life</p>
+        </div>
+      </div>
+      <div class="how-cta">
+        <a routerLink="/how-it-works">
+          <app-button variant="ghost" size="md">Learn More →</app-button>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="stats">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat">
+          <div class="stat-number">10K+</div>
+          <div class="stat-label">Active Freelancers</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">5K+</div>
+          <div class="stat-label">Happy Clients</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">25K+</div>
+          <div class="stat-label">Projects Completed</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">98%</div>
+          <div class="stat-label">Satisfaction Rate</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta">
+    <div class="container">
+      <div class="cta-content">
+        <h2>Ready to Get Started?</h2>
+        <p>Join thousands of freelancers and clients building their success on Freelancia</p>
+        <a routerLink="/signup">
+          <app-button variant="primary" size="lg">Sign Up Now</app-button>
+        </a>
+      </div>
+    </div>
+  </section>
+</div>
