@@ -23,7 +23,7 @@ public class UserServiceClient {
     private final RestTemplate restTemplate;
 
     /**
-     * Create a user in the User service (userdb). Request body matches UserRequest (email, password, firstName, lastName, role).
+     * Create a user in the User service (userdb). Request body matches UserRequest (email, password, firstName, lastName, role, phone, avatarUrl).
      */
     public void createUser(RegisterRequest request) {
         var body = new UserCreateRequest(
@@ -31,7 +31,9 @@ public class UserServiceClient {
             request.getPassword(),
             request.getFirstName(),
             request.getLastName(),
-            request.getRole().toUpperCase()
+            request.getRole().toUpperCase(),
+            request.getPhone(),
+            request.getAvatarUrl()
         );
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -46,5 +48,5 @@ public class UserServiceClient {
     }
 
     /** DTO matching User service's UserRequest for JSON (role as string for enum). */
-    public record UserCreateRequest(String email, String password, String firstName, String lastName, String role) {}
+    public record UserCreateRequest(String email, String password, String firstName, String lastName, String role, String phone, String avatarUrl) {}
 }

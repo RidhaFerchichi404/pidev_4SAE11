@@ -11,8 +11,18 @@ public class KeycloakProperties {
     private String authServerUrl = "http://localhost:8180";
     private String realm = "smart-freelance";
     private String resource = "smart-freelance-backend";
+    /** Secret for server-to-server calls (e.g. User service sync delete/update). Set same value in User service. */
+    private String serviceSecret = "";
     private Credentials credentials = new Credentials();
     private Admin admin = new Admin();
+
+    public String getServiceSecret() {
+        return serviceSecret != null ? serviceSecret : "";
+    }
+
+    public void setServiceSecret(String serviceSecret) {
+        this.serviceSecret = serviceSecret;
+    }
 
     public String getAuthServerUrl() {
         return authServerUrl;

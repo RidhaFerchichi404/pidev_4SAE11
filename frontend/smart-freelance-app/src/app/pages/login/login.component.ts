@@ -23,8 +23,26 @@ export class LoginComponent {
   ) {
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', Validators.required],
+      password: ['', [Validators.required, Validators.minLength(8)]],
     });
+  }
+
+  /** Contrôle de saisie: get user-facing error for email field. */
+  getEmailError(): string {
+    const c = this.form.get('email');
+    if (!c?.touched || !c?.errors) return '';
+    if (c.errors['required']) return 'Email is required.';
+    if (c.errors['email']) return 'Please enter a valid email address.';
+    return '';
+  }
+
+  /** Contrôle de saisie: get user-facing error for password field. */
+  getPasswordError(): string {
+    const c = this.form.get('password');
+    if (!c?.touched || !c?.errors) return '';
+    if (c.errors['required']) return 'Password is required.';
+    if (c.errors['minlength']) return 'Password must be at least 8 characters.';
+    return '';
   }
 
   onSubmit(): void {
@@ -38,21 +56,22 @@ export class LoginComponent {
     this.auth.login(email, password).subscribe({
       next: (res) => {
         this.loading = false;
-        if (res?.access_token) {
-          // Redirect based on role
+        if (res && 'access_token' in res && res.access_token) {
           const role = this.auth.getUserRole();
           if (role === 'ADMIN') {
             this.router.navigate(['/admin']);
           } else {
             this.router.navigate(['/dashboard']);
           }
+        } else if (res && 'error' in res) {
+          this.errorMessage = res.error;
         } else {
           this.errorMessage = 'Invalid email or password. Please try again.';
         }
       },
-      error: () => {
+      error: (err) => {
         this.loading = false;
-        this.errorMessage = 'Invalid email or password. Please try again.';
+        this.errorMessage = err?.error?.error ?? err?.message ?? 'Login failed. Please try again.';
       },
     });
   }

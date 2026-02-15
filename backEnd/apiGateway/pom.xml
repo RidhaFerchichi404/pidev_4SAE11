@@ -54,6 +54,12 @@
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
 
+        <!-- LoadBalancer: required for lb://serviceId routing to Eureka instances -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+
         <!-- Security + Keycloak -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

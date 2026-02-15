@@ -5,12 +5,19 @@ import org.springframework.web.bind.annotation.*;
 import tn.esprit.project.Entities.Project;
 import tn.esprit.project.Services.IProjectService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/projects")
 @RequiredArgsConstructor
 public class ProjectController {
 
     private final IProjectService projectService;
+
+    @GetMapping("/client/{clientId}")
+    public List<Project> getProjectsByClientId(@PathVariable Long clientId) {
+        return projectService.getProjectsByClientId(clientId);
+    }
 
     @PostMapping
     public Project addProject(@RequestBody Project project) {

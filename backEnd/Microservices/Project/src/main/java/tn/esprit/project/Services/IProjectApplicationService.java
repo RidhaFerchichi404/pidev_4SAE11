@@ -7,6 +7,9 @@ import java.util.List;
 public interface IProjectApplicationService {
     ProjectApplication addProjectApplication(ProjectApplication projectApplication);
     ProjectApplication updateProjectApplication(ProjectApplication projectApplication);
+
+    void deleteProjectApplication(ProjectApplication projectApplication);
+
     void deleteProjectApplication(Long id);
 
     ProjectApplication getProjectApplicationById(Long id);

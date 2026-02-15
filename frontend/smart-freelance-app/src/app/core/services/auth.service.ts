@@ -36,6 +36,8 @@ export interface RegisterRequest {
   firstName: string;
   lastName: string;
   role: string;
+  phone?: string;
+  avatarUrl?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -57,7 +59,8 @@ export class AuthService {
     return localStorage.getItem(TOKEN_KEY);
   }
 
-  login(email: string, password: string): Observable<LoginResponse | null> {
+  /** Success: LoginResponse with access_token. Failure: { error: string } with a user-friendly message. */
+  login(email: string, password: string): Observable<LoginResponse | { error: string }> {
     return this.http
       .post<LoginResponse>(`${this.baseUrl}/token`, {
         username: email,
@@ -70,8 +73,36 @@ export class AuthService {
             this.tokenSignal.set(res.access_token);
           }
         }),
-        catchError(() => of(null))
+        catchError((err) => of({ error: this.mapLoginError(err) }))
       );
+  }
+
+  /** Map HTTP/backend errors to user-friendly login messages. */
+  private mapLoginError(err: { status?: number; error?: { error_description?: string; error?: string }; message?: string }): string {
+    const status = err?.status;
+    const body = err?.error;
+    const desc = (typeof body === 'object' && body?.error_description) ? String(body.error_description).toLowerCase() : '';
+    const msg = (typeof body === 'object' && body?.error) ? String(body.error).toLowerCase() : '';
+
+    if (status === 401) {
+      if (desc.includes('invalid') && (desc.includes('user') || desc.includes('credential'))) {
+        return 'Invalid email or password. This account may not exist or the password is incorrect.';
+      }
+      return 'Invalid email or password. Please check your credentials.';
+    }
+    if (status === 404 || msg.includes('not found')) {
+      return 'This account does not exist. Please sign up first.';
+    }
+    if (status === 400) {
+      return 'Invalid request. Please check your email and password format.';
+    }
+    if (status === 0 || status === undefined) {
+      return 'Cannot reach the server. Check your connection and try again.';
+    }
+    if (status && status >= 500) {
+      return 'Authentication service is temporarily unavailable. Please try again later.';
+    }
+    return err?.message || 'Login failed. Please try again.';
   }
 
   /** On success returns { message, keycloakUserId }; on HTTP error returns { error: string } with backend message when available. */
@@ -97,6 +128,23 @@ export class AuthService {
           return of({ error: message });
         })
       );
+  }
+
+  /** Create a new user (admin "Add user"). Uses the public register endpoint. */
+  adminCreateUser(request: RegisterRequest): Observable<{ message?: string; keycloakUserId?: string } | { error: string }> {
+    const url = `${this.baseUrl}/register`;
+    return this.http.post<{ message: string; keycloakUserId: string }>(url, request).pipe(
+      catchError((err) => {
+        const status = err?.status;
+        const backendMessage = err?.error?.error ?? err?.error?.message;
+        const raw = typeof backendMessage === 'string' ? backendMessage : err?.message || '';
+        const message =
+          status === 409 || (raw && raw.toLowerCase().includes('already exists'))
+            ? 'A user with this email already exists. Use a different email or edit the existing user.'
+            : toUserFriendlyAuthError(raw || 'Failed to create user.');
+        return of({ error: message });
+      })
+    );
   }
 
   logout(): void {
@@ -141,5 +189,34 @@ export class AuthService {
     if (roles.includes('FREELANCER')) return 'FREELANCER';
 
     return null;
+  }
+
+  /**
+   * Display name for the current user from JWT (given_name + family_name, or name, or preferred_username).
+   */
+  getDisplayName(): string {
+    const token = this.getToken();
+    if (!token) return 'Me';
+
+    const decoded = this.decodeToken(token);
+    if (!decoded) return 'Me';
+
+    const given = decoded.given_name;
+    const family = decoded.family_name;
+    if (given && family) return `${given} ${family}`.trim();
+    if (given) return given;
+    if (family) return family;
+    if (decoded.name) return decoded.name;
+    if (decoded.preferred_username) return decoded.preferred_username;
+
+    return 'Me';
+  }
+
+  /** Email (preferred_username) of the current user, or null if not logged in. */
+  getPreferredUsername(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+    const decoded = this.decodeToken(token);
+    return decoded?.preferred_username ?? null;
   }
 }

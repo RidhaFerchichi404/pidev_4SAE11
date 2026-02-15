@@ -1,0 +1,79 @@
+# ========== Gateway routes (dynamic: targets resolved via Eureka) ==========
+# Each route: /<prefix>/** -> lb://<service-id> with first path segment stripped.
+# Service instances are resolved at runtime from Eureka. Add a new route block
+# for any new microservice (same pattern: id, uri lb://<eureka-service-id>, Path, StripPrefix=1).
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:4200"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - PATCH
+            allowedHeaders:
+              - Authorization
+              - Content-Type
+              - Accept
+              - Origin
+              - X-Requested-With
+            allowCredentials: true
+      discovery:
+        locator:
+          enabled: false
+          lower-case-service-id: true
+      routes:
+        - id: keycloak-auth
+          uri: http://localhost:8079
+          predicates:
+            - Path=/keycloak-auth/**
+          filters:
+            - StripPrefix=1
+
+        - id: user
+          uri: http://localhost:8090
+          predicates:
+            - Path=/user/**
+          filters:
+            - StripPrefix=1
+
+        - id: evaluation
+          uri: lb://Evaluation
+          predicates:
+            - Path=/evaluation/**
+          filters:
+            - StripPrefix=1
+
+        - id: planning
+          uri: lb://planning
+          predicates:
+            - Path=/planning/**
+          filters:
+            - StripPrefix=1
+
+        - id: review
+          uri: lb://review
+          predicates:
+            - Path=/review/**
+          filters:
+            - StripPrefix=1
+
+        - id: project
+          uri: lb://Project
+          predicates:
+            - Path=/project/**
+          filters:
+            - StripPrefix=1
+
+        - id: offer
+          uri: lb://Offer
+          predicates:
+            - Path=/offer/**
+          filters:
+            - StripPrefix=1

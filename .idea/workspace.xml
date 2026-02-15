@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="7bce780c-f0d9-4f6e-8244-4c794ceacf87" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/backEnd/KeyCloak/src/main/java/com/esprit/keycloak/config/ServiceSecretFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backEnd/KeyCloak/src/main/java/com/esprit/keycloak/dto/KeycloakUserUpdateRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backEnd/Microservices/user/src/main/java/com/esprit/user/client/KeycloakAuthClient.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backEnd/Microservices/user/src/main/java/com/esprit/user/config/KeycloakAuthProperties.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backEnd/Microservices/user/src/main/java/com/esprit/user/config/RestTemplateConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backEnd/Microservices/user/src/main/java/com/esprit/user/controller/AvatarController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backEnd/Microservices/user/src/main/java/com/esprit/user/dto/UserResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backEnd/Microservices/user/src/main/java/com/esprit/user/dto/UserUpdateRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backEnd/Microservices/user/src/main/java/com/esprit/user/service/AvatarStorageService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backEnd/apiGateway/src/main/java/com/esprit/apigateway/config/GatewayErrorWebExceptionHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backEnd/apiGateway/src/main/java/com/esprit/apigateway/config/GlobalCorsWebFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backEnd/apiGateway/src/main/resources/application.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/core/interceptors/unauthorized-interceptor.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/core/services/planning.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/core/services/project.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/core/services/user.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/pages/admin/user-management/user-management.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/pages/admin/user-management/user-management.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/pages/admin/user-management/user-management.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/pages/dashboard/progress-updates/progress-updates.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/pages/dashboard/progress-updates/progress-updates.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/pages/dashboard/progress-updates/progress-updates.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/pages/dashboard/track-progress/track-progress.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/pages/dashboard/track-progress/track-progress.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/pages/dashboard/track-progress/track-progress.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/uploads/avatars/05c590e1-6eb4-4bca-8d22-ba8e32bc33cb.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/uploads/avatars/39032e4d-493a-4823-97ba-8f4fd71b07d3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/uploads/avatars/63e23b60-cbbd-44ea-80cd-d2c61de385b2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/uploads/avatars/8df80759-0f8b-45c2-a827-e7eb589d5ecc.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/uploads/avatars/96002433-bcc9-49b6-9202-53daa91cfa84.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/uploads/avatars/c46846d8-fa75-41b9-980c-e6d1a67f2fdd.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/uploads/avatars/d5c8a7b4-db13-4868-a620-8565942df4ee.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/uploads/avatars/d5f4acaa-2f61-4a76-a3fb-bedbcb85502c.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/pidev_4SAE11.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/Eureka/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/Eureka/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/KeyCloak/src/main/java/com/esprit/keycloak/client/UserServiceClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/KeyCloak/src/main/java/com/esprit/keycloak/client/UserServiceClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/KeyCloak/src/main/java/com/esprit/keycloak/config/KeycloakProperties.java" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/KeyCloak/src/main/java/com/esprit/keycloak/config/KeycloakProperties.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/KeyCloak/src/main/java/com/esprit/keycloak/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/KeyCloak/src/main/java/com/esprit/keycloak/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/KeyCloak/src/main/java/com/esprit/keycloak/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/KeyCloak/src/main/java/com/esprit/keycloak/controller/AuthController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/KeyCloak/src/main/java/com/esprit/keycloak/dto/RegisterRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/KeyCloak/src/main/java/com/esprit/keycloak/dto/RegisterRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/KeyCloak/src/main/java/com/esprit/keycloak/service/KeycloakAdminService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/KeyCloak/src/main/java/com/esprit/keycloak/service/KeycloakAdminService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/KeyCloak/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/KeyCloak/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/Microservices/Project/src/main/java/tn/esprit/project/Controllers/ProjectController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/Microservices/Project/src/main/java/tn/esprit/project/Controllers/ProjectController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/Microservices/Project/src/main/java/tn/esprit/project/Repository/ProjectRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/Microservices/Project/src/main/java/tn/esprit/project/Repository/ProjectRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/Microservices/Project/src/main/java/tn/esprit/project/Services/IProjectApplicationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/Microservices/Project/src/main/java/tn/esprit/project/Services/IProjectApplicationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/Microservices/Project/src/main/java/tn/esprit/project/Services/IProjectService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/Microservices/Project/src/main/java/tn/esprit/project/Services/IProjectService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/Microservices/Project/src/main/java/tn/esprit/project/Services/IProjectServicelmp.java" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/Microservices/Project/src/main/java/tn/esprit/project/Services/IProjectServicelmp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/Microservices/Project/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/Microservices/Project/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/Microservices/planning/src/main/java/com/esprit/planning/entity/ProgressUpdate.java" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/Microservices/planning/src/main/java/com/esprit/planning/entity/ProgressUpdate.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/Microservices/user/src/main/java/com/esprit/user/controller/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/Microservices/user/src/main/java/com/esprit/user/controller/GlobalExceptionHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/Microservices/user/src/main/java/com/esprit/user/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/Microservices/user/src/main/java/com/esprit/user/controller/UserController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/Microservices/user/src/main/java/com/esprit/user/entity/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/Microservices/user/src/main/java/com/esprit/user/entity/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/Microservices/user/src/main/java/com/esprit/user/repository/UserRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/Microservices/user/src/main/java/com/esprit/user/repository/UserRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/Microservices/user/src/main/java/com/esprit/user/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/Microservices/user/src/main/java/com/esprit/user/service/UserService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/Microservices/user/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/Microservices/user/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/apiGateway/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/apiGateway/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/apiGateway/src/main/java/com/esprit/apigateway/ApiGatewayApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/apiGateway/src/main/java/com/esprit/apigateway/ApiGatewayApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/apiGateway/src/main/java/com/esprit/apigateway/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/apiGateway/src/main/java/com/esprit/apigateway/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backEnd/apiGateway/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/backEnd/apiGateway/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/smart-freelance-app/angular.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/angular.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/app.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/app.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/app.routes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/app.routes.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/core/services/auth.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/core/services/auth.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/pages/login/login.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/pages/login/login.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/pages/login/login.component.scss" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/pages/login/login.component.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/pages/login/login.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/pages/login/login.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/pages/signup/signup.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/pages/signup/signup.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/pages/signup/signup.component.scss" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/pages/signup/signup.component.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/pages/signup/signup.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/pages/signup/signup.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/shared/components/header/header.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/shared/components/header/header.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/shared/components/header/header.scss" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/shared/components/header/header.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/shared/components/header/header.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/shared/components/header/header.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/shared/components/sidebar/sidebar.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/smart-freelance-app/src/app/shared/components/sidebar/sidebar.ts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "oussamaabdallah"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/oussamaabdallah/pidev_4SAE11.git",
+    "accountId": "b1a25638-4b02-490a-a61d-60f15de55e91"
+  }
+}]]></component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 6
+}]]></component>
+  <component name="ProjectId" id="39hsiSkSAMNuimZXd4xqozZQamW" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "Merging main",
+    "kotlin-language-version-configured": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-28b599e66164-intellij.indexing.shared.core-IU-242.23339.11" />
+        <option value="bundled-js-predefined-d6986cc7102b-5c90d61e3bab-JavaScript-IU-242.23339.11" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="7bce780c-f0d9-4f6e-8244-4c794ceacf87" name="Changes" comment="" />
+      <created>1771159765896</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1771159765896</updated>
+      <workItem from="1771159767448" duration="1354000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

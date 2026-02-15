@@ -3,7 +3,7 @@ package com.esprit.keycloak.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -22,8 +22,8 @@ import java.util.stream.Stream;
 
 /**
  * Security configuration: OAuth2 Resource Server with Keycloak JWT.
- * Public: /api/auth/register, /api/auth/token, /actuator/health.
- * Protected (JWT): /api/auth/userinfo, /api/auth/validate, and any other /api/**.
+ * Public: /api/auth/register, /api/auth/token, /api/auth/admin/users/by-email/**, actuator, error.
+ * Protected (JWT): /api/auth/userinfo, /api/auth/validate, POST /api/auth/admin/users (ADMIN), and any other /api/**.
  */
 @Configuration
 @EnableWebSecurity
@@ -32,18 +32,20 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
+        return http
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
+            .authorizeHttpRequests(requests -> requests
                 .requestMatchers("/api/auth/register", "/api/auth/token", "/actuator/**", "/error").permitAll()
+                .requestMatchers("/api/auth/admin/users/by-email/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/auth/admin/users").hasRole("ADMIN")
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().authenticated())
             .oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
-        return http.build();
+                .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
+            .build();
     }
 
     @Bean
@@ -55,31 +57,33 @@ public class SecurityConfig {
 
     /**
      * Map Keycloak realm roles and resource roles to Spring Security authorities.
-     * Supports both "realm_access.roles" and "resource_access.<client>.roles".
+     * Reads realm_access.roles and roles from every client in resource_access.
      */
-    @SuppressWarnings("unchecked")
     private Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter() {
         return jwt -> {
             Map<String, Object> realmAccess = jwt.getClaimAsMap("realm_access");
-            List<String> realmRoles = realmAccess != null
-                ? (List<String>) realmAccess.get("roles")
+            List<String> realmRoles = realmAccess != null && realmAccess.get("roles") instanceof List
+                ? ((List<?>) realmAccess.get("roles")).stream().map(Object::toString).toList()
                 : List.of();
 
             Map<String, Object> resourceAccess = jwt.getClaimAsMap("resource_access");
             List<String> resourceRoles = List.of();
-            if (resourceAccess != null && resourceAccess.get("smart-freelance-backend") instanceof Map<?, ?> client) {
-                Object roles = ((Map<?, ?>) client).get("roles");
-                if (roles instanceof List) {
-                    resourceRoles = ((List<?>) roles).stream()
-                        .map(Object::toString)
-                        .toList();
-                }
+            if (resourceAccess != null) {
+                resourceRoles = resourceAccess.values().stream()
+                    .filter(v -> v instanceof Map)
+                    .flatMap(client -> {
+                        Object roles = ((Map<?, ?>) client).get("roles");
+                        if (roles instanceof List) {
+                            return ((List<?>) roles).stream().map(Object::toString);
+                        }
+                        return Stream.empty();
+                    })
+                    .distinct()
+                    .toList();
             }
 
-            return Stream.concat(
-                realmRoles.stream(),
-                resourceRoles.stream()
-            )
+            return Stream.concat(realmRoles.stream(), resourceRoles.stream())
+                .distinct()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
                 .collect(Collectors.toList());
         };

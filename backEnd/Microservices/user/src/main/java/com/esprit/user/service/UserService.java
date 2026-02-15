@@ -1,6 +1,8 @@
 package com.esprit.user.service;
 
+import com.esprit.user.client.KeycloakAuthClient;
 import com.esprit.user.dto.UserRequest;
+import com.esprit.user.dto.UserUpdateRequest;
 import com.esprit.user.entity.User;
 import com.esprit.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +14,7 @@ import java.util.List;
 
 /**
  * Service layer for User operations in the Gestion User microservice.
+ * Syncs delete/update with Keycloak via keycloak-auth service when configured.
  */
 @Service
 @RequiredArgsConstructor
@@ -19,6 +22,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final KeycloakAuthClient keycloakAuthClient;
 
     @Transactional(readOnly = true)
     public List<User> findAll() {
@@ -39,14 +43,19 @@ public class UserService {
 
     @Transactional
     public User create(UserRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("User already exists with email: " + request.getEmail());
+        String email = request.getEmail() != null ? request.getEmail().trim() : "";
+        if (email.isEmpty()) {
+            throw new IllegalArgumentException("Email is required.");
+        }
+        var existing = userRepository.findByEmailIgnoreCase(email);
+        if (existing.isPresent()) {
+            return existing.get();
         }
         String passwordHash = request.getPassword() != null && !request.getPassword().isBlank()
                 ? passwordEncoder.encode(request.getPassword())
                 : passwordEncoder.encode("changeme");
         User user = User.builder()
-                .email(request.getEmail())
+                .email(email.trim())
                 .passwordHash(passwordHash)
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
@@ -59,8 +68,9 @@ public class UserService {
     }
 
     @Transactional
-    public User update(Long id, UserRequest request) {
+    public User update(Long id, UserUpdateRequest request) {
         User user = findById(id);
+        String oldEmail = user.getEmail();
         if (request.getEmail() != null && !request.getEmail().equals(user.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("User already exists with email: " + request.getEmail());
         }
@@ -74,14 +84,20 @@ public class UserService {
         if (request.getPhone() != null) user.setPhone(request.getPhone());
         if (request.getAvatarUrl() != null) user.setAvatarUrl(request.getAvatarUrl());
         if (request.getIsActive() != null) user.setIsActive(request.getIsActive());
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        keycloakAuthClient.updateUserByEmail(oldEmail, saved.getFirstName(), saved.getLastName(),
+            saved.getEmail(), saved.getRole() != null ? saved.getRole().name() : null);
+        return saved;
     }
 
     @Transactional
     public void deleteById(Long id) {
         if (!userRepository.existsById(id)) {
-            throw new RuntimeException("User not found with id: " + id);
+            return;
         }
+        User user = findById(id);
+        String email = user.getEmail();
         userRepository.deleteById(id);
+        keycloakAuthClient.deleteUserByEmail(email);
     }
 }

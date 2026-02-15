@@ -1,0 +1,133 @@
+<div class="track-progress-page">
+  <h1>Track progress</h1>
+  <p class="subtitle">Select a project to view freelancer progress updates and add or manage your comments.</p>
+
+  @if (errorMessage) {
+    <div class="error-banner" role="alert">{{ errorMessage }}</div>
+  }
+
+  @if (selectedProject) {
+    <app-card>
+      <div class="project-header">
+        <button type="button" class="btn-back" (click)="backToProjects()">← Back to my projects</button>
+        <h2 class="project-title">{{ selectedProject.title }}</h2>
+        @if (selectedProject.description) {
+          <p class="project-desc">{{ selectedProject.description }}</p>
+        }
+      </div>
+
+      @if (loadingUpdates) {
+        <p class="loading-msg">Loading progress updates…</p>
+      } @else if (updates.length === 0) {
+        <p class="empty-msg">No progress updates for this project yet. Updates will appear here when your freelancer submits progress.</p>
+      } @else {
+        <div class="updates-list">
+          @for (u of updates; track u.id) {
+            <div class="update-card">
+              <div class="update-main">
+                <div class="update-header">
+                  <h3>{{ u.title }}</h3>
+                  <span class="progress-badge">{{ u.progressPercentage }}%</span>
+                </div>
+                @if (u.description) {
+                  <p class="update-desc">{{ u.description }}</p>
+                }
+                <p class="update-meta">Freelancer ID: {{ u.freelancerId }} · Updated {{ formatDate(u.updatedAt) }}</p>
+              </div>
+              <div class="comments-block">
+                <h4>Your feedback ({{ (commentsByUpdateId[u.id] || []).length }})</h4>
+                @if (loadingComments[u.id]) {
+                  <p class="loading-comments">Loading comments…</p>
+                } @else {
+                  @for (comment of commentsByUpdateId[u.id] || []; track comment.id) {
+                    <div class="comment">
+                      <p class="comment-text">{{ comment.message }}</p>
+                      <span class="comment-meta">{{ formatDate(comment.createdAt) }}</span>
+                      @if (isMyComment(comment)) {
+                        <div class="comment-actions">
+                          <button type="button" class="btn-edit" (click)="openEditComment(comment)">Edit</button>
+                          <button type="button" class="btn-delete" (click)="confirmDeleteComment(comment)">Delete</button>
+                        </div>
+                      }
+                    </div>
+                  }
+                  <button type="button" class="btn-add-comment" (click)="openAddComment(u.id)">Add comment</button>
+                }
+
+                @if (addCommentForUpdateId === u.id) {
+                  <div class="add-comment-form">
+                    <form [formGroup]="addCommentForm" (ngSubmit)="submitComment()">
+                      <label for="add-message">Your comment <span class="required">*</span></label>
+                      <textarea id="add-message" formControlName="message" [maxlength]="messageMax" rows="3" placeholder="Share feedback for the freelancer…"></textarea>
+                      @if (getAddMessageError()) {
+                        <span class="field-error">{{ getAddMessageError() }}</span>
+                      }
+                      <span class="char-count">{{ addCommentForm.get('message')?.value?.length ?? 0 }}/{{ messageMax }}</span>
+                      <div class="form-actions">
+                        <button type="button" (click)="cancelAddComment()">Cancel</button>
+                        <button type="submit" [disabled]="addCommentForm.invalid || saving">{{ saving ? 'Saving…' : 'Post' }}</button>
+                      </div>
+                    </form>
+                  </div>
+                }
+
+                @if (isEditingCommentInUpdate(u.id)) {
+                  <div class="edit-comment-form">
+                    <form [formGroup]="editCommentForm" (ngSubmit)="saveEditComment()">
+                      <label for="edit-message">Edit comment <span class="required">*</span></label>
+                      <textarea id="edit-message" formControlName="message" [maxlength]="messageMax" rows="3"></textarea>
+                      @if (getEditMessageError()) {
+                        <span class="field-error">{{ getEditMessageError() }}</span>
+                      }
+                      <span class="char-count">{{ editCommentForm.get('message')?.value?.length ?? 0 }}/{{ messageMax }}</span>
+                      <div class="form-actions">
+                        <button type="button" (click)="cancelEditComment()">Cancel</button>
+                        <button type="submit" [disabled]="editCommentForm.invalid || saving">{{ saving ? 'Saving…' : 'Save' }}</button>
+                      </div>
+                    </form>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </app-card>
+  } @else {
+    <app-card>
+      @if (loading) {
+        <p class="loading-msg">Loading your projects…</p>
+      } @else if (projects.length === 0) {
+        <p class="empty-msg">You have no projects yet. Post a job from Post a Job to create projects and receive progress updates.</p>
+      } @else {
+        <p class="section-label">Select a project to view progress and leave comments</p>
+        <div class="projects-grid">
+          @for (project of projects; track project.id) {
+            <button type="button" class="project-card" (click)="selectProject(project)">
+              <span class="project-card-title">{{ project.title }}</span>
+              @if (project.description) {
+                <span class="project-card-desc">{{ project.description }}</span>
+              }
+              <span class="project-card-meta">Project #{{ project.id }}</span>
+            </button>
+          }
+        </div>
+      }
+    </app-card>
+  }
+
+  @if (deleteCommentTarget) {
+    <div class="modal-backdrop" (click)="cancelDeleteComment()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>Delete comment?</h2>
+        <p>This comment will be removed.</p>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cancelDeleteComment()">Cancel</button>
+          <button type="button" class="btn-delete" (click)="doDeleteComment()" [disabled]="deleting">
+            {{ deleting ? 'Deleting…' : 'Delete' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

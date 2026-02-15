@@ -27,9 +27,12 @@
           formControlName="email"
           placeholder="you@example.com"
           autocomplete="email"
+          [attr.aria-invalid]="form.get('email')?.invalid && form.get('email')?.touched"
+          aria-describedby="email-error"
+          [class.input-error]="form.get('email')?.invalid && form.get('email')?.touched"
         />
-        @if (form.get('email')?.invalid && form.get('email')?.touched) {
-          <span class="field-error">Please enter a valid email.</span>
+        @if (getEmailError(); as msg) {
+          <span id="email-error" class="field-error">{{ msg }}</span>
         }
       </div>
 
@@ -41,27 +44,86 @@
           formControlName="password"
           placeholder="At least 8 characters"
           autocomplete="new-password"
+          [attr.aria-invalid]="form.get('password')?.invalid && form.get('password')?.touched"
+          aria-describedby="password-error"
+          [class.input-error]="form.get('password')?.invalid && form.get('password')?.touched"
         />
-        @if (form.get('password')?.invalid && form.get('password')?.touched) {
-          <span class="field-error">Password must be at least 8 characters.</span>
+        @if (getPasswordError(); as msg) {
+          <span id="password-error" class="field-error">{{ msg }}</span>
         }
       </div>
 
       <div class="row">
         <div class="field half">
           <label for="firstName">First name</label>
-          <input id="firstName" type="text" formControlName="firstName" placeholder="John" />
-          @if (form.get('firstName')?.invalid && form.get('firstName')?.touched) {
-            <span class="field-error">Required.</span>
+          <input
+            id="firstName"
+            type="text"
+            formControlName="firstName"
+            placeholder="John"
+            [attr.aria-invalid]="form.get('firstName')?.invalid && form.get('firstName')?.touched"
+            [class.input-error]="form.get('firstName')?.invalid && form.get('firstName')?.touched"
+          />
+          @if (getFirstNameError(); as msg) {
+            <span class="field-error">{{ msg }}</span>
           }
         </div>
         <div class="field half">
           <label for="lastName">Last name</label>
-          <input id="lastName" type="text" formControlName="lastName" placeholder="Doe" />
-          @if (form.get('lastName')?.invalid && form.get('lastName')?.touched) {
-            <span class="field-error">Required.</span>
+          <input
+            id="lastName"
+            type="text"
+            formControlName="lastName"
+            placeholder="Doe"
+            [attr.aria-invalid]="form.get('lastName')?.invalid && form.get('lastName')?.touched"
+            [class.input-error]="form.get('lastName')?.invalid && form.get('lastName')?.touched"
+          />
+          @if (getLastNameError(); as msg) {
+            <span class="field-error">{{ msg }}</span>
           }
         </div>
+      </div>
+
+      <div class="field">
+        <label for="phone">Phone (optional)</label>
+        <input
+          id="phone"
+          type="tel"
+          formControlName="phone"
+          placeholder="+1234567890"
+          autocomplete="tel"
+          maxlength="20"
+        />
+      </div>
+
+      <div class="field avatar-field">
+        <label>Profile image (optional)</label>
+        <div class="avatar-upload-row">
+          <input
+            type="file"
+            #avatarFileInput
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            (change)="onAvatarFileSelected($event)"
+            class="avatar-file-input"
+            [disabled]="avatarUploading"
+          />
+          <button type="button" class="btn-upload" (click)="avatarFileInput.click()" [disabled]="avatarUploading">
+            {{ avatarUploading ? 'Uploading…' : 'Upload image' }}
+          </button>
+          <span class="avatar-or">or paste URL</span>
+          <input
+            id="avatarUrl"
+            type="url"
+            formControlName="avatarUrl"
+            placeholder="https://..."
+            class="avatar-url-input"
+          />
+        </div>
+        @if (avatarPreviewUrl) {
+          <div class="avatar-preview">
+            <img [src]="avatarPreviewUrl" alt="Preview" (error)="$any($event.target).style.display='none'" />
+          </div>
+        }
       </div>
 
       <div class="field">
@@ -77,8 +139,14 @@
         </select>
       </div>
 
-      <button type="submit" class="btn-primary" [disabled]="loading">
-        {{ loading ? 'Creating account…' : 'Create account' }}
+      <button type="submit" class="btn-primary" [disabled]="loading || checkingEmail">
+        @if (checkingEmail) {
+          Checking email…
+        } @else if (loading) {
+          Creating account…
+        } @else {
+          Create account
+        }
       </button>
     </form>
 

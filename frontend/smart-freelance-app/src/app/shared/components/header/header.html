@@ -27,8 +27,12 @@
         <!-- Authenticated: User menu -->
         <div class="user-menu-container">
           <button class="user-menu-trigger" (click)="toggleUserMenu()">
-            <span class="user-avatar">{{ auth.getUserRole()?.[0] || 'U' }}</span>
-            <span class="user-name">Me</span>
+            @if (avatarUrl()) {
+              <img [src]="avatarUrl()" alt="" class="user-avatar-img" (error)="onAvatarError()" />
+            } @else {
+              <span class="user-avatar">{{ auth.getUserRole()?.[0] || 'U' }}</span>
+            }
+            <span class="user-name">{{ auth.getDisplayName() }}</span>
             <svg class="dropdown-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
               <path d="M4.427 6.427l3.396 3.396 3.396-3.396.781.782-4.177 4.177-4.177-4.177z"/>
             </svg>

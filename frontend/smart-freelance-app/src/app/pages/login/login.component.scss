@@ -61,6 +61,17 @@
     border-radius: var(--radius-md);
     color: var(--error);
     font-size: var(--text-sm);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+
+    .error-title {
+      font-weight: 700;
+    }
+
+    .error-text {
+      color: var(--error);
+    }
   }
 
   .field {
@@ -94,6 +105,10 @@
         outline: none;
         border-color: var(--secondary);
         box-shadow: 0 0 0 3px rgba(227, 126, 51, 0.1);
+      }
+
+      &.input-error {
+        border-color: var(--error);
       }
     }
 

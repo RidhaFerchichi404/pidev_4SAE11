@@ -1,5 +1,6 @@
 package com.esprit.keycloak.controller;
 
+import com.esprit.keycloak.dto.KeycloakUserUpdateRequest;
 import com.esprit.keycloak.dto.RegisterRequest;
 import com.esprit.keycloak.dto.TokenRequest;
 import com.esprit.keycloak.dto.TokenResponse;
@@ -101,6 +102,55 @@ public class AuthController {
             "valid", true,
             "sub", jwt.getSubject(),
             "exp", jwt.getExpiresAt() != null ? jwt.getExpiresAt().getEpochSecond() : 0
+        );
+    }
+
+    // ---------- Admin API (JWT with role ADMIN) ----------
+
+    @Operation(summary = "Create user (admin)", description = "Create a new user in Keycloak and userdb. Requires ADMIN role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "User created"),
+        @ApiResponse(responseCode = "400", description = "Invalid request or email already exists"),
+        @ApiResponse(responseCode = "403", description = "Admin role required")
+    })
+    @PostMapping(value = "/admin/users", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    @SecurityRequirement(name = "bearer-jwt")
+    public Map<String, String> adminCreateUser(@Valid @RequestBody RegisterRequest request) {
+        String keycloakUserId = keycloakAdminService.registerUser(request);
+        return Map.of(
+            "message", "User created.",
+            "keycloakUserId", keycloakUserId
+        );
+    }
+
+    // ---------- Internal API (X-Service-Secret required; called by User service for sync) ----------
+
+    @Operation(summary = "[Internal] Delete user in Keycloak by email", description = "Requires X-Service-Secret. Used by User service when admin deletes a user.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "User deleted or not found"),
+        @ApiResponse(responseCode = "403", description = "Invalid or missing X-Service-Secret")
+    })
+    @DeleteMapping(value = "/admin/users/by-email/{email}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUserByEmail(@PathVariable String email) {
+        keycloakAdminService.deleteUserByEmail(email);
+    }
+
+    @Operation(summary = "[Internal] Update user in Keycloak by email", description = "Requires X-Service-Secret. Used by User service when admin updates a user.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "User updated"),
+        @ApiResponse(responseCode = "403", description = "Invalid or missing X-Service-Secret")
+    })
+    @PutMapping(value = "/admin/users/by-email/{email}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateUserByEmail(@PathVariable String email, @RequestBody KeycloakUserUpdateRequest body) {
+        keycloakAdminService.updateUserByEmail(
+            email,
+            body != null ? body.getFirstName() : null,
+            body != null ? body.getLastName() : null,
+            body != null ? body.getEmail() : null,
+            body != null ? body.getRole() : null
         );
     }
 

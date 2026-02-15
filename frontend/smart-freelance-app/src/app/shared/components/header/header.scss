@@ -94,10 +94,15 @@
     border-color: var(--border-default);
   }
 
-  .user-avatar {
+  .user-avatar,
+  .user-avatar-img {
     width: 32px;
     height: 32px;
     border-radius: var(--radius-full);
+    flex-shrink: 0;
+  }
+
+  .user-avatar {
     background: var(--accent-gradient);
     color: white;
     display: flex;
@@ -105,6 +110,11 @@
     justify-content: center;
     font-weight: 600;
     font-size: var(--text-sm);
+  }
+
+  .user-avatar-img {
+    object-fit: cover;
+    display: block;
   }
 
   .user-name {

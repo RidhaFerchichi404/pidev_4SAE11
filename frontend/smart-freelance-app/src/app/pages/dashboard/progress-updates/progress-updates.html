@@ -1,0 +1,142 @@
+<div class="progress-updates-page">
+  <h1>My Progress Updates</h1>
+  <p class="subtitle">Select a project to submit and manage progress updates and view client feedback.</p>
+
+  @if (errorMessage) {
+    <div class="error-banner" role="alert">{{ errorMessage }}</div>
+  }
+
+  @if (selectedProject) {
+    <app-card>
+      <div class="project-header">
+        <button type="button" class="btn-back" (click)="backToProjects()">← Back to my projects</button>
+        <h2 class="project-title">{{ selectedProject.title }}</h2>
+        @if (selectedProject.description) {
+          <p class="project-desc">{{ selectedProject.description }}</p>
+        }
+      </div>
+
+      <div class="toolbar">
+        <span class="count">{{ updates.length }} update(s)</span>
+        <button type="button" class="btn-add" (click)="openCreate()">Add progress update</button>
+      </div>
+
+      @if (loadingUpdates) {
+        <p class="loading-msg">Loading progress updates…</p>
+      } @else if (updates.length === 0) {
+        <p class="empty-msg">No progress updates yet for this project. Add one to keep your client informed.</p>
+      } @else {
+        <div class="updates-list">
+          @for (u of updates; track u.id) {
+            <div class="update-card">
+              <div class="update-main">
+                <div class="update-header">
+                  <h3>{{ u.title }}</h3>
+                  <span class="progress-badge">{{ u.progressPercentage }}%</span>
+                </div>
+                @if (u.description) {
+                  <p class="update-desc">{{ u.description }}</p>
+                }
+                <p class="update-meta">Updated {{ formatDate(u.updatedAt) }}</p>
+                <div class="update-actions">
+                  <button type="button" class="btn-edit" (click)="openEdit(u)">Edit</button>
+                  <button type="button" class="btn-delete" (click)="confirmDelete(u)">Delete</button>
+                </div>
+              </div>
+              <div class="comments-block">
+                <h4>Client feedback ({{ (commentsByUpdateId[u.id] || []).length }})</h4>
+                @if ((commentsByUpdateId[u.id] || []).length === 0) {
+                  <p class="no-comments">No comments yet.</p>
+                } @else {
+                  <ul class="comment-list">
+                    @for (comment of commentsByUpdateId[u.id]; track comment.id) {
+                      <li class="comment-item">
+                        <p class="comment-text">{{ comment.message }}</p>
+                        <span class="comment-meta">{{ formatDate(comment.createdAt) }}</span>
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </app-card>
+  } @else {
+    <app-card>
+      @if (loading) {
+        <p class="loading-msg">Loading your projects…</p>
+      } @else if (projects.length === 0) {
+        <p class="empty-msg">You have no projects yet. Apply to projects from Browse Jobs to see them here.</p>
+      } @else {
+        <p class="section-label">Select a project to manage progress updates</p>
+        <div class="projects-grid">
+          @for (item of projects; track item.project.id) {
+            <button type="button" class="project-card" (click)="selectProject(item.project)">
+              <span class="project-card-title">{{ item.project.title }}</span>
+              @if (item.project.description) {
+                <span class="project-card-desc">{{ item.project.description }}</span>
+              }
+              <span class="project-card-meta">Project #{{ item.project.id }}</span>
+            </button>
+          }
+        </div>
+      }
+    </app-card>
+  }
+
+  @if (modalOpen) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>{{ editing ? 'Edit progress update' : 'Add progress update' }}</h2>
+        <form [formGroup]="form" (ngSubmit)="save()">
+          <div class="form-group">
+            <label for="title">Title <span class="required">*</span></label>
+            <input id="title" type="text" formControlName="title" [maxlength]="titleMax" placeholder="e.g. Backend API completed" />
+            @if (getTitleError()) {
+              <span class="field-error">{{ getTitleError() }}</span>
+            }
+            <span class="char-count">{{ form.get('title')?.value?.length ?? 0 }}/{{ titleMax }}</span>
+          </div>
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" formControlName="description" [maxlength]="descriptionMax" rows="3" placeholder="Describe what was done."></textarea>
+            @if (getDescriptionError()) {
+              <span class="field-error">{{ getDescriptionError() }}</span>
+            }
+            <span class="char-count">{{ form.get('description')?.value?.length ?? 0 }}/{{ descriptionMax }}</span>
+          </div>
+          <div class="form-group">
+            <label for="progressPercentage">Progress % <span class="required">*</span></label>
+            <input id="progressPercentage" type="number" formControlName="progressPercentage" min="0" max="100" />
+            @if (getProgressError()) {
+              <span class="field-error">{{ getProgressError() }}</span>
+            }
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeModal()">Cancel</button>
+            <button type="submit" class="btn-save" [disabled]="form.invalid || saving">
+              {{ saving ? 'Saving…' : (editing ? 'Update' : 'Create') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (deleteTarget) {
+    <div class="modal-backdrop" (click)="cancelDelete()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>Delete progress update?</h2>
+        <p>"{{ deleteTarget.title }}" will be removed. This cannot be undone.</p>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cancelDelete()">Cancel</button>
+          <button type="button" class="btn-delete" (click)="doDelete()" [disabled]="deleting">
+            {{ deleting ? 'Deleting…' : 'Delete' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

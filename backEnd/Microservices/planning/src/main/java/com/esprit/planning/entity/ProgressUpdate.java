@@ -27,8 +27,8 @@ public class ProgressUpdate {
     @Schema(description = "Project ID", example = "1")
     private Long projectId;
 
-    @Column(nullable = false)
-    @Schema(description = "Contract ID", example = "1")
+    @Column(nullable = true)
+    @Schema(description = "Contract ID (null while contract microservice is not available)", example = "1")
     private Long contractId;
 
     @Column(nullable = false)

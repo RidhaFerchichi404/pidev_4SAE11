@@ -1,0 +1,246 @@
+<div class="user-management-page">
+  <h1>User Management</h1>
+  <p class="subtitle">Manage platform users (from User microservice)</p>
+
+  @if (errorMessage) {
+    <div class="error-banner" role="alert">
+      {{ errorMessage }}
+    </div>
+  }
+
+  <app-card>
+    <div class="toolbar">
+      <span class="count">{{ users.length }} user(s)</span>
+      <div class="toolbar-actions">
+        <button type="button" class="btn-add" (click)="openAddUser()">Add user</button>
+        <button type="button" class="btn-refresh" (click)="loadUsers()" [disabled]="loading">
+          {{ loading ? 'Loading…' : 'Refresh' }}
+        </button>
+      </div>
+    </div>
+
+    @if (loading && users.length === 0) {
+      <p class="loading-msg">Loading users…</p>
+    } @else if (users.length === 0) {
+      <p class="empty-msg">No users found.</p>
+    } @else {
+      <div class="table-wrap">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Name</th>
+              <th>Role</th>
+              <th>Phone</th>
+              <th>Avatar</th>
+              <th>Active</th>
+              <th>Created</th>
+              <th>Updated</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (u of users; track u.id) {
+              <tr>
+                <td>{{ u.email }}</td>
+                <td>{{ u.firstName }} {{ u.lastName }}</td>
+                <td><span class="role-badge" [class]="'role-' + u.role">{{ roleLabel(u.role) }}</span></td>
+                <td>{{ u.phone || '—' }}</td>
+                <td>
+                  @if (u.avatarUrl) {
+                    <a [href]="u.avatarUrl" target="_blank" rel="noopener" class="avatar-link" title="{{ u.avatarUrl }}">
+                      <img [src]="u.avatarUrl" alt="Avatar" class="avatar-thumb" />
+                    </a>
+                  } @else {
+                    <span>—</span>
+                  }
+                </td>
+                <td>{{ u.isActive ? 'Yes' : 'No' }}</td>
+                <td>{{ u.createdAt | date:'short' }}</td>
+                <td>{{ u.updatedAt | date:'short' }}</td>
+                <td class="actions">
+                  <button type="button" class="btn-action btn-edit" (click)="openEdit(u)">Edit</button>
+                  <button type="button" class="btn-action btn-delete" (click)="openDeleteModal(u)">Delete</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </app-card>
+
+  @if (addUserModalOpen) {
+    <div class="modal-overlay" (click)="closeAddUser()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h3>Add user</h3>
+        <p class="modal-hint">Creates the user in Keycloak and the platform. They can sign in with the email and password below.</p>
+        <form [formGroup]="addUserForm" (ngSubmit)="saveAddUser()">
+          <div class="field">
+            <label for="add-email">Email</label>
+            <input id="add-email" type="email" formControlName="email" placeholder="user@example.com" />
+            @if (addUserForm.get('email')?.invalid && addUserForm.get('email')?.touched) {
+              <span class="field-error">Valid email required.</span>
+            }
+          </div>
+          <div class="field">
+            <label for="add-password">Password</label>
+            <input id="add-password" type="password" formControlName="password" placeholder="Min 8 characters" />
+            @if (addUserForm.get('password')?.invalid && addUserForm.get('password')?.touched) {
+              <span class="field-error">Min 8 characters required.</span>
+            }
+          </div>
+          <div class="field">
+            <label for="add-firstName">First name</label>
+            <input id="add-firstName" formControlName="firstName" />
+            @if (addUserForm.get('firstName')?.invalid && addUserForm.get('firstName')?.touched) {
+              <span class="field-error">Required.</span>
+            }
+          </div>
+          <div class="field">
+            <label for="add-lastName">Last name</label>
+            <input id="add-lastName" formControlName="lastName" />
+            @if (addUserForm.get('lastName')?.invalid && addUserForm.get('lastName')?.touched) {
+              <span class="field-error">Required.</span>
+            }
+          </div>
+          <div class="field">
+            <label for="add-phone">Phone (optional)</label>
+            <input id="add-phone" type="tel" formControlName="phone" placeholder="e.g. +216 12 345 678" />
+          </div>
+          <div class="field avatar-field">
+            <label>Avatar (optional)</label>
+            <div class="avatar-upload-row">
+              <input
+                type="file"
+                #addUserAvatarFileInput
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                (change)="onAddUserAvatarFileSelected($event)"
+                class="avatar-file-input"
+                [disabled]="addUserAvatarUploading"
+              />
+              <button type="button" class="btn-upload" (click)="addUserAvatarFileInput.click()" [disabled]="addUserAvatarUploading">
+                {{ addUserAvatarUploading ? 'Uploading…' : 'Upload image' }}
+              </button>
+              <span class="avatar-or">or</span>
+              <input id="add-avatarUrl" type="url" formControlName="avatarUrl" placeholder="https://..." class="avatar-url-input" />
+            </div>
+            @if (addUserAvatarPreviewUrl) {
+              <div class="avatar-preview">
+                <img [src]="addUserAvatarPreviewUrl" alt="Avatar" (error)="$any($event.target).style.display='none'" />
+              </div>
+            }
+          </div>
+          <div class="field">
+            <label for="add-role">Role</label>
+            <select id="add-role" formControlName="role">
+              @for (r of roles; track r) {
+                <option [value]="r">{{ roleLabel(r) }}</option>
+              }
+            </select>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" (click)="closeAddUser()" [disabled]="addingUser">Cancel</button>
+            <button type="submit" class="btn-primary" [disabled]="addUserForm.invalid || addingUser">
+              {{ addingUser ? 'Creating…' : 'Create user' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (userToDelete) {
+    <div class="modal-overlay" (click)="closeDeleteModal()">
+      <div class="modal modal--confirm" (click)="$event.stopPropagation()">
+        <h3>Delete user</h3>
+        <p class="modal-message">
+          Are you sure you want to delete <strong>{{ userToDelete.firstName }} {{ userToDelete.lastName }}</strong>
+          ({{ userToDelete.email }})? This action cannot be undone.
+        </p>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="closeDeleteModal()" [disabled]="deleting">Cancel</button>
+          <button type="button" class="btn-danger" (click)="doDelete()" [disabled]="deleting">
+            {{ deleting ? 'Deleting…' : 'Delete' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (editingUser) {
+    <div class="modal-overlay" (click)="closeEdit()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h3>Edit user</h3>
+        <p class="modal-email">{{ editingUser.email }}</p>
+        <form [formGroup]="editForm" (ngSubmit)="saveEdit()">
+          <div class="field">
+            <label for="edit-firstName">First name</label>
+            <input id="edit-firstName" formControlName="firstName" />
+            @if (editForm.get('firstName')?.invalid && editForm.get('firstName')?.touched) {
+              <span class="field-error">Required.</span>
+            }
+          </div>
+          <div class="field">
+            <label for="edit-lastName">Last name</label>
+            <input id="edit-lastName" formControlName="lastName" />
+            @if (editForm.get('lastName')?.invalid && editForm.get('lastName')?.touched) {
+              <span class="field-error">Required.</span>
+            }
+          </div>
+          <div class="field">
+            <label for="edit-phone">Phone</label>
+            <input id="edit-phone" type="tel" formControlName="phone" placeholder="e.g. +216 12 345 678" />
+          </div>
+          <div class="field avatar-field">
+            <label>Avatar</label>
+            <div class="avatar-upload-row">
+              <input
+                type="file"
+                #editAvatarFileInput
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                (change)="onAvatarFileSelected($event)"
+                class="avatar-file-input"
+                [disabled]="avatarUploading"
+              />
+              <button type="button" class="btn-upload" (click)="editAvatarFileInput.click()" [disabled]="avatarUploading">
+                {{ avatarUploading ? 'Uploading…' : 'Upload image' }}
+              </button>
+              <span class="avatar-or">or</span>
+              <input id="edit-avatarUrl" type="url" formControlName="avatarUrl" placeholder="https://..." class="avatar-url-input" />
+            </div>
+            @if (editAvatarPreviewUrl) {
+              <div class="avatar-preview">
+                <img [src]="editAvatarPreviewUrl" alt="Avatar" (error)="$any($event.target).style.display='none'" />
+              </div>
+            }
+          </div>
+          <div class="field">
+            <label for="edit-role">Role</label>
+            <select id="edit-role" formControlName="role">
+              @for (r of roles; track r) {
+                <option [value]="r">{{ roleLabel(r) }}</option>
+              }
+            </select>
+          </div>
+          <div class="field checkbox">
+            <label>
+              <input type="checkbox" formControlName="isActive" />
+              Active
+            </label>
+          </div>
+          <div class="field">
+            <label for="edit-password">New password (optional, min 8 chars)</label>
+            <input id="edit-password" type="password" formControlName="password" placeholder="Leave blank to keep" />
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" (click)="closeEdit()">Cancel</button>
+            <button type="submit" class="btn-primary" [disabled]="editForm.invalid || saving">
+              {{ saving ? 'Saving…' : 'Save' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

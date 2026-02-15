@@ -37,4 +37,10 @@ public class RegisterRequest {
      */
     @NotBlank
     private String role;
+
+    /** Optional phone number (max 20 chars, aligned with User entity). */
+    private String phone;
+
+    /** Optional avatar/image URL (aligned with User entity avatarUrl). */
+    private String avatarUrl;
 }

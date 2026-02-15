@@ -9,7 +9,8 @@
 
     @if (errorMessage) {
       <div class="error-banner" role="alert">
-        {{ errorMessage }}
+        <span class="error-title">Login failed</span>
+        <span class="error-text">{{ errorMessage }}</span>
       </div>
     }
 
@@ -22,9 +23,12 @@
           formControlName="email"
           placeholder="you@example.com"
           autocomplete="email"
+          [attr.aria-invalid]="form.get('email')?.invalid && form.get('email')?.touched"
+          aria-describedby="email-error"
+          [class.input-error]="form.get('email')?.invalid && form.get('email')?.touched"
         />
-        @if (form.get('email')?.invalid && form.get('email')?.touched) {
-          <span class="field-error">Please enter a valid email.</span>
+        @if (getEmailError(); as msg) {
+          <span id="email-error" class="field-error">{{ msg }}</span>
         }
       </div>
 
@@ -36,9 +40,12 @@
           formControlName="password"
           placeholder="••••••••"
           autocomplete="current-password"
+          [attr.aria-invalid]="form.get('password')?.invalid && form.get('password')?.touched"
+          aria-describedby="password-error"
+          [class.input-error]="form.get('password')?.invalid && form.get('password')?.touched"
         />
-        @if (form.get('password')?.invalid && form.get('password')?.touched) {
-          <span class="field-error">Password is required.</span>
+        @if (getPasswordError(); as msg) {
+          <span id="password-error" class="field-error">{{ msg }}</span>
         }
       </div>
 

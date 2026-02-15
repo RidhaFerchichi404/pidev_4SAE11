@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import tn.esprit.project.Entities.Project;
 import tn.esprit.project.Repository.ProjectRepository;
 
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 public class IProjectServicelmp implements IProjectService{
@@ -29,5 +31,10 @@ public class IProjectServicelmp implements IProjectService{
     @Override
     public Project getProjectById(Long id) {
         return projectRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    public List<Project> getProjectsByClientId(Long clientId) {
+        return projectRepository.findByClientId(clientId);
     }
 }
