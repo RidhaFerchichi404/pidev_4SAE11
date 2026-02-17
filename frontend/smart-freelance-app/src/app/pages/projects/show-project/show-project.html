@@ -1,0 +1,65 @@
+<section class="project-details">
+
+  <!-- LOADING -->
+  <div *ngIf="isLoading" class="loading">
+    Loading project details...
+  </div>
+
+  <!-- ERROR -->
+  <div *ngIf="errorMessage && !isLoading" class="error">
+    {{ errorMessage }}
+  </div>
+
+  <!-- CONTENT -->
+  <div *ngIf="!isLoading && project" class="project-card">
+
+    <div class="header">
+      <h1>{{ project.title }}</h1>
+      <span class="status"
+        [ngClass]="{
+          'open': project.status === 'OPEN',
+          'progress': project.status === 'IN_PROGRESS',
+          'done': project.status === 'COMPLETED',
+          'cancel': project.status === 'CANCELLED'
+        }">
+        {{ project.status }}
+      </span>
+    </div>
+
+    <p class="category">
+      <strong>Category:</strong>
+      {{ project.category || 'Not specified' }}
+    </p>
+
+    <p class="budget">
+      <strong>Budget:</strong>
+      ${{ project.budget }}
+    </p>
+
+    <p class="deadline">
+      <strong>Deadline:</strong>
+      {{ project.deadline | date:'longDate' }}
+    </p>
+
+    <div class="description">
+      <strong>Description:</strong>
+      <p>{{ project.description }}</p>
+    </div>
+
+    <div class="skills">
+      <strong>Skills Required:</strong>
+
+      <div class="skills-list" *ngIf="getSkills().length > 0; else noSkills">
+        <span class="skill" *ngFor="let skill of getSkills()">
+          {{ skill }}
+        </span>
+      </div>
+
+      <ng-template #noSkills>
+        <span class="no-skills">No skills specified</span>
+      </ng-template>
+    </div>
+
+  </div>
+
+</section>

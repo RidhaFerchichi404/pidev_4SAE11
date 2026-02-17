@@ -1,0 +1,126 @@
+<section class="add-project">
+  <div class="add-project__container">
+    <h1 class="add-project__title">Add New Project</h1>
+    <p class="add-project__subtitle">Fill in the details to create a new project</p>
+    
+    <form class="project-form" [formGroup]="postProjectForm" (ngSubmit)="postProject()">
+    
+      <!-- Title -->
+      <div class="form-group">
+        <label for="title" class="form-label">Project Title <span class="required">*</span></label>
+        <input type="text" id="title" formControlName="title" class="form-input">
+        <div *ngIf="postProjectForm.get('title')?.invalid && postProjectForm.get('title')?.touched" class="error">
+          Title is required (min 3 characters)
+        </div>
+      </div>
+
+      <!-- Category -->
+      <div class="form-group">
+        <label for="category" class="form-label">Category <span class="required">*</span></label>
+        <select id="category" formControlName="category" class="form-select">
+          <option value="">Select category</option>
+          <option value="Web Application">Web Application</option>
+          <option value="Mobile App">Mobile App</option>
+          <option value="Dashboard">Dashboard / Analytics</option>
+          <option value="E-commerce">E-commerce</option>
+          <option value="API / Backend">API / Backend</option>
+          <option value="UI/UX Design">UI/UX Design</option>
+          <option value="Other">Other</option>
+        </select>
+        <div *ngIf="postProjectForm.get('category')?.invalid && postProjectForm.get('category')?.touched" class="error">
+          Please select a category
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="form-group">
+        <label class="form-label">Status <span class="required">*</span></label>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input type="radio" formControlName="status" value="OPEN">
+            <span>Open</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" formControlName="status" value="IN_PROGRESS">
+            <span>In Progress</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" formControlName="status" value="COMPLETED">
+            <span>Completed</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" formControlName="status" value="CANCELLED">
+            <span>Cancelled</span>
+          </label>
+        </div>
+        <div *ngIf="postProjectForm.get('status')?.invalid && postProjectForm.get('status')?.touched" class="error">
+          Please select a status
+        </div>
+      </div>
+
+      <!-- Budget -->
+      <div class="form-group">
+        <label for="budget" class="form-label">Budget (USD) <span class="required">*</span></label>
+        <input type="number" id="budget" formControlName="budget" class="form-input" min="1">
+        <div *ngIf="postProjectForm.get('budget')?.invalid && postProjectForm.get('budget')?.touched" class="error">
+          Budget is required and must be at least 1
+        </div>
+      </div>
+
+      <!-- Deadline -->
+      <div class="form-group">
+        <label for="deadline" class="form-label">Deadline <span class="required">*</span></label>
+        <input type="date" id="deadline" formControlName="deadline" class="form-input" [min]="minDate">
+        <div *ngIf="postProjectForm.get('deadline')?.invalid && postProjectForm.get('deadline')?.touched" class="error">
+          Deadline is required
+        </div>
+        <div *ngIf="postProjectForm.get('deadline')?.touched && postProjectForm.get('deadline')?.invalid" class="error">
+          Please select a valid future date.
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label for="description" class="form-label">Description <span class="required">*</span></label>
+        <textarea id="description" formControlName="description" class="form-textarea"></textarea>
+        <div *ngIf="postProjectForm.get('description')?.invalid && postProjectForm.get('description')?.touched" class="error">
+          Description is required (min 10 characters)
+        </div>
+      </div>
+
+      <!-- Skills Required -->
+      <div class="form-group">
+        <label for="skillsRequiered" class="form-label">Skills Required (comma separated) <span class="required">*</span></label>
+        <input type="text" id="skillsRequiered" formControlName="skillsRequiered" class="form-input">
+        <small class="form-hint">Separate skills with commas (e.g. React, Node.js, TypeScript)</small>
+        <div *ngIf="postProjectForm.get('skillsRequiered')?.invalid && postProjectForm.get('skillsRequiered')?.touched" class="error">
+          Skills are required
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div *ngIf="submitError" class="form-message error">
+        {{ submitError }}
+      </div>
+      <div *ngIf="submitSuccess" class="form-message success">
+        Project created successfully!
+      </div>
+      <div *ngIf="isSubmitting" class="form-message loading">
+        Creating project...
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="form-actions">
+        <button type="button" class="btn btn--cancel"
+                (click)="onCancel()" [disabled]="isSubmitting">
+          Cancel
+        </button>
+        <button type="submit" class="btn btn--submit"
+                [disabled]="isSubmitting || postProjectForm.invalid">
+          {{ isSubmitting ? 'Creating...' : 'Create Project' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</section>

@@ -29,7 +29,47 @@ export const routes: Routes = [
       // Placeholder routes for future implementation
       { path: 'browse-freelancers', loadComponent: () => import('./pages/dashboard/dashboard-home/dashboard-home').then(m => m.DashboardHome) },
       { path: 'post-job', loadComponent: () => import('./pages/dashboard/dashboard-home/dashboard-home').then(m => m.DashboardHome) },
-      { path: 'my-projects', loadComponent: () => import('./pages/dashboard/dashboard-home/dashboard-home').then(m => m.DashboardHome) },
+      {
+        path: 'my-projects',
+        children: [
+          // List / overview of all projects
+          {
+            path: '',
+            pathMatch: 'full',
+            loadComponent: () =>
+              import('./pages/projects/list-projects/list-projects')
+                .then(m => m.ListProjects),
+            // title: 'My Projects'   ← optional – can be used by title service
+          },
+
+          // Create new project
+          {
+            path: 'add',
+            loadComponent: () =>
+              import('./pages/projects/add-project/add-project')
+                .then(m => m.AddProject),
+            title: 'Add New Project'
+          },
+
+          // View single project details
+          {
+            path: ':id/show',
+            loadComponent: () =>
+              import('./pages/projects/show-project/show-project')
+                .then(m => m.ShowProject),
+            title: 'Project Details'
+          },
+
+          // Edit existing project
+          {
+            path: ':id/edit',
+            loadComponent: () =>
+              import('./pages/projects/update-project/update-project')
+                .then(m => m.UpdateProject),
+            title: 'Edit Project'
+          },
+        ]
+      },
       { path: 'progress-updates', loadComponent: () => import('./pages/dashboard/progress-updates/progress-updates').then(m => m.ProgressUpdates) },
       { path: 'track-progress', loadComponent: () => import('./pages/dashboard/track-progress/track-progress').then(m => m.TrackProgress) },
       { path: 'browse-jobs', loadComponent: () => import('./pages/dashboard/dashboard-home/dashboard-home').then(m => m.DashboardHome) },

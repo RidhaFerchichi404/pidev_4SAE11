@@ -21,10 +21,6 @@ public class IProjectApplicationServicelmp implements IProjectApplicationService
     }
 
     @Override
-    public void deleteProjectApplication(ProjectApplication projectApplication) {
-
-    }
-    @Override
     public void deleteProjectApplication(Long id) {
         projectApplicationRepository.deleteById(id);
     }

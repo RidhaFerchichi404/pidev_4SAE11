@@ -1,55 +1,35 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, of } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
-const PROJECT_API = `${environment.apiGatewayUrl}/project/projects`;
-const APPLICATIONS_API = `${environment.apiGatewayUrl}/project/applications`;
 
-export interface Project {
-  id: number;
-  clientId: number;
-  title: string;
-  description: string;
-  budget?: number;
-  deadline?: string;
-  status?: string;
-  category?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
 
-export interface ProjectApplication {
-  id: number;
-  projectId: number;
-  freelanceId: number;
-  coverLetter?: string;
-  proposedPrice?: number;
-  proposedDuration?: number;
-  status?: string;
-  appliedAt?: string;
-  respondedAt?: string;
-}
-
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class ProjectService {
+  private apiUrl = `${environment.apiProject}/projects`;
+
   constructor(private http: HttpClient) {}
 
-  getById(id: number): Observable<Project | null> {
-    return this.http.get<Project>(`${PROJECT_API}/${id}`).pipe(
-      catchError(() => of(null))
-    );
+  getAllProjects(): Observable<any> {
+    return this.http.get(this.apiUrl+"/list");
   }
 
-  getByClientId(clientId: number): Observable<Project[]> {
-    return this.http.get<Project[]>(`${PROJECT_API}/client/${clientId}`).pipe(
-      catchError(() => of([]))
-    );
+  getProjectById(id: string | number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/${id}`);
   }
 
-  getApplicationsByFreelancer(freelancerId: number): Observable<ProjectApplication[]> {
-    return this.http.get<ProjectApplication[]>(`${APPLICATIONS_API}/freelance/${freelancerId}`).pipe(
-      catchError(() => of([]))
-    );
+  createProject(project: any): Observable<any> {
+    return this.http.post(this.apiUrl+"/add", project);
+  }
+
+  updateProject(project: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/update`, project);
+  }
+
+  deleteProject(id: string | number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`);
   }
 }

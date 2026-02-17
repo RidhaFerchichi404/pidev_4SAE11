@@ -1,0 +1,302 @@
+// projects.scss
+
+.projects-container {
+  padding: 4rem 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+
+.projects-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2.5rem;     // instead of section-title's margin-bottom
+}
+
+/* Optional: make title responsive */
+.section-title {
+  margin: 0;                 // remove old margin-bottom
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+}
+
+/* Add project button style */
+.btn--add-project {
+  background-color: #10b981;        // emerald-500 – green
+  color: white;
+  padding: 0.75rem 1.6rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1.02rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.22s ease;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+
+  &:hover {
+    background-color: #059669;      // emerald-600
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+/* Optional: smaller on mobile */
+@media (max-width: 600px) {
+  .projects-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .btn--add-project {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.section-title {
+  font-size: 2.5rem;
+  margin-bottom: 3rem;
+  text-align: center;
+  color: #0f172a; // slate-900
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 2.5rem;
+}
+
+/* ──────────────────────────────────────────────── */
+/* Project Card - Adjusted Design                   */
+/* ──────────────────────────────────────────────── */
+
+.project-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-12px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  }
+}
+
+.project-img-wrapper {
+  height: 210px;           // slightly smaller to give more space to metadata
+  overflow: hidden;
+  position: relative;
+}
+
+.project-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.project-card:hover .project-img {
+  transform: scale(1.07);
+}
+
+.project-content {
+  padding: 1.6rem 1.5rem 2rem;
+}
+
+/* Header with title + status badge */
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.project-title {
+  font-size: 1.45rem;
+  margin: 0;
+  color: #1e293b; // slate-800
+  line-height: 1.3;
+  flex: 1;
+}
+
+/* Status badge */
+.project-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-in-progress {
+  background-color: #fef3c7; // amber-100
+  color: #92400e;           // amber-800
+}
+
+.status-completed {
+  background-color: #dcfce7; // green-100
+  color: #166534;           // green-800
+}
+
+.status-open {
+  background-color: #dbeafe; // blue-100
+  color: #1e40af;           // blue-800
+}
+
+.status-paused,
+.status-on-hold {
+  background-color: #f3f4f6; // gray-100
+  color: #4b5563;           // gray-600
+}
+
+.status-cancelled {
+  background-color: #fee2e2; // red-100
+  color: #991b1b;           // red-800
+}
+
+/* Category pill (smaller & more subtle) */
+.project-category {
+  display: inline-block;
+  background-color: #f1f5f9; // slate-100
+  color: #475569;           // slate-600
+  padding: 0.28rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+/* Description */
+.project-description {
+  color: #64748b; // slate-500
+  line-height: 1.6;
+  margin-bottom: 1.4rem;
+  font-size: 0.97rem;
+}
+
+/* Skills required (like tags) */
+.skills-required {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.4rem;
+}
+
+.skill {
+  background-color: #e2e8f0; // slate-200
+  color: #475569;           // slate-600
+  padding: 0.32rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.81rem;
+  font-weight: 500;
+}
+
+/* ──────────────────────────────────────────────── */
+/* Responsive adjustments                           */
+/* ──────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  .projects-container {
+    padding: 3rem 1.2rem;
+  }
+
+  .section-title {
+    font-size: 2rem;
+  }
+
+  .projects-grid {
+    gap: 2rem;
+  }
+
+  .project-img-wrapper {
+    height: 180px;
+  }
+
+  .project-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .project-title {
+    font-size: 1.3rem;
+  }
+}
+
+
+
+.project-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin-top: 1.6rem;
+  justify-content: flex-end;     // aligns buttons to the right
+}
+
+.btn {
+  // common base (you already have most of this)
+  padding: 0.65rem 1.35rem;
+  font-size: 0.94rem;
+  font-weight: 500;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.22s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 90px;               // prevents too narrow buttons
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+/* ── Show / View button ── */
+.btn--info {
+  background-color: #3b82f6;     // blue-500
+  color: white;
+
+  &:hover {
+    background-color: #2563eb;   // blue-600
+  }
+}
+
+/* ── Update button ── */
+.btn--update {
+  background-color: #10b981;     // emerald-500
+  color: white;
+
+  &:hover {
+    background-color: #059669;   // emerald-600
+  }
+}
+
+/* ── Delete button ── */
+.btn--delete {
+  background-color: #ef4444;     // red-500
+  color: white;
+
+  &:hover {
+    background-color: #dc2626;   // red-600
+  }
+}

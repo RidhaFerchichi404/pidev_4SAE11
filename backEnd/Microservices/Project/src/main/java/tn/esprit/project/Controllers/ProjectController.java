@@ -14,17 +14,13 @@ public class ProjectController {
 
     private final IProjectService projectService;
 
-    @GetMapping("/client/{clientId}")
-    public List<Project> getProjectsByClientId(@PathVariable Long clientId) {
-        return projectService.getProjectsByClientId(clientId);
-    }
 
-    @PostMapping
+    @PostMapping("/add")
     public Project addProject(@RequestBody Project project) {
         return projectService.addProject(project);
     }
 
-    @PutMapping
+    @PutMapping("/update")
     public Project updateProject(@RequestBody Project project) {
         return projectService.updateProject(project);
     }
@@ -38,4 +34,7 @@ public class ProjectController {
     public Project getProjectById(@PathVariable Long id) {
         return projectService.getProjectById(id);
     }
+
+    @GetMapping("/list")
+    public List<Project> getAllProjects() { return projectService.getAllProjects(); }
 }

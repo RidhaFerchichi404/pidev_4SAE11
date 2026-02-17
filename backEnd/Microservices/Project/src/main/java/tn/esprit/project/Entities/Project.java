@@ -3,6 +3,8 @@ package tn.esprit.project.Entities;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import tn.esprit.project.Entities.Enums.ProjectStatus;
 
 import java.math.BigDecimal;
@@ -27,8 +29,14 @@ public class Project {
     LocalDateTime deadline;
     ProjectStatus status;
     String category;
-    List<String> skillsRequiered;
+    String skillsRequiered;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @CreationTimestamp
     LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    @UpdateTimestamp
     LocalDateTime updatedAt;
 
     @OneToMany(
