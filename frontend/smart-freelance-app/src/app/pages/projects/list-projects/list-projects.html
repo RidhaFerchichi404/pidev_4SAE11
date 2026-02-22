@@ -1,13 +1,13 @@
 <div class="projects-container">
   <div class="projects-header">
     <h2 class="section-title">Projects List</h2>
-    <a routerLink="add" class="btn btn--add-project">
+    <a routerLink="add" class="btn btn--add-project" *ngIf="canManageProjects">
       + Add Project
     </a>
   </div>
 
   <div class="toolbar">
-    <span class="toolbar-count">{{ projects.length }} project(s)</span>
+    <span class="toolbar-count">{{ filteredProjects.length }} project(s)</span>
     <div class="toolbar-actions">
       <button type="button" class="btn-refresh" (click)="loadProjects()" [disabled]="isLoading">
         {{ isLoading ? 'Loading…' : 'Refresh' }}
@@ -26,11 +26,39 @@
     <button (click)="loadProjects()" class="btn btn--retry">Try Again</button>
   </div>
 
+
+  <div class="toolbar-filters">
+
+    <!-- Search -->
+    <input 
+      type="text"
+      placeholder="Search projects..."
+      [(ngModel)]="searchTerm"
+      (input)="onSearchChange()"
+      class="search-input"
+    />
+
+    <!-- Status Filter -->
+    <select 
+      [(ngModel)]="selectedStatus"
+      (change)="onStatusChange()"
+      class="status-filter"
+      *ngIf = "userRole === 'CLIENT'"
+    >
+      <option value="ALL">All Status</option>
+      <option value="OPEN">Open</option>
+      <option value="IN_PROGRESS">In Progress</option>
+      <option value="COMPLETED">Completed</option>
+      <option value="CANCELLED">Cancelled</option>
+    </select>
+
+  </div>
+
   <!-- Real projects grid -->
   <div class="projects-grid"
-       *ngIf="!isLoading && !errorMessage && projects.length > 0">
+       *ngIf="!isLoading && !errorMessage && filteredProjects.length > 0">
 
-    <div class="project-card" *ngFor="let project of projects;">
+    <div class="project-card" *ngFor="let project of filteredProjects;">
       <div class="project-content">
         <div class="project-header">
           <h3 class="project-title">{{ project.title }}</h3>
@@ -76,6 +104,7 @@
             [routerLink]="[project.id, 'edit']" 
             class="btn btn--update" 
             title="Edit this project"
+            *ngIf="canManageProjects"
           >
             Update
           </button>
@@ -84,8 +113,18 @@
             (click)="openDeleteModal(project)" 
             class="btn btn--delete" 
             title="Delete this project"
+            *ngIf="canManageProjects"
           >
             Delete
+          </button>
+
+          <button 
+            [routerLink]="['/dashboard/my-applications/add', project.id]"
+            class="btn btn--update" 
+            title="Apply to this project"
+            *ngIf="userRole === 'FREELANCER'"
+          >
+            Apply
           </button>
         </div>
       </div>
@@ -94,7 +133,7 @@
 
   <!-- Empty state (when no projects, after loading finished) -->
   <div class="empty-state" 
-       *ngIf="!isLoading && !errorMessage && projects.length === 0">
+       *ngIf="!isLoading && !errorMessage && filteredProjects.length === 0">
     <p>No projects found.</p>
     <a routerLink="add" class="btn btn--add-project">Create your first project</a>
   </div>
@@ -118,3 +157,20 @@
     </div>
   }
 </div>
+
+
+<br>
+
+
+
+<div class="projects-stats" *ngIf="userRole === 'ADMIN' && projects.length > 0">
+  <h3>Projects by Status</h3>
+  <div class="chart-container">
+    <canvas baseChart
+            [data]="statusChartData"
+            [type]="'doughnut'"
+            [options]="statusChartOptions">
+    </canvas>
+  </div>
+</div>
+

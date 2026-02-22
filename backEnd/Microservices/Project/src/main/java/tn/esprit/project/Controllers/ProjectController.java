@@ -38,11 +38,6 @@ public class ProjectController {
         return projectService.getProjectsByClientId(clientId);
     }
 
-    @GetMapping("/freelancer/{freelancerId}")
-    public List<Project> getProjectsByFreelancerId(@PathVariable Long freelancerId) {
-        return projectService.getProjectsByFreelancerId(freelancerId);
-    }
-
     /** Single project by id (numeric only, so /client/14 is not matched here). */
     @GetMapping("/{id:\\d+}")
     public Project getProjectById(@PathVariable Long id) {

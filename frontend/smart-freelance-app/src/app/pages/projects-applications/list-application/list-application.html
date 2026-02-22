@@ -1,0 +1,115 @@
+<div class="projects-container">
+  <div class="projects-header">
+    <h2 class="section-title">Project Applications</h2>
+  </div>
+
+  <div class="toolbar">
+    <span class="toolbar-count"> {{ applications.length }} application(s) </span>
+
+    <div class="toolbar-actions">
+      <button type="button" class="btn-refresh" (click)="loadApplications()" [disabled]="isLoading">
+        {{ isLoading ? 'Loading…' : 'Refresh' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="isLoading">
+    <p>Loading applications...</p>
+  </div>
+
+  <!-- Error -->
+  <div class="error-state" *ngIf="errorMessage && !isLoading">
+    <p class="error">{{ errorMessage }}</p>
+    <button (click)="loadApplications()" class="btn btn--retry">Try Again</button>
+  </div>
+
+  <!-- Applications Grid -->
+  <div class="projects-grid" *ngIf="!isLoading && !errorMessage && applications.length > 0">
+    <div class="project-card" *ngFor="let app of applications">
+      <div class="project-content">
+        <div class="project-header">
+          <h3 class="project-title">Project : {{ app.project?.title }}</h3>
+
+          <span
+            class="project-status"
+            [ngClass]="{
+              'status-open': app.status === 'PENDING',
+              'status-in-progress': app.status === 'ACCEPTED',
+              'status-cancelled': app.status === 'REJECTED',
+            }"
+          >
+            {{ app.status || 'PENDING' }}
+          </span>
+        </div>
+
+        <p class="project-description">
+          {{ app.coverLetter || 'No cover letter provided.' }}
+        </p>
+
+        <div class="application-details">
+          <div class="detail-item">
+            💰 <strong>Proposed Price:</strong> {{ app.proposedPrice || 0 }} $
+          </div>
+
+          <div class="detail-item">
+            ⏳ <strong>Duration:</strong> {{ app.proposedDuration || 0 }} day(s)
+          </div>
+
+          <div class="detail-item">
+            📅 <strong>Applied At:</strong>
+            {{ app.appliedAt | date: 'medium' }}
+          </div>
+
+          <div class="detail-item" *ngIf="app.respondedAt">
+            ✅ <strong>Responded At:</strong>
+            {{ app.respondedAt | date: 'medium' }}
+          </div>
+        </div>
+
+        <div class="project-actions">
+          <button [routerLink]="[app.id, 'show']" class="btn btn--info">Show</button>
+
+          <button [routerLink]="[app.id, 'edit']" class="btn btn--update">Update</button>
+
+          <button (click)="openDeleteModal(app)" class="btn btn--delete">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && !errorMessage && applications.length === 0">
+    <p>No applications found.</p>
+  </div>
+
+  <!-- Delete Modal -->
+  @if (applicationToDelete) {
+    <div class="modal-overlay" (click)="closeDeleteModal()">
+      <div class="modal modal--confirm" (click)="$event.stopPropagation()">
+        <h3>Delete Application</h3>
+
+        <p class="modal-message">
+          Are you sure you want to delete this application for
+          <strong>Project #{{ applicationToDelete.projectId }}</strong
+          >?
+        </p>
+
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="closeDeleteModal()"
+            [disabled]="deleting"
+          >
+            Cancel
+          </button>
+
+          <button type="button" class="btn-danger" (click)="doDelete()" [disabled]="deleting">
+            {{ deleting ? 'Deleting…' : 'Delete' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

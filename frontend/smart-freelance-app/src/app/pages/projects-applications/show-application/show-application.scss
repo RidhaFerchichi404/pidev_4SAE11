@@ -1,0 +1,149 @@
+.project-details {
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.project-details .loading,
+.project-details .error {
+  font-size: 18px;
+  font-weight: 500;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.project-details .loading {
+  background: #e8f1ff;
+  color: #2b6cb0;
+}
+
+.project-details .error {
+  background: #ffe5e5;
+  color: #c53030;
+}
+
+.project-details .project-card {
+  width: 100%;
+  max-width: 850px;
+  background: #fff;
+  padding: 35px;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  transition: 0.3s ease;
+}
+
+.project-details .project-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.12);
+}
+
+/* HEADER */
+.project-details .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.project-details .header h1 {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0;
+}
+
+.project-details .header .status {
+  padding: 6px 14px;
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.project-details .header .status.open {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.project-details .header .status.progress {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.project-details .header .status.cancel {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* INFO */
+.project-details p {
+  margin: 12px 0;
+  font-size: 16px;
+  color: #4a5568;
+}
+
+.project-details p strong {
+  color: #1a202c;
+  margin-right: 6px;
+}
+
+/* DESCRIPTION */
+.project-details .description {
+  margin-top: 20px;
+}
+
+.project-details .description p {
+  margin-top: 10px;
+  line-height: 1.7;
+  color: #2d3748;
+}
+
+/* BUTTONS */
+.project-details .actions {
+  margin-top: 35px;
+}
+
+.project-details .actions a {
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: 0.25s;
+  font-size: 14px;
+}
+
+.project-details .actions .btn-back {
+  background: #edf2f7;
+  color: #2d3748;
+}
+
+.project-details .actions .btn-back:hover {
+  background: #e2e8f0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .project-details {
+    padding: 20px;
+  }
+
+  .project-details .project-card {
+    padding: 25px;
+  }
+
+  .project-details .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
+
+
+
+
+
+

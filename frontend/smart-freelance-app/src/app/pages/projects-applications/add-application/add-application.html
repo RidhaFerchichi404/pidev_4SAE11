@@ -1,0 +1,88 @@
+<section class="add-project">
+  <div class="add-project__container">
+    <h1 class="add-project__title">Apply to Project</h1>
+    <p class="add-project__subtitle">Submit your proposal and cover letter</p>
+
+    <form class="project-form" [formGroup]="applicationForm" (ngSubmit)="submitApplication()">
+      <!-- Proposed Price -->
+      <div class="form-group">
+        <label class="form-label"> Proposed Price (USD) <span class="required">*</span> </label>
+        <input type="number" formControlName="proposedPrice" class="form-input" min="1" />
+        <div
+          *ngIf="
+            applicationForm.get('proposedPrice')?.invalid &&
+            applicationForm.get('proposedPrice')?.touched
+          "
+          class="error"
+        >
+          Price is required and must be at least 1
+        </div>
+      </div>
+
+      <!-- Proposed Duration -->
+      <div class="form-group">
+        <label class="form-label"> Proposed Duration (days) <span class="required">*</span> </label>
+        <input type="number" formControlName="proposedDuration" class="form-input" min="1" />
+        <div
+          *ngIf="
+            applicationForm.get('proposedDuration')?.invalid &&
+            applicationForm.get('proposedDuration')?.touched
+          "
+          class="error"
+        >
+          Duration is required and must be at least 1 day
+        </div>
+      </div>
+
+      <!-- Cover Letter -->
+      <div class="form-group">
+        <label class="form-label"> Cover Letter <span class="required">*</span> </label>
+        <textarea
+          formControlName="coverLetter"
+          class="form-textarea"
+          placeholder="Explain why you are the best fit for this project..."
+        ></textarea>
+        <div
+          *ngIf="
+            applicationForm.get('coverLetter')?.invalid &&
+            applicationForm.get('coverLetter')?.touched
+          "
+          class="error"
+        >
+          Cover letter must be at least 20 characters
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div *ngIf="submitError" class="form-message error">
+        {{ submitError }}
+      </div>
+
+      <div *ngIf="submitSuccess" class="form-message success">
+        Application submitted successfully!
+      </div>
+
+      <div *ngIf="isSubmitting" class="form-message loading">Submitting application...</div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn btn--cancel"
+          (click)="onCancel()"
+          [disabled]="isSubmitting"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          class="btn btn--submit"
+          [disabled]="isSubmitting || applicationForm.invalid"
+        >
+          {{ isSubmitting ? 'Submitting...' : 'Submit Application' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</section>

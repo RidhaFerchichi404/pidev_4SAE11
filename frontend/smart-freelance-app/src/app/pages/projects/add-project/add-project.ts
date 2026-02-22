@@ -4,7 +4,6 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ProjectService, Project } from '../../../core/services/project.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
-import { OfferService, Offer, OfferApplication } from '../../../core/services/offer.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -19,14 +18,11 @@ export class AddProject implements OnInit {
   submitSuccess = false;
   submitError: string | null = null;
   minDate!: string;
-  /** When creating from an accepted offer: { clientId, freelancerId } for payload */
-  fromOfferPayload: { clientId: number; freelancerId: number } | null = null;
 
   constructor(
     private projectService: ProjectService,
     private authService: AuthService,
     private userService: UserService,
-    private offerService: OfferService,
     private fb: FormBuilder,
     private router: Router
   ) {}
@@ -45,37 +41,9 @@ export class AddProject implements OnInit {
       description: ['', [Validators.required, Validators.minLength(10)]],
       budget: [null, [Validators.required, Validators.min(1)]],
       deadline: ['', [Validators.required, this.futureDateValidator.bind(this)]],
-      status: ['IN_PROGRESS', Validators.required],
+      status: ['', Validators.required],
       category: ['', Validators.required],
-      skillsRequiered: ['', Validators.required]
-    });
-
-    const state = (typeof history !== 'undefined' && history.state) ? history.state : null;
-    if (state?.fromOffer && state?.application) {
-      const application: OfferApplication = state.application;
-      if (state.offer) {
-        this.applyOfferAndApplication(state.offer, application);
-      } else {
-        this.offerService.getOfferById(application.offerId).subscribe((offer) => {
-          if (offer) this.applyOfferAndApplication(offer, application);
-        });
-      }
-    }
-  }
-
-  private applyOfferAndApplication(offer: Offer, application: OfferApplication): void {
-    const defaultDeadline = new Date();
-    defaultDeadline.setMonth(defaultDeadline.getMonth() + 1);
-    const deadlineStr = defaultDeadline.toISOString().slice(0, 10);
-    this.fromOfferPayload = { clientId: application.clientId, freelancerId: offer.freelancerId };
-    this.postProjectForm.patchValue({
-      title: offer.title ?? '',
-      description: offer.description ?? '',
-      budget: application.proposedBudget ?? offer.price ?? null,
-      deadline: deadlineStr,
-      status: 'IN_PROGRESS',
-      category: offer.domain || offer.category || 'Other',
-      skillsRequiered: (offer.tags || offer.domain || '').toString().trim() || 'General',
+      skillsRequiered: ['', Validators.required]   // ← keep field name consistent with your backend
     });
   }
 
@@ -128,19 +96,14 @@ export class AddProject implements OnInit {
 
     this.userService.getByEmail(email).subscribe({
       next: (user) => {
-        if (!user?.id && !this.fromOfferPayload) {
+        if (!user?.id) {
           this.submitError = 'Could not identify your account. Please try again.';
           this.isSubmitting = false;
           return;
         }
-        const projectPayload: Record<string, unknown> = { ...formValue };
-        if (this.fromOfferPayload) {
-          projectPayload['clientId'] = this.fromOfferPayload.clientId;
-          projectPayload['freelancerId'] = this.fromOfferPayload.freelancerId;
-        } else {
-          projectPayload['clientId'] = user!.id;
-        }
-        this.projectService.createProject(projectPayload as Partial<Project>).subscribe({
+        // clientId = user id of the user who created the project (the logged-in CLIENT)
+        const projectPayload = { ...formValue, clientId: user.id };
+        this.projectService.createProject(projectPayload).subscribe({
           next: (res: Project | null) => {
             this.submitSuccess = true;
             this.isSubmitting = false;

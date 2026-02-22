@@ -1,0 +1,72 @@
+<section class="project-details">
+  <!-- LOADING -->
+  <div *ngIf="isLoading" class="loading">Loading application details...</div>
+
+  <!-- ERROR -->
+  <div *ngIf="errorMessage && !isLoading" class="error">
+    {{ errorMessage }}
+  </div>
+
+  <!-- CONTENT -->
+  <div *ngIf="!isLoading && application" class="project-card">
+    <div class="header">
+      <h1>Application #{{ application.id }}</h1>
+
+      <span
+        class="status"
+        [ngClass]="{
+          open: application.status === 'PENDING',
+          progress: application.status === 'ACCEPTED',
+          cancel: application.status === 'REJECTED',
+        }"
+      >
+        {{ application.status || 'PENDING' }}
+      </span>
+    </div>
+
+    <p>
+      <strong>Project:</strong>
+      {{ application.project?.title }}
+    </p>
+
+    <p>
+      <strong>Freelancer:</strong>
+      {{ user.firstName }} {{ user.lastName }}
+    </p>
+
+    <p>
+      <strong>Proposed Price:</strong>
+      ${{ application.proposedPrice || 0 }}
+    </p>
+
+    <p>
+      <strong>Proposed Duration:</strong>
+      {{ application.proposedDuration || 0 }} day(s)
+    </p>
+
+    <p>
+      <strong>Applied At:</strong>
+      {{ application.appliedAt | date: 'longDate' }}
+    </p>
+
+    <p *ngIf="application.respondedAt">
+      <strong>Responded At:</strong>
+      {{ application.respondedAt | date: 'longDate' }}
+    </p>
+
+    <div class="description">
+      <strong>Cover Letter:</strong>
+      <p>
+        {{ application.coverLetter || 'No cover letter provided.' }}
+      </p>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <a [routerLink]="['/dashboard/my-applications']" class="btn-back">← Back to applications</a>
+    </div>
+  </div>
+</section>
+
+
+

@@ -11,7 +11,6 @@ const APPLICATIONS_API = `${environment.apiGatewayUrl}/project/applications`;
 export interface Project {
   id?: number;
   clientId?: number;
-  freelancerId?: number;
   title: string;
   description: string;
   budget?: number;
@@ -37,6 +36,10 @@ export interface ProjectApplication {
 
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
+
+  private apiUrl = `${environment.apiGatewayUrl}/projects`;
+
+
   constructor(private http: HttpClient) {}
 
   getById(id: number): Observable<Project | null> {
@@ -48,13 +51,6 @@ export class ProjectService {
   getByClientId(clientId: number): Observable<Project[]> {
     return this.http.get<Project[]>(`${PROJECT_API}/client/${clientId}`).pipe(
       timeout(REQUEST_TIMEOUT_MS)
-    );
-  }
-
-  getByFreelancerId(freelancerId: number): Observable<Project[]> {
-    return this.http.get<Project[]>(`${PROJECT_API}/freelancer/${freelancerId}`).pipe(
-      timeout(REQUEST_TIMEOUT_MS),
-      catchError(() => of([]))
     );
   }
 

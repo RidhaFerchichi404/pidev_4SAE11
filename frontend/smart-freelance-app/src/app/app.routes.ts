@@ -98,8 +98,71 @@ export const routes: Routes = [
           { path: ':id/edit', loadComponent: () => import('./pages/dashboard/reviews/edit-review/edit-review').then(m => m.EditReview) },
         ]
       },
-      { path: 'browse-jobs', loadComponent: () => import('./pages/dashboard/dashboard-home/dashboard-home').then(m => m.DashboardHome) },
-      { path: 'my-applications', loadComponent: () => import('./pages/dashboard/dashboard-home/dashboard-home').then(m => m.DashboardHome) },
+     {
+        path: 'browse-jobs',
+        children: [
+          // List / overview of all projects
+          {
+            path: '',
+            pathMatch: 'full',
+            loadComponent: () =>
+              import('./pages/projects/list-projects/list-projects')
+                .then(m => m.ListProjects),
+            // title: 'My Projects'   ← optional – can be used by title service
+          },
+
+          // View single project details
+          {
+            path: ':id/show',
+            loadComponent: () =>
+              import('./pages/projects/show-project/show-project')
+                .then(m => m.ShowProject),
+            title: 'Project Details'
+          },
+        ]
+      },
+
+      {
+        path: 'my-applications',
+        children: [
+          // List / overview of all applications
+          {
+            path: '',
+            pathMatch: 'full',
+            loadComponent: () =>
+              import('./pages/projects-applications/list-application/list-application')
+                .then(m => m.ListApplication),
+            // title: 'My Applications'   ← optional – can be used by title service
+          },
+
+          // Create new application
+          {
+            path: 'add/:id',
+            loadComponent: () =>
+              import('./pages/projects-applications/add-application/add-application')
+                .then(m => m.AddApplication),
+            title: 'Add New Application'
+          },
+
+          // View single application details
+          {
+            path: ':id/show',
+            loadComponent: () =>
+              import('./pages/projects-applications/show-application/show-application')
+                .then(m => m.ShowApplication),
+            title: 'Application Details'
+          },
+
+          // Edit existing application
+          {
+            path: ':id/edit',
+            loadComponent: () =>
+              import('./pages/projects-applications/update-application/update-application')
+                .then(m => m.UpdateApplication),
+            title: 'Edit Application'
+          },
+        ]
+      },
       { path: 'my-portfolio', loadComponent: () => import('./pages/dashboard/portfolio-overview/portfolio-overview').then(m => m.PortfolioOverview) },
       { path: 'messages', loadComponent: () => import('./pages/dashboard/dashboard-home/dashboard-home').then(m => m.DashboardHome) },
       { path: 'notifications', loadComponent: () => import('./pages/dashboard/dashboard-home/dashboard-home').then(m => m.DashboardHome) },
@@ -124,7 +187,30 @@ export const routes: Routes = [
 
     
       { path: 'offers', loadComponent: () => import('./pages/admin/offer-management/offer-management').then(m => m.OfferManagement) },
-      { path: 'projects', loadComponent: () => import('./pages/admin/project-management/project-management').then(m => m.ProjectManagement) },
+      {
+        path: 'projects',
+        children: [
+          // List / overview of all projects
+          {
+            path: '',
+            pathMatch: 'full',
+            loadComponent: () =>
+              import('./pages/projects/list-projects/list-projects')
+                .then(m => m.ListProjects),
+            // title: 'My Projects'   ← optional – can be used by title service
+          },
+
+          // View single project details
+          {
+            path: ':id/show',
+            loadComponent: () =>
+              import('./pages/projects/show-project/show-project')
+                .then(m => m.ShowProject),
+            title: 'Project Details'
+          },
+        ]
+      },
+
       { path: 'planning', loadComponent: () => import('./pages/admin/planning-management/planning-management').then(m => m.PlanningManagement) },
       { path: 'evaluations', loadComponent: () => import('./pages/admin/admin-dashboard/admin-dashboard').then(m => m.AdminDashboard) },
       { path: 'reviews', loadComponent: () => import('./pages/admin/review-management/review-management').then(m => m.ReviewManagement) },
