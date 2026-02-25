@@ -122,6 +122,9 @@
         @if (avatarPreviewUrl) {
           <div class="avatar-preview">
             <img [src]="avatarPreviewUrl" alt="Preview" (error)="$any($event.target).style.display='none'" />
+            @if (pendingAvatarFile) {
+              <button type="button" class="avatar-remove" (click)="clearPendingAvatar()">Remove image</button>
+            }
           </div>
         }
       </div>
@@ -139,11 +142,13 @@
         </select>
       </div>
 
-      <button type="submit" class="btn-primary" [disabled]="loading || checkingEmail">
+      <button type="submit" class="btn-primary" [disabled]="loading || checkingEmail || avatarUploading">
         @if (checkingEmail) {
           Checking email…
         } @else if (loading) {
           Creating account…
+        } @else if (avatarUploading) {
+          Adding profile image…
         } @else {
           Create account
         }

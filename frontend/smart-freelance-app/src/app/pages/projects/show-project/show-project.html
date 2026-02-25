@@ -60,13 +60,46 @@
       </ng-template>
     </div>
 
-    <!-- Actions: Back + Edit + Leave review -->
+    <!-- Actions: Back + Edit -->
     <div class="actions">
-      <a routerLink="/dashboard/my-projects" class="btn-back">← Back to projects</a>
-      <a [routerLink]="['/dashboard/my-projects', project.id, 'edit']" class="btn-edit">Edit project</a>
-      <button type="button" class="btn-review" *ngIf="canLeaveReview" (click)="leaveReview()">Leave a review</button>
+      <a routerLink="../.." class="btn-back">← Back to projects</a>
+      <a class="btn-edit" 
+        *ngIf="userRole === 'FREELANCER'" 
+        [routerLink]="['/dashboard/my-applications/add', project.id]">
+          Apply
+      </a>
     </div>
 
   </div>
 
+</section>
+
+
+<section *ngIf="userRole === 'CLIENT' || userRole === 'ADMIN'" class="applications-section">
+  <h2>Applications for this Project</h2>
+
+  <div *ngIf="isLoadingApplications" class="loading">
+    Loading applications...
+  </div>
+
+  <div *ngIf="!isLoadingApplications && applications.length === 0" class="no-applications">
+    No applications yet.
+  </div>
+
+  <div *ngFor="let app of applications" class="application-card">
+    <p><strong>Freelancer:</strong> {{ usersMap[app.freelanceId]?.firstName }} {{ usersMap[app.freelanceId]?.lastName }}</p>
+    <p><strong>Proposed Price:</strong> ${{ app.proposedPrice }}</p>
+    <p><strong>Proposed Duration:</strong> {{ app.proposedDuration }} day(s)</p>
+    <p><strong>Cover Letter:</strong> {{ app.coverLetter }}</p>
+    <p><strong>Status:</strong> <span [ngClass]="app.status?.toLowerCase()">{{ app.status }}</span></p>
+    <p *ngIf="app.respondedAt">
+      <strong>Responded At:</strong>
+      {{ app.respondedAt | date:'yyyy-MM-dd HH:mm' }}
+    </p>
+    
+    <div class="application-actions" *ngIf="userRole === 'CLIENT'">
+      <button class="btn-accept" (click)="changeApplicationStatus(app, 'ACCEPTED')" [disabled]="app.status !== 'PENDING'">Accept</button>
+      <button class="btn-reject" (click)="changeApplicationStatus(app, 'REJECTED')" [disabled]="app.status !== 'PENDING'">Reject</button>
+    </div>
+  </div>
 </section>

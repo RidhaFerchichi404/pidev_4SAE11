@@ -87,11 +87,11 @@ export class AddReview implements OnInit {
       ? this.projectService.getByFreelancerId(this.currentUser.id)
       : of([] as Project[]);
     const projects$ = this.currentUser.role === 'CLIENT' ? byClient : byFreelancer;
-    projects$.subscribe((projects) => {
+    projects$.subscribe((projects: Project[] | undefined) => {
       this.reviewService.getByReviewerId(this.currentUser!.id).subscribe((myReviews) => {
         const reviewedProjectIds = new Set((myReviews ?? []).map((r) => r.projectId));
         const options: { project: Project; revieweeId: number; label: string }[] = [];
-        (projects ?? []).forEach((p) => {
+        (projects ?? []).forEach((p: Project) => {
           if (reviewedProjectIds.has(Number(p.id))) return;
           const revieweeId = this.currentUser!.role === 'CLIENT'
             ? p.freelancerId

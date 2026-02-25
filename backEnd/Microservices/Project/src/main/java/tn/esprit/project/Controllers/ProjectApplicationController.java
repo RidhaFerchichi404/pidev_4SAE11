@@ -39,6 +39,11 @@ public class ProjectApplicationController {
         return projectApplicationService.getApplicationsByProject(projectId);
     }
 
+    @GetMapping("/all")
+    public List<ProjectApplication> getApplications() {
+        return projectApplicationService.getAllProjectApplications();
+    }
+
     @GetMapping("/freelance/{freelanceId}")
     public List<ProjectApplication> getApplicationsByFreelance(@PathVariable Long freelanceId) {
         return projectApplicationService.getApplicationsByFreelance(freelanceId);

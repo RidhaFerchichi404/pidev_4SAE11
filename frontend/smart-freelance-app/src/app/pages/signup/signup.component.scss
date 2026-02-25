@@ -176,12 +176,27 @@
       }
       .avatar-preview {
         margin-top: var(--spacing-sm);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
         img {
           width: 64px;
           height: 64px;
           object-fit: cover;
           border-radius: var(--radius-md);
           border: 1px solid var(--border-light);
+        }
+        .avatar-remove {
+          padding: 0;
+          font-size: var(--text-sm);
+          color: var(--text-secondary);
+          background: none;
+          border: none;
+          cursor: pointer;
+          text-decoration: underline;
+          &:hover {
+            color: var(--error);
+          }
         }
       }
     }

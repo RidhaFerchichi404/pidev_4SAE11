@@ -1,0 +1,214 @@
+<div class="portfolio-container">
+  <!-- Header Section -->
+  <div class="header">
+    <h2>Career History</h2>
+    <button class="btn-primary" (click)="openAddForm()">
+      <span>+</span>
+      <span>Add Experience</span>
+    </button>
+  </div>
+
+  <!-- Timeline Section -->
+  <div class="timeline-container">
+    <!-- Empty State -->
+    <div *ngIf="experiences.length === 0" class="empty-state">
+      <p>No experiences added yet. Click "Add Experience" to showcase your career journey.</p>
+    </div>
+
+    <!-- Timeline Items -->
+    <div class="timeline-item" *ngFor="let exp of experiences">
+
+      <!-- Left: Date Marker -->
+      <div class="timeline-marker">
+        <span class="date-label">{{ exp.startDate | date:'MMM yyyy' }} - {{ exp.endDate ? (exp.endDate | date:'MMM yyyy') : 'Present' }}</span>
+        <div class="dot"></div>
+      </div>
+
+      <!-- Right: Content Card -->
+      <app-card class="timeline-card">
+        <div class="card-header">
+          <div class="role-info">
+            <h3>{{ exp.title }}</h3>
+            <span class="company">{{ exp.companyOrClientName }}</span>
+          </div>
+
+          <!-- Actions Dropdown (Top Right) -->
+          <div class="actions-menu">
+            <button class="icon-btn edit-btn" (click)="openEditForm(exp)">✎</button>
+            <button class="icon-btn delete-btn" (click)="deleteExperience(exp.id!)">🗑️</button>
+          </div>
+        </div>
+
+        <div class="card-meta">
+          <span class="badge">{{ exp.type }}</span>
+        </div>
+
+        <div class="card-body">
+          <p class="description">{{ exp.description }}</p>
+
+          <!-- Key Tasks -->
+          <div class="key-tasks" *ngIf="exp.keyTasks.length">
+            <ul>
+              <li *ngFor="let task of exp.keyTasks">{{ task }}</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card-footer" *ngIf="exp.skills?.length">
+          <div class="skill-chips-scroll">
+            <span class="chip" *ngFor="let skill of exp.skills">{{ skill.name }}</span>
+          </div>
+        </div>
+      </app-card>
+    </div>
+  </div>
+
+  <!-- Skills Section -->
+  <div class="skills-section-wrapper">
+    <app-skill-management></app-skill-management>
+  </div>
+
+  <!-- Experience Form Modal -->
+  <div class="modal" *ngIf="showForm" (click)="showForm = false">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <!-- Modal Header -->
+      <h3>{{ isEditing ? '✏️ Edit' : '➕ Add' }} Experience</h3>
+
+      <!-- Form Body -->
+      <div class="form-body">
+        <!-- Title -->
+        <div class="form-group">
+          <input
+            [(ngModel)]="currentExperience.title"
+            placeholder=" "
+            id="title"
+            maxlength="100"
+            [class.input-invalid]="formErrors['title']"
+            (ngModelChange)="formErrors['title'] = ''"
+          >
+          <label for="title">Job Title / Role <span class="req">*</span></label>
+          <span class="field-err-msg" *ngIf="formErrors['title']">{{ formErrors['title'] }}</span>
+        </div>
+
+        <!-- Company/Client -->
+        <div class="form-group">
+          <input
+            [(ngModel)]="currentExperience.companyOrClientName"
+            placeholder=" "
+            id="company"
+            maxlength="100"
+            [class.input-invalid]="formErrors['company']"
+            (ngModelChange)="formErrors['company'] = ''"
+          >
+          <label for="company">Company / Client Name <span class="req">*</span></label>
+          <span class="field-err-msg" *ngIf="formErrors['company']">{{ formErrors['company'] }}</span>
+        </div>
+
+        <!-- Type, Start Date, End Date -->
+        <div class="form-row">
+          <div class="form-group">
+            <select [(ngModel)]="currentExperience.type" id="type">
+              <option value="JOB">Job</option>
+              <option value="PROJECT">Project</option>
+            </select>
+            <label for="type">Type</label>
+          </div>
+          <div class="form-group">
+            <input
+              type="date"
+              [(ngModel)]="currentExperience.startDate"
+              id="startDate"
+              min="1900-01-01"
+              [max]="todayIso"
+              [class.input-invalid]="formErrors['startDate']"
+              (ngModelChange)="formErrors['startDate'] = ''"
+            >
+            <label for="startDate">Start Date <span class="req">*</span></label>
+            <span class="field-err-msg" *ngIf="formErrors['startDate']">{{ formErrors['startDate'] }}</span>
+          </div>
+          <div class="form-group">
+            <input
+              type="date"
+              [(ngModel)]="currentExperience.endDate"
+              id="endDate"
+              [min]="currentExperience.startDate || '1900-01-01'"
+              max="2099-12-31"
+              [class.input-invalid]="formErrors['endDate']"
+              (ngModelChange)="formErrors['endDate'] = ''"
+            >
+            <label for="endDate">End Date <span class="optional">(optional)</span></label>
+            <span class="field-err-msg" *ngIf="formErrors['endDate']">{{ formErrors['endDate'] }}</span>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <textarea
+            [(ngModel)]="currentExperience.description"
+            placeholder=" "
+            id="description"
+            maxlength="500"
+            [class.input-invalid]="formErrors['description']"
+            (ngModelChange)="formErrors['description'] = ''"
+          ></textarea>
+          <label for="description">Description <span class="req">*</span></label>
+          <div class="char-count">
+            {{ currentExperience.description.length || 0 }} / 500
+            <span *ngIf="(currentExperience.description.length || 0) < 20" class="char-min">(min 20)</span>
+          </div>
+          <span class="field-err-msg" *ngIf="formErrors['description']">{{ formErrors['description'] }}</span>
+        </div>
+
+        <!-- Key Tasks -->
+        <div class="form-group">
+          <label style="position: static; transform: none; font-size: 14px; color: #374151; margin-bottom: 8px; display: block;">
+            Key Responsibilities
+          </label>
+          <div class="input-group">
+            <input
+              [(ngModel)]="newKeyTask"
+              placeholder="Add a task and press +"
+              (keyup.enter)="addKeyTask()"
+            >
+            <button (click)="addKeyTask()">+</button>
+          </div>
+          <ul class="list-preview" *ngIf="currentExperience.keyTasks.length">
+            <li *ngFor="let task of currentExperience.keyTasks; let i = index">
+              {{ task }}
+              <span (click)="removeKeyTask(i)" class="remove">×</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Skills Used -->
+        <div class="form-group">
+          <label style="position: static; transform: none; font-size: 14px; color: #374151; margin-bottom: 8px; display: block;">
+            Skills Used
+          </label>
+          <div class="input-group">
+            <input
+              [(ngModel)]="newSkillName"
+              placeholder="Add a skill (e.g. Java, React)"
+              (keyup.enter)="addSkillTag()"
+            >
+            <button (click)="addSkillTag()">+</button>
+          </div>
+          <div class="tags-preview" *ngIf="currentExperience.skillNames?.length">
+            <span class="tag" *ngFor="let skill of currentExperience.skillNames; let i = index">
+              {{ skill }}
+              <span (click)="removeSkillTag(i)" class="remove">×</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Actions -->
+      <div class="modal-actions">
+        <button (click)="showForm = false">Cancel</button>
+        <button (click)="saveExperience()" class="btn-primary">
+          {{ isEditing ? 'Update' : 'Save' }} Experience
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

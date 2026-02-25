@@ -33,7 +33,6 @@ export class UpdateProject {
     this.updateProjectForm = this.fb.group({
       id: this.id,
       clientId: [null as number | null],
-      freelancerId: [null as number | null],
       title: ['', [Validators.required, Validators.minLength(3)]],
       description: ['', [Validators.required, Validators.minLength(10)]],
       budget: [null, [Validators.required, Validators.min(1)]],
@@ -53,8 +52,6 @@ export class UpdateProject {
           const formattedDate = res.deadline ? String(res.deadline).split('T')[0] : '';
           this.updateProjectForm.patchValue({
             ...res,
-            clientId: res.clientId ?? null,
-            freelancerId: res.freelancerId ?? null,
             title: res.title ?? '',
             description: res.description ?? '',
             category: res.category ?? '',

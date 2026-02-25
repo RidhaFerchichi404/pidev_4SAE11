@@ -1,0 +1,633 @@
+@import '../../../../styles/variables';
+
+.portfolio-container {
+  padding: $spacing-2xl $spacing-lg;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: $font-family;
+
+  @include breakpoint(md) {
+    padding: $spacing-3xl $spacing-2xl;
+  }
+
+  // ============================================
+  // Header Section
+  // ============================================
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $spacing-2xl;
+    flex-wrap: wrap;
+    gap: $spacing-md;
+
+    h2 {
+      margin: 0;
+      font-size: $font-size-3xl;
+      font-weight: $font-weight-bold;
+      color: $neutral-900;
+      background: $gradient-primary;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    button {
+      @include button-gradient;
+      padding: $spacing-sm $spacing-lg;
+      border-radius: $radius-lg;
+      font-size: $font-size-base;
+      font-weight: $font-weight-semibold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: $spacing-xs;
+
+      &:hover {
+        transform: translateY(-2px);
+      }
+    }
+  }
+
+  // ============================================
+  // Timeline Section
+  // ============================================
+  .timeline-container {
+    position: relative;
+    max-width: 900px;
+    margin: 0 auto;
+
+    // Continuous Vertical Line
+    &::before {
+      content: '';
+      position: absolute;
+      left: 21px; // Align with dot center (mobile default)
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--neutral-200);
+      z-index: 0;
+
+      @include breakpoint(md) {
+        left: 171px; // Align with dot center (150px date + padding)
+      }
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: $spacing-xl;
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-md;
+
+      @include breakpoint(md) {
+        flex-direction: row;
+        gap: $spacing-xl;
+        align-items: flex-start;
+      }
+
+      // Left: Date Marker
+      .timeline-marker {
+        display: flex;
+        align-items: center;
+        gap: $spacing-md;
+        position: relative;
+        z-index: 1;
+
+        @include breakpoint(md) {
+          width: 150px;
+          justify-content: flex-end;
+          flex-shrink: 0;
+        }
+
+        .date-label {
+          font-size: $font-size-sm;
+          font-weight: $font-weight-semibold;
+          color: $neutral-500;
+          white-space: nowrap;
+          background: var(--bg-base); // Mask line behind text if needed
+          padding: 0 $spacing-xs;
+        }
+
+        .dot {
+          width: 12px;
+          height: 12px;
+          background: $primary-500;
+          border-radius: $radius-full;
+          border: 2px solid $white;
+          box-shadow: 0 0 0 2px $primary-100;
+          flex-shrink: 0;
+
+          // Mobile positioning relative to content
+          @include breakpoint(md) {
+            margin-right: -7px; // Half of dot width + border to center on line
+          }
+        }
+      }
+
+      // Right: Content Card
+      .timeline-card {
+        flex: 1;
+        background: $white;
+        border: 1px solid $neutral-200;
+        border-radius: $radius-lg;
+        padding: $spacing-lg;
+        transition: all $transition-base;
+        position: relative;
+
+        // Arrow pointing to dot (Desktop only)
+        @include breakpoint(md) {
+          &::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 20px;
+            width: 10px;
+            height: 10px;
+            background: $white;
+            border-left: 1px solid $neutral-200;
+            border-bottom: 1px solid $neutral-200;
+            transform: rotate(45deg);
+          }
+        }
+
+        &:hover {
+          border-color: $primary-500;
+          transform: translateY(-2px);
+          box-shadow: $shadow-md;
+
+          @include breakpoint(md) {
+             &::before {
+               border-color: $primary-500;
+             }
+          }
+        }
+
+        .card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: $spacing-xs;
+
+          .role-info {
+            h3 {
+              margin: 0;
+              font-size: $font-size-lg;
+              font-weight: $font-weight-bold;
+              color: $neutral-900;
+            }
+
+            .company {
+              font-size: $font-size-sm;
+              color: $primary-600;
+              font-weight: $font-weight-medium;
+            }
+          }
+
+          .actions-menu {
+            display: flex;
+            gap: $spacing-xs;
+
+            .icon-btn {
+              background: transparent;
+              border: none;
+              font-size: $font-size-base;
+              cursor: pointer;
+              padding: $spacing-xs;
+              border-radius: $radius-md;
+              color: $neutral-400;
+              transition: all $transition-fast;
+
+              &:hover {
+                background: $neutral-100;
+                color: $primary-500;
+              }
+
+              &.delete-btn:hover {
+                 color: $error-500;
+                 background: $error-50;
+              }
+            }
+          }
+        }
+
+        .card-meta {
+          margin-bottom: $spacing-md;
+
+          .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: $font-weight-bold;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: $neutral-600;
+            background: $neutral-100;
+            border-radius: $radius-sm;
+          }
+        }
+
+        .card-body {
+          .description {
+            font-size: $font-size-sm;
+            color: $neutral-700;
+            line-height: $line-height-relaxed;
+            margin-bottom: $spacing-md;
+          }
+
+          .key-tasks {
+            ul {
+              margin: 0;
+              padding-left: $spacing-lg;
+
+              li {
+                font-size: $font-size-sm;
+                color: $neutral-600;
+                margin-bottom: 4px;
+
+                &::marker {
+                  color: $primary-500;
+                }
+              }
+            }
+          }
+        }
+
+        .card-footer {
+          margin-top: $spacing-lg;
+          padding-top: $spacing-md;
+          border-top: 1px solid $neutral-100;
+
+          .skill-chips-scroll {
+            display: flex;
+            flex-wrap: wrap;
+            gap: $spacing-xs;
+
+            .chip {
+              font-size: 11px;
+              padding: 4px 8px;
+              border-radius: $radius-full;
+              background: $primary-100; // Using variables from _variables.scss if available, or fallback
+              color: $primary-600;     // Or define explicitly
+              background-color: var(--primary-light, #FCE8D6);
+              color: var(--primary-dark, #C25E12);
+              font-weight: $font-weight-medium;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // ============================================
+  // Empty State
+  // ============================================
+  .empty-state {
+    text-align: center;
+    padding: $spacing-4xl $spacing-2xl;
+    background: $neutral-50;
+    border-radius: $radius-xl;
+    border: 2px dashed $neutral-300;
+
+    p {
+      margin: 0;
+      color: $neutral-500;
+      font-size: $font-size-lg;
+      line-height: $line-height-relaxed;
+
+      &::before {
+        content: '📝';
+        display: block;
+        font-size: 64px;
+        margin-bottom: $spacing-md;
+      }
+    }
+  }
+
+  // ============================================
+  // Skills Section Wrapper
+  // ============================================
+  .skills-section-wrapper {
+    margin-top: $spacing-4xl;
+    padding-top: $spacing-3xl;
+    border-top: 2px solid $neutral-100;
+  }
+}
+
+// ============================================
+// Modal Overlay
+// ============================================
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba($black, 0.6);
+  @include backdrop-blur;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: $z-modal-backdrop;
+  padding: $spacing-md;
+  overflow-y: auto;
+  animation: fadeIn $transition-base;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  // ============================================
+  // Modal Content (Slide-in from right)
+  // ============================================
+  .modal-content {
+    background: $white;
+    border-radius: $radius-2xl;
+    width: 100%;
+    max-width: 640px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: $shadow-2xl;
+    animation: slideInRight $transition-slow $ease-out;
+    position: relative;
+    @include custom-scrollbar;
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    // Modal Header
+    h3 {
+      margin: 0;
+      padding: $spacing-2xl $spacing-2xl $spacing-lg;
+      font-size: $font-size-2xl;
+      font-weight: $font-weight-bold;
+      color: $neutral-900;
+      border-bottom: 2px solid $neutral-100;
+      background: $gradient-soft;
+    }
+
+    // Form Body
+    .form-body {
+      padding: $spacing-2xl;
+    }
+
+    // Form Group (Floating Labels)
+    .form-group {
+      margin-bottom: $spacing-xl;
+      position: relative;
+
+      label {
+        position: absolute;
+        left: $spacing-md;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: $font-size-base;
+        font-weight: $font-weight-medium;
+        color: $neutral-500;
+        pointer-events: none;
+        transition: all $transition-base;
+        background: $white;
+        padding: 0 $spacing-xs;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: $spacing-md;
+        font-size: $font-size-base;
+        font-family: $font-family;
+        color: $neutral-900;
+        border: 2px solid $neutral-200;
+        border-radius: $radius-lg;
+        transition: all $transition-base;
+        background: $white;
+
+        &:focus {
+          outline: none;
+          border-color: $primary-500;
+          box-shadow: 0 0 0 3px rgba($primary-500, 0.1);
+
+          ~ label {
+            top: 0;
+            font-size: $font-size-sm;
+            color: $primary-500;
+          }
+        }
+
+        &:not(:placeholder-shown) ~ label {
+          top: 0;
+          font-size: $font-size-sm;
+          color: $neutral-600;
+        }
+
+        &.input-invalid {
+          border-color: $error-500 !important;
+          background: $error-50 !important;
+
+          &:focus {
+            box-shadow: 0 0 0 3px rgba($error-500, 0.12);
+          }
+        }
+      }
+
+      .field-err-msg {
+        display: block;
+        font-size: $font-size-xs;
+        color: $error-600;
+        margin-top: $spacing-xs;
+
+        &::before { content: '⚠ '; }
+      }
+
+      label {
+        .req  { color: $error-500; margin-left: 2px; }
+        .optional { color: $neutral-400; font-size: $font-size-xs; font-weight: $font-weight-normal; }
+      }
+
+      .char-min {
+        color: $error-500;
+        font-size: $font-size-xs;
+      }
+
+      input[type="date"] ~ label {
+        top: 0;
+        font-size: $font-size-sm;
+      }
+
+      textarea {
+        min-height: 120px;
+        resize: vertical;
+        font-family: $font-family;
+      }
+
+      select {
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right $spacing-md center;
+        padding-right: $spacing-2xl;
+
+        ~ label {
+          top: 0;
+          font-size: $font-size-sm;
+        }
+      }
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: $spacing-md;
+
+      @include breakpoint(sm) {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .form-group {
+        margin-bottom: 0;
+      }
+    }
+
+    // Input Group (for adding items)
+    .input-group {
+      display: flex;
+      gap: $spacing-sm;
+
+      input {
+        flex: 1;
+      }
+
+      button {
+        padding: 0 $spacing-lg;
+        @include button-gradient;
+        border-radius: $radius-lg;
+        font-size: $font-size-lg;
+        font-weight: $font-weight-bold;
+        flex-shrink: 0;
+      }
+    }
+
+    // List Preview (Key Tasks)
+    .list-preview {
+      margin-top: $spacing-md;
+      list-style: none;
+      padding: 0;
+
+      li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: $neutral-50;
+        padding: $spacing-md;
+        margin-bottom: $spacing-sm;
+        border-radius: $radius-md;
+        border: 1px solid $neutral-200;
+        color: $neutral-700;
+        font-size: $font-size-sm;
+
+        .remove {
+          color: $error-500;
+          cursor: pointer;
+          font-weight: $font-weight-bold;
+          font-size: $font-size-lg;
+          transition: all $transition-fast;
+          padding: 0 $spacing-xs;
+
+          &:hover {
+            color: $error-600;
+            transform: scale(1.2);
+          }
+        }
+      }
+    }
+
+    // Tags Preview (Skills)
+    .tags-preview {
+      margin-top: $spacing-md;
+      display: flex;
+      flex-wrap: wrap;
+      gap: $spacing-sm;
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: $spacing-xs;
+        background: $gradient-soft;
+        color: $primary-600;
+        padding: $spacing-xs $spacing-md;
+        border-radius: $radius-full;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-medium;
+        border: 1px solid $primary-100;
+
+        .remove {
+          color: $primary-600;
+          cursor: pointer;
+          font-weight: $font-weight-bold;
+          transition: all $transition-fast;
+
+          &:hover {
+            color: $error-500;
+          }
+        }
+      }
+    }
+
+    // Character Count
+    .char-count {
+      text-align: right;
+      font-size: $font-size-xs;
+      color: $neutral-400;
+      margin-top: $spacing-xs;
+    }
+
+    // Modal Actions
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: $spacing-md;
+      padding: $spacing-lg $spacing-2xl $spacing-2xl;
+      border-top: 2px solid $neutral-100;
+      background: $neutral-50;
+
+      button {
+        padding: $spacing-md $spacing-2xl;
+        font-size: $font-size-base;
+        font-weight: $font-weight-semibold;
+        border-radius: $radius-lg;
+        cursor: pointer;
+        transition: all $transition-base;
+
+        &.btn-primary {
+          @include button-gradient;
+        }
+
+        &:not(.btn-primary) {
+          background: transparent;
+          color: $neutral-600;
+          border: none;
+
+          &:hover {
+            color: $neutral-900;
+            background: $neutral-100;
+          }
+        }
+      }
+    }
+  }
+}

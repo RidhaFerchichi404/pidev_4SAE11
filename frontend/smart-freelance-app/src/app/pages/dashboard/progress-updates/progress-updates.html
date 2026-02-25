@@ -6,6 +6,36 @@
     <div class="error-banner" role="alert">{{ errorMessage }}</div>
   }
 
+  @if (currentUser && (stats || statsLoading)) {
+    <section class="stats-section">
+      <app-card class="stats-card">
+        <h2 class="stats-title">Your progress at a glance</h2>
+        @if (statsLoading && !stats) {
+          <p class="stats-loading">Loading statistics…</p>
+        } @else if (stats) {
+          <div class="stats-grid">
+            <div class="stat-item">
+              <span class="stat-value">{{ stats.totalUpdates }}</span>
+              <span class="stat-label">Total updates</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">{{ stats.totalComments }}</span>
+              <span class="stat-label">Comments received</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">{{ stats.averageProgressPercentage != null ? (stats.averageProgressPercentage | number:'1.1-1') + '%' : '—' }}</span>
+              <span class="stat-label">Avg. progress</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">{{ stats.updatesLast30Days }}</span>
+              <span class="stat-label">Updates (30 days)</span>
+            </div>
+          </div>
+        }
+      </app-card>
+    </section>
+  }
+
   @if (selectedProject) {
     <app-card>
       <div class="project-header">
@@ -16,12 +46,21 @@
         }
       </div>
 
+      <div class="toolbar-filters" [formGroup]="filterForm">
+        <input
+          type="text"
+          formControlName="search"
+          (input)="onSearchChange()"
+          class="search-input"
+          placeholder="Search by title or description…"
+          aria-label="Search progress updates"
+        />
+        <button type="button" class="btn-clear" (click)="clearSearch()" [disabled]="loadingUpdates">Clear</button>
+      </div>
+
       <div class="toolbar">
-        <span class="count">{{ updates.length }} update(s)</span>
+        <span class="count">{{ totalElements }} update(s) · Page {{ page + 1 }} of {{ totalPages || 1 }}</span>
         <div class="toolbar-actions">
-          <button type="button" class="btn-refresh" (click)="loadUpdatesForProject()" [disabled]="loadingUpdates">
-            {{ loadingUpdates ? 'Loading…' : 'Refresh' }}
-          </button>
           <button type="button" class="btn-add" (click)="openCreate()">Add progress update</button>
         </div>
       </div>
@@ -37,7 +76,12 @@
               <div class="update-main">
                 <div class="update-header">
                   <h3>{{ u.title }}</h3>
-                  <span class="progress-badge">{{ u.progressPercentage }}%</span>
+                  <div class="progress-display">
+                    <div class="progress-display__bar" role="presentation">
+                      <span class="progress-display__fill" [style.width.%]="u.progressPercentage"></span>
+                    </div>
+                    <span class="progress-display__pct">{{ u.progressPercentage }}%</span>
+                  </div>
                 </div>
                 @if (u.description) {
                   <p class="update-desc">{{ u.description }}</p>
@@ -67,6 +111,15 @@
           }
         </div>
       }
+      @if (totalPages > 1) {
+        <nav class="pagination" aria-label="Progress updates pagination">
+          <button type="button" class="btn-page" (click)="goToPage(0)" [disabled]="page === 0 || loadingUpdates">First</button>
+          <button type="button" class="btn-page" (click)="goToPage(page - 1)" [disabled]="page === 0 || loadingUpdates">Prev</button>
+          <span class="pagination-info">Page {{ page + 1 }} of {{ totalPages }}</span>
+          <button type="button" class="btn-page" (click)="goToPage(page + 1)" [disabled]="page >= totalPages - 1 || loadingUpdates">Next</button>
+          <button type="button" class="btn-page" (click)="goToPage(totalPages - 1)" [disabled]="page >= totalPages - 1 || loadingUpdates">Last</button>
+        </nav>
+      }
     </app-card>
   } @else {
     <app-card>
@@ -75,18 +128,35 @@
       } @else if (projects.length === 0) {
         <p class="empty-msg">You have no projects yet. Apply to projects from Browse Jobs to see them here.</p>
       } @else {
-        <p class="section-label">Select a project to manage progress updates</p>
-        <div class="projects-grid">
-          @for (item of projects; track item.project.id) {
-            <button type="button" class="project-card" (click)="selectProject(item.project)">
-              <span class="project-card-title">{{ item.project.title }}</span>
-              @if (item.project.description) {
-                <span class="project-card-desc">{{ item.project.description }}</span>
-              }
-              <span class="project-card-meta">Project #{{ item.project.id }}</span>
-            </button>
-          }
+        <div class="toolbar-filters toolbar-filters--projects" [formGroup]="projectFilterForm">
+          <input
+            type="text"
+            formControlName="search"
+            class="search-input"
+            placeholder="Search projects by title, description or ID…"
+            aria-label="Search projects"
+          />
+          <button type="button" class="btn-clear" (click)="clearProjectSearch()">Clear</button>
         </div>
+        <p class="section-label">Select a project to manage progress updates</p>
+        <div class="toolbar toolbar--projects">
+          <span class="count">{{ filteredProjects.length }} project(s)</span>
+        </div>
+        @if (filteredProjects.length === 0) {
+          <p class="empty-msg">No projects match your search. Try a different term or clear the search.</p>
+        } @else {
+          <div class="projects-grid">
+            @for (item of filteredProjects; track item.project.id) {
+              <button type="button" class="project-card" (click)="selectProject(item.project)">
+                <span class="project-card-title">{{ item.project.title }}</span>
+                @if (item.project.description) {
+                  <span class="project-card-desc">{{ item.project.description }}</span>
+                }
+                <span class="project-card-meta">Project #{{ item.project.id }}</span>
+              </button>
+            }
+          </div>
+        }
       }
     </app-card>
   }
@@ -114,7 +184,10 @@
           </div>
           <div class="field">
             <label for="progressPercentage">Progress % <span class="required">*</span></label>
-            <input id="progressPercentage" type="number" formControlName="progressPercentage" min="0" max="100" />
+            <input id="progressPercentage" type="number" formControlName="progressPercentage" [min]="minProgressHint" max="100" />
+            @if (minProgressHint > 0) {
+              <span class="field-hint">Minimum {{ minProgressHint }}% for this project (cannot be less than previous update).</span>
+            }
             @if (getProgressError()) {
               <span class="field-error">{{ getProgressError() }}</span>
             }

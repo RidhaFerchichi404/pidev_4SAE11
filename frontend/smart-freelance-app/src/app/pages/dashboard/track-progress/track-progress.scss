@@ -1,68 +1,124 @@
+@import '../../../../styles/variables';
+
+// ════════════════════════════════════════════════════════════════
+// TRACK PROGRESS — Client view
+// ════════════════════════════════════════════════════════════════
+
 .track-progress-page {
-  padding: 1.25rem;
   max-width: 900px;
+  padding: $spacing-3xl $spacing-lg;
+  margin: 0 auto;
+  font-family: $font-family;
+
+  @include breakpoint(md) {
+    padding: $spacing-3xl $spacing-2xl;
+  }
+
+  // ── Page Title ─────────────────────────────────────────────────
+  h1 {
+    margin: 0 0 $spacing-xs;
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-extrabold;
+    background: $gradient-primary;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 
   .subtitle {
-    color: var(--text-muted, #64748b);
-    margin-bottom: 1.25rem;
-    font-size: 0.9375rem;
+    color: $neutral-500;
+    margin-bottom: $spacing-xl;
+    font-size: $font-size-sm;
   }
 
+  // ── Error Banner ────────────────────────────────────────────────
   .error-banner {
-    background: #fef2f2;
-    color: #b91c1c;
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    font-size: 0.875rem;
-    border: 1px solid #fecaca;
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    padding: $spacing-md $spacing-lg;
+    margin-bottom: $spacing-lg;
+    background: $error-50;
+    border: 1.5px solid rgba($error-500, 0.25);
+    border-radius: $radius-xl;
+    color: $error-700;
+    font-size: $font-size-sm;
+
+    &::before { content: '⚠ '; }
   }
 
-  .project-header {
-    margin-bottom: 1.25rem;
-
-    .btn-back {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.35rem 0;
-      margin-bottom: 0.75rem;
-      background: none;
-      border: none;
-      color: var(--primary, #2563eb);
-      font-size: 0.875rem;
-      cursor: pointer;
+  // ── Statistics (your progress at a glance) ─────────────────────
+  .stats-section { margin-bottom: $spacing-xl; }
+  .stats-card { padding: $spacing-lg !important; }
+  .stats-title {
+    margin: 0 0 $spacing-md;
+    font-size: $font-size-base;
+    font-weight: $font-weight-bold;
+    color: $neutral-700;
+    padding-bottom: $spacing-sm;
+    border-bottom: 1px solid $neutral-200;
+  }
+  .stats-loading { margin: 0; font-size: $font-size-sm; color: $neutral-500; }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: $spacing-md;
+  }
+  .stat-item {
+    text-align: center;
+    padding: $spacing-md;
+    background: $neutral-50;
+    border-radius: $radius-lg;
+    border: 1px solid $neutral-200;
+    transition: border-color $transition-fast, box-shadow $transition-fast;
+    &:hover {
+      border-color: $primary-100;
+      box-shadow: 0 2px 8px rgba($primary-500, 0.08);
     }
-
-    .btn-back:hover {
-      text-decoration: underline;
+    .stat-value {
+      display: block;
+      font-size: $font-size-xl;
+      font-weight: $font-weight-extrabold;
+      color: $primary-500;
+      line-height: 1.2;
     }
-
-    .project-title {
-      margin: 0 0 0.35rem 0;
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: #1e293b;
-    }
-
-    .project-desc {
-      margin: 0;
-      font-size: 0.875rem;
-      color: var(--text-muted, #64748b);
-      line-height: 1.45;
+    .stat-label {
+      display: block;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-semibold;
+      color: $neutral-500;
+      margin-top: $spacing-xs;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
   }
 
+  // ── Project list search ────────────────────────────────────────
+  .toolbar-filters--projects { margin-bottom: $spacing-md; }
+  .toolbar--projects {
+    margin-bottom: $spacing-sm;
+    .count { font-weight: $font-weight-semibold; color: $neutral-500; font-size: $font-size-sm; }
+  }
+  .empty-msg {
+    color: $neutral-500;
+    padding: $spacing-lg;
+    text-align: center;
+    margin: 0;
+    font-size: $font-size-sm;
+  }
+
+  // ── Project Selection ──────────────────────────────────────────
   .section-label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--text-muted, #64748b);
-    margin-bottom: 1rem;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $neutral-500;
+    margin-bottom: $spacing-lg;
   }
 
   .projects-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 1rem;
+    gap: $spacing-md;
   }
 
   .project-card {
@@ -70,337 +126,541 @@
     flex-direction: column;
     align-items: stretch;
     text-align: left;
-    padding: 1.25rem;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
+    padding: $spacing-lg;
+    background: $white;
+    border: 1.5px solid $neutral-200;
+    border-radius: $radius-xl;
     cursor: pointer;
-    transition: border-color 0.15s, box-shadow 0.15s;
-  }
+    transition: $transition-base;
 
-  .project-card:hover {
-    border-color: var(--primary, #2563eb);
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
+    &:hover {
+      border-color: $primary-500;
+      box-shadow: 0 6px 24px rgba($primary-500, 0.12);
+      transform: translateY(-2px);
+    }
   }
 
   .project-card-title {
-    font-weight: 600;
-    color: #1e293b;
-    margin-bottom: 0.35rem;
-    font-size: 1rem;
+    font-weight: $font-weight-bold;
+    color: $neutral-900;
+    margin-bottom: $spacing-xs;
+    font-size: $font-size-base;
   }
 
   .project-card-desc {
-    font-size: 0.8125rem;
-    color: var(--text-muted, #64748b);
-    line-height: 1.4;
+    font-size: $font-size-sm;
+    color: $neutral-500;
+    line-height: $line-height-relaxed;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    margin-bottom: 0.5rem;
+    margin-bottom: $spacing-xs;
   }
 
   .project-card-meta {
-    font-size: 0.75rem;
-    color: #94a3b8;
+    font-size: $font-size-xs;
+    color: $neutral-400;
     margin-top: auto;
   }
 
-  .loading-msg, .empty-msg {
-    color: var(--text-muted, #64748b);
-    padding: 1rem 0;
-    font-size: 0.9375rem;
+  // ── Project Detail Header ──────────────────────────────────────
+  .project-header {
+    margin-bottom: $spacing-lg;
+
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: $spacing-xs;
+      padding: 0;
+      margin-bottom: $spacing-sm;
+      background: none;
+      border: none;
+      color: $neutral-500;
+      font-size: $font-size-sm;
+      cursor: pointer;
+      transition: $transition-fast;
+
+      &:hover { color: $primary-500; }
+    }
+
+    .project-title {
+      margin: 0 0 $spacing-xs;
+      font-size: $font-size-xl;
+      font-weight: $font-weight-bold;
+      color: $neutral-900;
+    }
+
+    .project-desc {
+      margin: 0;
+      font-size: $font-size-sm;
+      color: $neutral-500;
+      line-height: $line-height-relaxed;
+    }
   }
 
+  // ── Search (AJAX debounced) ─────────────────────────────────────
+  .toolbar-filters {
+    display: flex;
+    gap: $spacing-sm;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: $spacing-md;
+  }
+  .search-input {
+    flex: 1;
+    min-width: 200px;
+    padding: $spacing-sm $spacing-md;
+    font-size: $font-size-sm;
+    border: 1.5px solid $neutral-300;
+    border-radius: $radius-lg;
+    background: $white;
+    transition: border-color $transition-fast, box-shadow $transition-fast;
+    &:focus {
+      outline: none;
+      border-color: $primary-500;
+      box-shadow: 0 0 0 3px rgba($primary-500, 0.12);
+    }
+    &::placeholder { color: $neutral-400; }
+  }
+  .btn-clear {
+    padding: $spacing-sm $spacing-md;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $neutral-600;
+    background: transparent;
+    border: 1.5px solid $neutral-300;
+    border-radius: $radius-lg;
+    cursor: pointer;
+    transition: background $transition-fast, border-color $transition-fast;
+    &:hover:not(:disabled) {
+      background: $neutral-100;
+      border-color: $neutral-400;
+    }
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+  }
+
+  // ── Toolbar ────────────────────────────────────────────────────
+  .toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: $spacing-md;
+    margin-bottom: $spacing-lg;
+    .count {
+      font-weight: $font-weight-semibold;
+      color: $neutral-500;
+      font-size: $font-size-sm;
+    }
+  }
+
+  // ── Progress bar (same as freelancer progress-updates) ───────────
+  .progress-display {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    min-width: 100px;
+    flex-shrink: 0;
+  }
+  .progress-display__bar {
+    flex: 1;
+    min-width: 60px;
+    height: 8px;
+    background: $neutral-200;
+    border-radius: $radius-full;
+    overflow: hidden;
+  }
+  .progress-display__fill {
+    display: block;
+    height: 100%;
+    background: $primary-500;
+    border-radius: $radius-full;
+    transition: width $transition-base;
+  }
+  .progress-display__pct {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-bold;
+    color: $neutral-700;
+    min-width: 2.5em;
+  }
+
+  // ── Pagination ─────────────────────────────────────────────────
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: $spacing-sm;
+    margin-top: $spacing-lg;
+    padding-top: $spacing-lg;
+    border-top: 1px solid $neutral-200;
+  }
+  .btn-page {
+    padding: $spacing-xs $spacing-md;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $neutral-700;
+    background: $white;
+    border: 1.5px solid $neutral-300;
+    border-radius: $radius-lg;
+    cursor: pointer;
+    transition: background $transition-fast, border-color $transition-fast;
+    &:hover:not(:disabled) {
+      background: $neutral-50;
+      border-color: $primary-500;
+      color: $primary-600;
+    }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+  .pagination-info {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: $neutral-600;
+    padding: 0 $spacing-sm;
+  }
+
+  // ── Loading / Empty ────────────────────────────────────────────
+  .loading-msg {
+    color: $neutral-500;
+    padding: $spacing-xl 0;
+    font-size: $font-size-sm;
+    text-align: center;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: $spacing-3xl $spacing-xl;
+    background: $neutral-50;
+    border-radius: $radius-xl;
+    border: 2px dashed $neutral-300;
+
+    .empty-icon { font-size: 52px; display: block; margin-bottom: $spacing-md; }
+    p           { margin: 0; color: $neutral-500; font-size: $font-size-base; }
+  }
+
+  // ── Updates List ───────────────────────────────────────────────
   .updates-list {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: $spacing-lg;
   }
 
   .update-card {
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
+    border: 1.5px solid $neutral-200;
+    border-radius: $radius-xl;
     overflow: hidden;
-    background: #fff;
+    background: $white;
+    transition: $transition-base;
+
+    &:hover {
+      border-color: $primary-500;
+      box-shadow: 0 4px 16px rgba($primary-500, 0.08);
+    }
   }
 
-  .update-main {
-    padding: 1rem 1.25rem;
-  }
+  .update-main { padding: $spacing-lg; }
 
   .update-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 0.75rem;
-    margin-bottom: 0.5rem;
+    gap: $spacing-md;
+    margin-bottom: $spacing-sm;
 
     h3 {
       margin: 0;
-      font-size: 1.0625rem;
-      font-weight: 600;
-      color: #1e293b;
+      font-size: $font-size-base;
+      font-weight: $font-weight-bold;
+      color: $neutral-900;
+      flex: 1;
     }
   }
 
   .progress-badge {
     flex-shrink: 0;
-    padding: 0.25rem 0.5rem;
-    background: #dbeafe;
-    color: #1d4ed8;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    padding: 3px $spacing-sm;
+    background: $info-100;
+    color: $info-600;
+    font-size: 11px;
+    font-weight: $font-weight-bold;
+    border-radius: $radius-full;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
   }
 
   .update-desc {
-    margin: 0.5rem 0 0.35rem 0;
-    font-size: 0.875rem;
-    color: #475569;
-    line-height: 1.5;
+    margin: $spacing-xs 0;
+    font-size: $font-size-sm;
+    color: $neutral-700;
+    line-height: $line-height-relaxed;
     white-space: pre-wrap;
   }
 
   .update-meta {
-    font-size: 0.75rem;
-    color: #94a3b8;
-    margin: 0.35rem 0 0;
+    font-size: $font-size-xs;
+    color: $neutral-400;
+    margin: $spacing-xs 0 0;
   }
 
+  // ── Comments Block ─────────────────────────────────────────────
   .comments-block {
-    padding: 0.75rem 1.25rem;
-    background: #f8fafc;
-    border-top: 1px solid #e2e8f0;
+    padding: $spacing-md $spacing-lg;
+    background: $neutral-50;
+    border-top: 1.5px solid $neutral-100;
 
     h4 {
-      margin: 0 0 0.5rem 0;
-      font-size: 0.8125rem;
-      font-weight: 600;
-      color: #64748b;
+      margin: 0 0 $spacing-sm;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-semibold;
+      color: $neutral-500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .loading-comments {
-      font-size: 0.8125rem;
-      color: #94a3b8;
-    }
-
-    .comment {
-      background: white;
-      border-radius: 6px;
-      padding: 0.5rem 0.75rem;
-      margin-bottom: 0.5rem;
-      border: 1px solid #e2e8f0;
-
-      .comment-text {
-        margin: 0 0 0.25rem 0;
-        font-size: 0.875rem;
-        color: #475569;
-        line-height: 1.45;
-      }
-
-      .comment-meta {
-        font-size: 0.75rem;
-        color: #94a3b8;
-      }
-
-      .comment-actions {
-        margin-top: 0.35rem;
-      }
-
-      .btn-edit, .btn-delete {
-        padding: 0.25rem 0.5rem;
-        margin-right: 0.25rem;
-        font-size: 0.8125rem;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-      }
-
-      .btn-edit {
-        background: #e0e7ff;
-        color: #3730a3;
-      }
-
-      .btn-edit:hover {
-        background: #c7d2fe;
-      }
-
-      .btn-delete {
-        background: #fee2e2;
-        color: #b91c1c;
-      }
-
-      .btn-delete:hover {
-        background: #fecaca;
-      }
-    }
-
-    .btn-add-comment {
-      margin-top: 0.5rem;
-      padding: 0.35rem 0.75rem;
-      background: #f1f5f9;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.875rem;
-    }
-
-    .btn-add-comment:hover {
-      background: #e2e8f0;
-    }
-
-    .add-comment-form, .edit-comment-form {
-      margin-top: 0.75rem;
-      padding: 0.75rem;
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-
-      label {
-        display: block;
-        margin-bottom: 0.35rem;
-        font-weight: 500;
-        font-size: 0.875rem;
-        color: #374151;
-
-        .required {
-          color: #b91c1c;
-        }
-      }
-
-      textarea {
-        width: 100%;
-        padding: 0.5rem 0.75rem;
-        border: 1px solid #d1d5db;
-        border-radius: 8px;
-        box-sizing: border-box;
-        font-size: 0.9375rem;
-      }
-
-      textarea:focus {
-        outline: none;
-        border-color: var(--primary, #2563eb);
-        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
-      }
-
-      .field-error {
-        display: block;
-        font-size: 0.8125rem;
-        color: #b91c1c;
-        margin-top: 0.25rem;
-      }
-
-      .char-count {
-        display: block;
-        font-size: 0.75rem;
-        color: #94a3b8;
-        margin-top: 0.2rem;
-        text-align: right;
-      }
-
-      .form-actions {
-        margin-top: 0.75rem;
-        display: flex;
-        gap: 0.5rem;
-
-        button {
-          padding: 0.4rem 0.85rem;
-          border-radius: 8px;
-          cursor: pointer;
-          font-size: 0.875rem;
-        }
-
-        button[type="button"] {
-          border: 1px solid #d1d5db;
-          background: #fff;
-        }
-
-        button[type="submit"] {
-          background: var(--primary, #2563eb);
-          color: white;
-          border: none;
-          font-weight: 500;
-        }
-
-        button[type="submit"]:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-      }
+      font-size: $font-size-xs;
+      color: $neutral-400;
     }
   }
 
-  .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 1rem;
-  }
+  .comment {
+    background: $white;
+    border-radius: $radius-lg;
+    padding: $spacing-sm $spacing-md;
+    margin-bottom: $spacing-sm;
+    border: 1.5px solid $neutral-200;
 
-  .modal {
-    background: white;
-    border-radius: 10px;
-    padding: 1.5rem;
-    max-width: 360px;
-    width: 100%;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-
-    h2 {
-      margin-top: 0;
-      margin-bottom: 1rem;
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: #1e293b;
+    .comment-text {
+      margin: 0 0 $spacing-xs;
+      font-size: $font-size-sm;
+      color: $neutral-700;
+      line-height: $line-height-relaxed;
     }
 
-    p {
-      margin: 0 0 1rem 0;
-      font-size: 0.9375rem;
-      color: #475569;
+    .comment-meta {
+      font-size: $font-size-xs;
+      color: $neutral-400;
     }
 
-    .modal-actions {
+    .comment-actions {
+      margin-top: $spacing-xs;
       display: flex;
-      gap: 0.5rem;
-      justify-content: flex-end;
+      gap: $spacing-xs;
     }
 
-    .btn-cancel {
-      padding: 0.5rem 1rem;
-      border: 1px solid #d1d5db;
-      background: #fff;
-      border-radius: 8px;
+    .btn-edit {
+      padding: 2px $spacing-sm;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-semibold;
+      border: none;
+      border-radius: $radius-full;
       cursor: pointer;
-      font-size: 0.875rem;
-    }
+      background: $info-50;
+      color: $info-600;
+      transition: $transition-fast;
 
-    .btn-cancel:hover {
-      background: #f9fafb;
+      &:hover { background: $info-500; color: $white; }
     }
 
     .btn-delete {
-      padding: 0.5rem 1rem;
-      background: #b91c1c;
-      color: white;
+      padding: 2px $spacing-sm;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-semibold;
       border: none;
-      border-radius: 8px;
+      border-radius: $radius-full;
       cursor: pointer;
-      font-size: 0.875rem;
-    }
+      background: $error-50;
+      color: $error-700;
+      transition: $transition-fast;
 
-    .btn-delete:hover:not(:disabled) {
-      opacity: 0.92;
-    }
-
-    .btn-delete:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
+      &:hover { background: $error-500; color: $white; }
     }
   }
+
+  .btn-add-comment {
+    margin-top: $spacing-sm;
+    padding: $spacing-xs $spacing-md;
+    background: transparent;
+    border: 1.5px solid $neutral-300;
+    border-radius: $radius-full;
+    cursor: pointer;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $neutral-600;
+    transition: $transition-fast;
+
+    &:hover { background: $neutral-100; border-color: $neutral-400; }
+  }
+
+  // ── Comment Forms ──────────────────────────────────────────────
+  .add-comment-form,
+  .edit-comment-form {
+    margin-top: $spacing-md;
+    padding: $spacing-md;
+    background: $white;
+    border: 1.5px solid $neutral-200;
+    border-radius: $radius-xl;
+
+    label {
+      display: block;
+      margin-bottom: $spacing-xs;
+      font-weight: $font-weight-semibold;
+      font-size: $font-size-sm;
+      color: $neutral-700;
+
+      .required { color: $primary-600; }
+    }
+
+    textarea {
+      width: 100%;
+      padding: $spacing-sm $spacing-md;
+      border: 1.5px solid $neutral-300;
+      border-radius: $radius-lg;
+      box-sizing: border-box;
+      font-size: $font-size-sm;
+      font-family: $font-family;
+      color: $neutral-800;
+      background: $white;
+      resize: vertical;
+      transition: $transition-fast;
+
+      &:focus {
+        outline: none;
+        border-color: $primary-500;
+        box-shadow: 0 0 0 3px rgba($primary-500, 0.12);
+      }
+    }
+
+    .field-error {
+      display: block;
+      font-size: $font-size-xs;
+      color: $error-600;
+      margin-top: $spacing-xs;
+      &::before { content: '⚠ '; }
+    }
+
+    .char-count {
+      display: block;
+      font-size: $font-size-xs;
+      color: $neutral-400;
+      margin-top: 2px;
+      text-align: right;
+    }
+
+    .form-actions {
+      margin-top: $spacing-md;
+      display: flex;
+      gap: $spacing-sm;
+      justify-content: flex-end;
+
+      button[type="button"] {
+        padding: $spacing-xs $spacing-md;
+        border-radius: $radius-full;
+        border: 1.5px solid $neutral-300;
+        background: transparent;
+        color: $neutral-600;
+        font-size: $font-size-sm;
+        cursor: pointer;
+        transition: $transition-fast;
+
+        &:hover { background: $neutral-100; }
+      }
+
+      button[type="submit"] {
+        padding: $spacing-xs $spacing-md;
+        border-radius: $radius-full;
+        border: none;
+        @include button-gradient;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-semibold;
+        box-shadow: 0 2px 8px rgba($primary-500, 0.3);
+        cursor: pointer;
+        transition: $transition-base;
+
+        &:hover:not(:disabled) { transform: translateY(-1px); box-shadow: $shadow-primary; }
+        &:disabled { opacity: 0.6; cursor: not-allowed; }
+      }
+    }
+  }
+}
+
+// ── Delete Comment Modal ────────────────────────────────────────
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba($neutral-900, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1400;
+  padding: $spacing-md;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal {
+  background: $white;
+  border-radius: $radius-2xl;
+  padding: $spacing-xl;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: $shadow-2xl;
+  animation: slideUp 0.25s ease;
+
+  h2 {
+    margin: 0 0 $spacing-sm;
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    color: $neutral-900;
+  }
+
+  p {
+    margin: 0 0 $spacing-lg;
+    font-size: $font-size-sm;
+    color: $neutral-600;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: $spacing-sm;
+    justify-content: flex-end;
+  }
+
+  .btn-cancel {
+    padding: $spacing-sm $spacing-lg;
+    border-radius: $radius-full;
+    border: 1.5px solid $neutral-300;
+    background: transparent;
+    color: $neutral-600;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    cursor: pointer;
+    transition: $transition-fast;
+
+    &:hover { background: $neutral-100; }
+  }
+
+  .btn-delete {
+    padding: $spacing-sm $spacing-lg;
+    border-radius: $radius-full;
+    border: none;
+    background: $error-500;
+    color: $white;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    cursor: pointer;
+    transition: $transition-fast;
+
+    &:hover:not(:disabled) { background: $error-600; }
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+  }
+}
+
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (max-width: $breakpoint-sm) {
+  .track-progress-page { padding: $spacing-xl $spacing-md; }
 }

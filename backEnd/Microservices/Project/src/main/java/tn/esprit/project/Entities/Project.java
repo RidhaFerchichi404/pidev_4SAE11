@@ -24,8 +24,6 @@ public class Project {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     Long clientId;
-    /** Set when project is created from an accepted offer (freelancer assigned). */
-    Long freelancerId;
     String title;
     String description;
     BigDecimal budget;

@@ -1,0 +1,350 @@
+<!-- ═══════════════════════════════════════════════════════════════
+     PROFILE PAGE  –  adapts for FREELANCER and CLIENT
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="profile-page">
+
+  <!-- Loading skeleton -->
+  @if (isLoading) {
+    <div class="loading-shell">
+      <div class="skeleton cover-skeleton"></div>
+      <div class="skeleton avatar-skeleton"></div>
+      <div class="skeleton name-skeleton"></div>
+      <div class="skeleton text-skeleton"></div>
+    </div>
+  }
+
+  @if (!isLoading) {
+
+    <!-- ── HERO COVER ──────────────────────────────────────────── -->
+    <div class="profile-hero">
+      <div class="cover-band">
+        <div class="cover-pattern"></div>
+      </div>
+
+      <div class="hero-content">
+        <!-- Avatar -->
+        <div class="avatar-ring">
+          <div class="avatar-circle">{{ initials }}</div>
+        </div>
+
+        <!-- Identity -->
+        <div class="hero-info">
+          <div class="hero-name-row">
+            <h1 class="hero-name">{{ displayName }}</h1>
+            <span class="role-pill" [class.role-freelancer]="auth.isFreelancer()" [class.role-client]="auth.isClient()">
+              {{ role }}
+            </span>
+          </div>
+          <p class="hero-username">&#64;{{ username }}</p>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="hero-actions">
+          @if (auth.isFreelancer()) {
+            <a routerLink="/dashboard/my-portfolio" class="btn-outline">Edit Portfolio</a>
+          }
+          <a routerLink="/dashboard/settings" class="btn-ghost">Settings</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════ FREELANCER PROFILE ════════════════════ -->
+    @if (auth.isFreelancer()) {
+
+      <!-- Stats strip -->
+      <div class="stats-strip">
+        <div class="stat-card">
+          <span class="stat-value">{{ skills.length }}</span>
+          <span class="stat-label">Skills</span>
+        </div>
+        <div class="stat-card stat-accent">
+          <span class="stat-value">{{ verifiedSkills.length }}</span>
+          <span class="stat-label">Verified</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value">{{ experiences.length }}</span>
+          <span class="stat-label">Experiences</span>
+        </div>
+        <div class="stat-card stat-score">
+          <span class="stat-value">{{ avgScore > 0 ? avgScore + '%' : '—' }}</span>
+          <span class="stat-label">Avg&nbsp;Score</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value">{{ evaluations.length }}</span>
+          <span class="stat-label">Tests Taken</span>
+        </div>
+        <div class="stat-card stat-pass">
+          <span class="stat-value">{{ passRate > 0 ? passRate + '%' : '—' }}</span>
+          <span class="stat-label">Pass Rate</span>
+        </div>
+      </div>
+
+      <!-- Tab bar -->
+      <div class="tab-bar">
+        <button class="tab-btn" [class.active]="activeTab === 'skills'" (click)="setTab('skills')">
+          <span class="tab-icon">🎯</span> Skills
+          <span class="tab-badge">{{ skills.length }}</span>
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'experience'" (click)="setTab('experience')">
+          <span class="tab-icon">📁</span> Experience
+          <span class="tab-badge">{{ experiences.length }}</span>
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'evaluations'" (click)="setTab('evaluations')">
+          <span class="tab-icon">📊</span> Test History
+          <span class="tab-badge">{{ evaluations.length }}</span>
+        </button>
+      </div>
+
+      <!-- ── TAB: SKILLS ────────────────────────────────────────── -->
+      @if (activeTab === 'skills') {
+        <div class="tab-panel">
+          @if (skills.length === 0) {
+            <div class="empty-state">
+              <div class="empty-icon">🎯</div>
+              <h3>No skills yet</h3>
+              <p>Add skills to your portfolio and verify them with AI tests.</p>
+              <a routerLink="/dashboard/my-portfolio" class="btn-primary">Add Skills</a>
+            </div>
+          }
+
+          @for (domain of skillDomains; track domain) {
+            <div class="domain-section">
+              <div class="domain-header">
+                <span class="domain-name">{{ domain }}</span>
+                <span class="domain-count">{{ getSkillsByDomain(domain).length }}</span>
+              </div>
+              <div class="skills-grid">
+                @for (skill of getSkillsByDomain(domain); track skill.id) {
+                  <div class="skill-chip" [attr.data-color]="getSkillColor(skill.name)">
+                    <div class="chip-dot"></div>
+                    <span class="chip-name">{{ skill.name }}</span>
+                    @if (skill.verified) {
+                      <span class="chip-verified" title="Verified">✓</span>
+                    }
+                    @if (skill.score !== undefined && skill.score !== null) {
+                      <span class="chip-score">{{ skill.score }}%</span>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Verified skills highlight bar -->
+          @if (verifiedSkills.length > 0) {
+            <div class="verified-bar">
+              <div class="verified-bar-inner">
+                <span class="verified-bar-icon">✅</span>
+                <span class="verified-bar-text">
+                  <strong>{{ verifiedSkills.length }}</strong> of {{ skills.length }} skills verified — you stand out!
+                </span>
+                <a routerLink="/dashboard/my-portfolio" class="verified-bar-link">Verify more →</a>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ── TAB: EXPERIENCE ────────────────────────────────────── -->
+      @if (activeTab === 'experience') {
+        <div class="tab-panel">
+          @if (experiences.length === 0) {
+            <div class="empty-state">
+              <div class="empty-icon">📁</div>
+              <h3>No experiences yet</h3>
+              <p>Add your work history and projects to build a strong profile.</p>
+              <a routerLink="/dashboard/my-portfolio" class="btn-primary">Add Experience</a>
+            </div>
+          }
+
+          <div class="timeline">
+            @for (exp of experiences; track exp.id) {
+              <div class="timeline-item" [class.timeline-job]="exp.type === 'JOB'" [class.timeline-project]="exp.type === 'PROJECT'">
+                <div class="timeline-marker">
+                  <span class="timeline-icon">{{ getExperienceIcon(exp.type) }}</span>
+                </div>
+                <div class="timeline-card">
+                  <div class="timeline-header">
+                    <div>
+                      <h3 class="timeline-title">{{ exp.title }}</h3>
+                      <p class="timeline-company">{{ exp.companyOrClientName }}</p>
+                    </div>
+                    <div class="timeline-meta">
+                      <span class="timeline-type-badge">{{ exp.type }}</span>
+                      <span class="timeline-dates">
+                        {{ formatDate(exp.startDate) }} — {{ exp.endDate ? formatDate(exp.endDate) : 'Present' }}
+                      </span>
+                    </div>
+                  </div>
+
+                  @if (exp.description) {
+                    <p class="timeline-desc">{{ exp.description }}</p>
+                  }
+
+                  @if (exp.keyTasks && exp.keyTasks.length > 0) {
+                    <ul class="timeline-tasks">
+                      @for (task of exp.keyTasks; track $index) {
+                        <li>{{ task }}</li>
+                      }
+                    </ul>
+                  }
+
+                  @if (exp.skills && exp.skills.length > 0) {
+                    <div class="timeline-skill-tags">
+                      @for (skill of exp.skills; track skill.id) {
+                        <span class="skill-tag" [attr.data-color]="getSkillColor(skill.name)">{{ skill.name }}</span>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ── TAB: EVALUATIONS ───────────────────────────────────── -->
+      @if (activeTab === 'evaluations') {
+        <div class="tab-panel">
+          @if (evaluations.length === 0) {
+            <div class="empty-state">
+              <div class="empty-icon">📊</div>
+              <h3>No tests taken yet</h3>
+              <p>Verify your skills through AI-generated tests to prove your expertise.</p>
+              <a routerLink="/dashboard/my-portfolio" class="btn-primary">Go to Skills</a>
+            </div>
+          }
+
+          @if (evaluations.length > 0) {
+            <!-- Score summary -->
+            <div class="eval-summary">
+              <div class="eval-score-ring">
+                <svg viewBox="0 0 80 80" class="ring-svg">
+                  <circle cx="40" cy="40" r="34" class="ring-bg"/>
+                  <circle cx="40" cy="40" r="34" class="ring-fill"
+                    [style.stroke-dashoffset]="213.63 - (213.63 * avgScore / 100)"/>
+                </svg>
+                <div class="ring-label">
+                  <span class="ring-value">{{ avgScore }}%</span>
+                  <span class="ring-text">Avg Score</span>
+                </div>
+              </div>
+              <div class="eval-breakdown">
+                <div class="breakdown-row">
+                  <span class="dot dot-pass"></span>
+                  <span>Passed: <strong>{{ passedCount }}</strong></span>
+                </div>
+                <div class="breakdown-row">
+                  <span class="dot dot-fail"></span>
+                  <span>Failed: <strong>{{ failedCount }}</strong></span>
+                </div>
+                <div class="breakdown-row">
+                  <span class="dot dot-total"></span>
+                  <span>Total: <strong>{{ evaluations.length }}</strong></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Evaluation list -->
+            <div class="eval-list">
+              @for (ev of evaluations; track ev.id) {
+                <div class="eval-item" [class.eval-passed]="ev.passed" [class.eval-failed]="!ev.passed">
+                  <div class="eval-item-left">
+                    <span class="eval-badge" [class.badge-pass]="ev.passed" [class.badge-fail]="!ev.passed">
+                      {{ ev.passed ? '✓' : '✗' }}
+                    </span>
+                    <div>
+                      <p class="eval-skill-name">{{ ev.skill?.name || 'Skill Test' }}</p>
+                      <p class="eval-domain">{{ ev.skill?.domain || '' }}</p>
+                    </div>
+                  </div>
+                  <div class="eval-item-right">
+                    <div class="eval-score-pill" [class.pill-pass]="ev.passed" [class.pill-fail]="!ev.passed">
+                      {{ ev.score }}%
+                    </div>
+                    <span class="eval-date">{{ formatFullDate(ev.evaluatedAt) }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    }
+    <!-- END FREELANCER -->
+
+    <!-- ═══════════════════ CLIENT PROFILE ═══════════════════════ -->
+    @if (auth.isClient()) {
+      <div class="client-body">
+
+        <!-- Info cards -->
+        <div class="client-cards">
+          <div class="info-card">
+            <div class="info-card-icon">🏢</div>
+            <div class="info-card-body">
+              <h3>Company / Name</h3>
+              <p>{{ displayName }}</p>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-icon">👤</div>
+            <div class="info-card-body">
+              <h3>Username</h3>
+              <p>&#64;{{ username }}</p>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-icon">🏷️</div>
+            <div class="info-card-body">
+              <h3>Role</h3>
+              <p>{{ role }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick links for clients -->
+        <div class="client-quicklinks">
+          <h2 class="section-title">Quick Access</h2>
+          <div class="quicklink-grid">
+            <a routerLink="/dashboard/my-projects" class="quicklink-card">
+              <span class="ql-icon">📁</span>
+              <span class="ql-label">My Projects</span>
+              <span class="ql-arrow">→</span>
+            </a>
+            <a routerLink="/dashboard/my-contracts" class="quicklink-card">
+              <span class="ql-icon">📋</span>
+              <span class="ql-label">My Contracts</span>
+              <span class="ql-arrow">→</span>
+            </a>
+            <a routerLink="/dashboard/track-progress" class="quicklink-card">
+              <span class="ql-icon">📊</span>
+              <span class="ql-label">Track Progress</span>
+              <span class="ql-arrow">→</span>
+            </a>
+            <a routerLink="/dashboard/browse-freelancers" class="quicklink-card">
+              <span class="ql-icon">🔍</span>
+              <span class="ql-label">Browse Freelancers</span>
+              <span class="ql-arrow">→</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- CTA card -->
+        <div class="cta-card">
+          <div class="cta-content">
+            <h2>Ready to hire top talent?</h2>
+            <p>Browse verified freelancers and find the perfect match for your next project.</p>
+            <div class="cta-actions">
+              <a routerLink="/dashboard/browse-freelancers" class="btn-primary">Browse Freelancers</a>
+              <a routerLink="/dashboard/post-job" class="btn-outline">Post a Job</a>
+            </div>
+          </div>
+          <div class="cta-illustration">🤝</div>
+        </div>
+
+      </div>
+    }
+    <!-- END CLIENT -->
+
+  }
+</div>

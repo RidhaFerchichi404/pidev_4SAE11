@@ -1,77 +1,164 @@
-// Matches project list and user-management: layout, toolbar, modals, delete prompt
+@import '../../../../styles/variables';
+
+// ════════════════════════════════════════════════════════════════
+// PLANNING — Progress Updates
+// ════════════════════════════════════════════════════════════════
 
 .progress-updates-page {
   max-width: 1200px;
-  padding: var(--spacing-xl) var(--spacing-lg);
+  padding: $spacing-3xl $spacing-lg;
+  margin: 0 auto;
+  font-family: $font-family;
 
+  @include breakpoint(md) {
+    padding: $spacing-3xl $spacing-2xl;
+  }
+
+  // ── Page Header ─────────────────────────────────────────────────
   h1 {
-    font-size: var(--text-4xl);
-    margin-bottom: var(--spacing-sm);
+    margin: 0 0 $spacing-xs;
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-extrabold;
+    background: $gradient-primary;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   .subtitle {
-    font-size: var(--text-lg);
-    color: var(--text-secondary);
-    margin-bottom: var(--spacing-xl);
+    font-size: $font-size-sm;
+    color: $neutral-500;
+    margin-bottom: $spacing-xl;
   }
 
+  // ── Error Banner ───────────────────────────────────────────────
   .error-banner {
-    padding: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
-    background: var(--error-light);
-    border: 1px solid var(--error);
-    border-radius: var(--radius-md);
-    color: var(--error);
-    font-size: var(--text-sm);
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    padding: $spacing-md $spacing-lg;
+    margin-bottom: $spacing-lg;
+    background: $error-50;
+    border: 1.5px solid rgba($error-500, 0.25);
+    border-radius: $radius-xl;
+    color: $error-700;
+    font-size: $font-size-sm;
+
+    &::before { content: '⚠ '; }
   }
 
+  // ── Statistics (your progress at a glance) ─────────────────────
+  .stats-section {
+    margin-bottom: $spacing-xl;
+  }
+  .stats-card {
+    padding: $spacing-lg !important;
+  }
+  .stats-title {
+    margin: 0 0 $spacing-md;
+    font-size: $font-size-base;
+    font-weight: $font-weight-bold;
+    color: $neutral-700;
+    padding-bottom: $spacing-sm;
+    border-bottom: 1px solid $neutral-200;
+  }
+  .stats-loading {
+    margin: 0;
+    font-size: $font-size-sm;
+    color: $neutral-500;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: $spacing-md;
+  }
+  .stat-item {
+    text-align: center;
+    padding: $spacing-md;
+    background: $neutral-50;
+    border-radius: $radius-lg;
+    border: 1px solid $neutral-200;
+    transition: border-color $transition-fast, box-shadow $transition-fast;
+    &:hover {
+      border-color: $primary-100;
+      box-shadow: 0 2px 8px rgba($primary-500, 0.08);
+    }
+    .stat-value {
+      display: block;
+      font-size: $font-size-xl;
+      font-weight: $font-weight-extrabold;
+      color: $primary-500;
+      line-height: 1.2;
+    }
+    .stat-label {
+      display: block;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-semibold;
+      color: $neutral-500;
+      margin-top: $spacing-xs;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+  }
+
+  // ── Project Header (when project is selected) ──────────────────
   .project-header {
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: $spacing-lg;
 
     .btn-back {
       display: inline-flex;
       align-items: center;
-      padding: var(--spacing-xs) 0;
-      margin-bottom: var(--spacing-sm);
+      gap: $spacing-xs;
+      padding: $spacing-xs 0;
+      margin-bottom: $spacing-sm;
       background: none;
       border: none;
-      color: var(--secondary);
-      font-size: var(--text-sm);
+      color: $neutral-500;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-medium;
       cursor: pointer;
-      transition: opacity 0.2s ease;
+      transition: $transition-fast;
 
-      &:hover {
-        text-decoration: underline;
-        opacity: 0.9;
-      }
+      &:hover { color: $primary-500; }
     }
 
     .project-title {
-      margin: 0 0 var(--spacing-xs);
-      font-size: var(--text-xl);
-      font-weight: 600;
-      color: var(--text-primary);
+      margin: 0 0 $spacing-xs;
+      font-size: $font-size-xl;
+      font-weight: $font-weight-bold;
+      color: $neutral-900;
     }
 
     .project-desc {
       margin: 0;
-      font-size: var(--text-sm);
-      color: var(--text-secondary);
-      line-height: 1.45;
+      font-size: $font-size-sm;
+      color: $neutral-600;
+      line-height: $line-height-relaxed;
     }
   }
 
+  // ── Section Label ──────────────────────────────────────────────
   .section-label {
-    font-size: var(--text-sm);
-    font-weight: 500;
-    color: var(--text-secondary);
-    margin-bottom: var(--spacing-md);
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: $neutral-500;
+    margin-bottom: $spacing-md;
   }
 
+  // ── Project list search (AJAX-style filter) ─────────────────────
+  .toolbar-filters--projects {
+    margin-bottom: $spacing-md;
+  }
+  .toolbar--projects {
+    margin-bottom: $spacing-sm;
+    .count { font-weight: $font-weight-semibold; color: $neutral-500; font-size: $font-size-sm; }
+  }
+
+  // ── Project Selection Grid ─────────────────────────────────────
   .projects-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: var(--spacing-md);
+    gap: $spacing-md;
   }
 
   .project-card {
@@ -79,390 +166,475 @@
     flex-direction: column;
     align-items: stretch;
     text-align: left;
-    padding: var(--spacing-lg);
-    background: var(--bg-base);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-md);
+    padding: $spacing-lg;
+    background: $white;
+    border: 1.5px solid $neutral-200;
+    border-radius: $radius-xl;
     cursor: pointer;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: $transition-base;
 
     &:hover {
-      border-color: var(--secondary);
-      box-shadow: var(--shadow-md);
+      border-color: $primary-500;
+      box-shadow: 0 4px 16px rgba($primary-500, 0.1);
+      transform: translateY(-2px);
     }
   }
 
   .project-card-title {
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: var(--spacing-xs);
-    font-size: var(--text-base);
+    font-weight: $font-weight-bold;
+    color: $neutral-900;
+    margin-bottom: $spacing-xs;
+    font-size: $font-size-base;
   }
 
   .project-card-desc {
-    font-size: var(--text-sm);
-    color: var(--text-secondary);
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    margin-bottom: var(--spacing-sm);
+    font-size: $font-size-sm;
+    color: $neutral-600;
+    line-height: $line-height-relaxed;
+    @include line-clamp(2);
+    margin-bottom: $spacing-sm;
   }
 
   .project-card-meta {
-    font-size: var(--text-xs);
-    color: var(--text-muted);
+    font-size: $font-size-xs;
+    color: $neutral-400;
     margin-top: auto;
+    font-weight: $font-weight-medium;
   }
 
+  // ── Search (AJAX debounced) ──────────────────────────────────────
+  .toolbar-filters {
+    display: flex;
+    gap: $spacing-sm;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: $spacing-md;
+  }
+  .search-input {
+    flex: 1;
+    min-width: 200px;
+    padding: $spacing-sm $spacing-md;
+    font-size: $font-size-sm;
+    border: 1.5px solid $neutral-300;
+    border-radius: $radius-lg;
+    background: $white;
+    transition: border-color $transition-fast, box-shadow $transition-fast;
+    &:focus {
+      outline: none;
+      border-color: $primary-500;
+      box-shadow: 0 0 0 3px rgba($primary-500, 0.12);
+    }
+    &::placeholder { color: $neutral-400; }
+  }
+  .btn-clear {
+    padding: $spacing-sm $spacing-md;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $neutral-600;
+    background: transparent;
+    border: 1.5px solid $neutral-300;
+    border-radius: $radius-lg;
+    cursor: pointer;
+    transition: background $transition-fast, border-color $transition-fast;
+    &:hover:not(:disabled) {
+      background: $neutral-100;
+      border-color: $neutral-400;
+    }
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+  }
+
+  // ── Toolbar ────────────────────────────────────────────────────
   .toolbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
+    gap: $spacing-md;
+    margin-bottom: $spacing-lg;
 
     .count {
-      font-weight: 600;
-      color: var(--text-secondary);
+      font-weight: $font-weight-semibold;
+      color: $neutral-500;
+      font-size: $font-size-sm;
     }
 
     .toolbar-actions {
       display: flex;
       align-items: center;
-      gap: var(--spacing-sm);
-    }
-
-    .btn-refresh {
-      padding: var(--spacing-sm) var(--spacing-md);
-      font-size: var(--text-sm);
-      font-weight: 500;
-      color: var(--text-secondary);
-      background: transparent;
-      border: 1px solid var(--border-default);
-      border-radius: var(--radius-md);
-      cursor: pointer;
-      transition: all 0.2s ease;
-
-      &:hover:not(:disabled) {
-        background: var(--text-secondary);
-        color: white;
-        border-color: var(--text-secondary);
-      }
-
-      &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
+      gap: $spacing-sm;
     }
 
     .btn-add {
-      padding: var(--spacing-sm) var(--spacing-md);
-      font-size: var(--text-sm);
-      font-weight: 600;
-      color: white;
-      background: var(--accent-gradient);
-      border: none;
-      border-radius: var(--radius-md);
+      padding: $spacing-xs $spacing-md;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-semibold;
+      @include button-gradient;
+      border-radius: $radius-full;
       cursor: pointer;
-      transition: opacity 0.2s ease;
+      box-shadow: 0 2px 8px rgba($primary-500, 0.3);
+      transition: $transition-base;
 
-      &:hover {
-        opacity: 0.9;
-      }
+      &:hover { transform: translateY(-1px); box-shadow: $shadow-primary; }
     }
+  }
+
+  // ── Pagination ─────────────────────────────────────────────────
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: $spacing-sm;
+    margin-top: $spacing-lg;
+    padding-top: $spacing-lg;
+    border-top: 1px solid $neutral-200;
+  }
+  .btn-page {
+    padding: $spacing-xs $spacing-md;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $neutral-700;
+    background: $white;
+    border: 1.5px solid $neutral-300;
+    border-radius: $radius-lg;
+    cursor: pointer;
+    transition: background $transition-fast, border-color $transition-fast;
+    &:hover:not(:disabled) {
+      background: $neutral-50;
+      border-color: $primary-500;
+      color: $primary-600;
+    }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+  .pagination-info {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: $neutral-600;
+    padding: 0 $spacing-sm;
   }
 
   .loading-msg,
   .empty-msg {
-    color: var(--text-secondary);
-    padding: var(--spacing-xl);
+    color: $neutral-500;
+    padding: $spacing-xl;
     text-align: center;
     margin: 0;
+    font-size: $font-size-sm;
   }
 
+  // ── Updates List ───────────────────────────────────────────────
   .updates-list {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-lg);
+    gap: $spacing-lg;
   }
 
+  // ── Update Card ────────────────────────────────────────────────
   .update-card {
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-md);
+    border: 1.5px solid $neutral-200;
+    border-radius: $radius-xl;
     overflow: hidden;
-    background: var(--bg-card);
-    box-shadow: var(--shadow-sm);
+    background: $white;
+    transition: $transition-base;
+
+    &:hover {
+      border-color: $primary-500;
+      box-shadow: 0 4px 16px rgba($primary-500, 0.08);
+    }
   }
 
-  .update-main {
-    padding: var(--spacing-md) var(--spacing-lg);
-  }
+  .update-main { padding: $spacing-lg; }
 
   .update-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-sm);
+    gap: $spacing-md;
+    margin-bottom: $spacing-sm;
 
     h3 {
       margin: 0;
-      font-size: var(--text-lg);
-      font-weight: 600;
-      color: var(--text-primary);
+      font-size: $font-size-lg;
+      font-weight: $font-weight-bold;
+      color: $neutral-900;
+      flex: 1;
     }
   }
 
-  .progress-badge {
+  // ── Progress bar (same style as admin) ───────────────────────────
+  .progress-display {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    min-width: 100px;
     flex-shrink: 0;
-    padding: var(--spacing-xs) var(--spacing-sm);
-    background: var(--info-light);
-    color: var(--info);
-    font-size: var(--text-sm);
-    font-weight: 600;
-    border-radius: var(--radius-sm);
+  }
+  .progress-display__bar {
+    flex: 1;
+    height: 8px;
+    background: $neutral-200;
+    border-radius: $radius-full;
+    overflow: hidden;
+    min-width: 48px;
+  }
+  .progress-display__fill {
+    display: block;
+    height: 100%;
+    background: $gradient-primary;
+    border-radius: $radius-full;
+    transition: width 0.2s ease;
+  }
+  .progress-display__pct {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-bold;
+    color: $primary-500;
+    min-width: 2.25rem;
+    text-align: right;
   }
 
   .update-desc {
-    margin: var(--spacing-sm) 0 var(--spacing-xs);
-    font-size: var(--text-sm);
-    color: var(--text-secondary);
-    line-height: 1.5;
+    margin: $spacing-sm 0 $spacing-xs;
+    font-size: $font-size-sm;
+    color: $neutral-600;
+    line-height: $line-height-relaxed;
     white-space: pre-wrap;
   }
 
   .update-meta {
-    font-size: var(--text-xs);
-    color: var(--text-muted);
-    margin: var(--spacing-xs) 0 var(--spacing-sm);
+    font-size: $font-size-xs;
+    color: $neutral-400;
+    margin: $spacing-xs 0 $spacing-sm;
   }
 
   .update-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--spacing-sm);
-    margin-top: var(--spacing-sm);
+    gap: $spacing-sm;
+    margin-top: $spacing-sm;
+    padding-top: $spacing-sm;
+    border-top: 1px solid $neutral-100;
 
     .btn-edit,
     .btn-delete {
-      padding: var(--spacing-xs) var(--spacing-md);
-      font-size: var(--text-sm);
-      font-weight: 500;
-      border-radius: var(--radius-md);
+      padding: $spacing-xs $spacing-md;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-semibold;
+      border-radius: $radius-full;
       border: none;
       cursor: pointer;
-      transition: all 0.22s ease;
+      transition: $transition-base;
+
+      &:hover { transform: translateY(-1px); }
     }
 
-    .btn-edit {
-      background: var(--secondary);
-      color: white;
-
-      &:hover {
-        opacity: 0.9;
-      }
-    }
-
-    .btn-delete {
-      background: var(--error);
-      color: white;
-
-      &:hover {
-        opacity: 0.9;
-      }
-    }
+    .btn-edit   { background: $success-50; color: $success-700; &:hover { background: $success-500; color: $white; } }
+    .btn-delete { background: $error-50;   color: $error-700;   &:hover { background: $error-500;   color: $white; } }
   }
 
+  // ── Client Feedback / Comments ─────────────────────────────────
   .comments-block {
-    padding: var(--spacing-sm) var(--spacing-lg);
-    background: var(--bg-base);
-    border-top: 1px solid var(--border-light);
+    padding: $spacing-md $spacing-lg;
+    background: $neutral-50;
+    border-top: 1.5px solid $neutral-100;
 
     h4 {
-      margin: 0 0 var(--spacing-sm);
-      font-size: var(--text-sm);
-      font-weight: 600;
-      color: var(--text-secondary);
+      margin: 0 0 $spacing-sm;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-bold;
+      color: $neutral-500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .no-comments {
       margin: 0;
-      font-size: var(--text-sm);
-      color: var(--text-muted);
+      font-size: $font-size-sm;
+      color: $neutral-400;
+      font-style: italic;
     }
 
     .comment-list {
       margin: 0;
-      padding-left: var(--spacing-lg);
+      padding-left: $spacing-lg;
       list-style: disc;
     }
 
     .comment-item {
-      margin-bottom: var(--spacing-xs);
-      font-size: var(--text-sm);
+      margin-bottom: $spacing-sm;
+      font-size: $font-size-sm;
 
       .comment-text {
         margin: 0;
-        color: var(--text-secondary);
-        line-height: 1.45;
+        color: $neutral-700;
+        line-height: $line-height-relaxed;
       }
 
       .comment-meta {
-        font-size: var(--text-xs);
-        color: var(--text-muted);
+        font-size: $font-size-xs;
+        color: $neutral-400;
       }
     }
   }
 
-  // ----- Modals (match user-management & list-projects) -----
+  // ── Modals ─────────────────────────────────────────────────────
   .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba($neutral-900, 0.5);
+    @include backdrop-blur;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
-    padding: var(--spacing-xl);
+    z-index: $z-modal-backdrop;
+    padding: $spacing-md;
+    animation: fadeIn $transition-base;
   }
 
   .modal {
-    background: var(--bg-card);
-    border-radius: var(--radius-xl);
-    padding: var(--spacing-2xl);
-    max-width: 420px;
+    background: $white;
+    border-radius: $radius-2xl;
+    padding: $spacing-2xl;
+    max-width: 480px;
     width: 100%;
-    box-shadow: var(--shadow-lg);
+    box-shadow: $shadow-2xl;
+    animation: slideUp $transition-slow;
+    max-height: 90vh;
+    overflow-y: auto;
+    @include custom-scrollbar;
 
     h3 {
-      margin: 0 0 var(--spacing-sm);
-      font-size: var(--text-xl);
+      margin: 0 0 $spacing-lg;
+      font-size: $font-size-xl;
+      font-weight: $font-weight-bold;
+      color: $neutral-900;
+      padding-bottom: $spacing-md;
+      border-bottom: 1.5px solid $neutral-200;
     }
 
     .modal-message {
-      color: var(--text-primary);
-      font-size: var(--text-base);
-      line-height: 1.5;
-      margin: 0 0 var(--spacing-xl);
+      color: $neutral-700;
+      font-size: $font-size-sm;
+      line-height: $line-height-relaxed;
+      margin: 0 0 $spacing-xl;
 
-      strong {
-        font-weight: 600;
-      }
+      strong { font-weight: $font-weight-semibold; }
     }
 
-    &.modal--confirm {
-      max-width: 400px;
-    }
+    &.modal--confirm { max-width: 400px; }
 
     .field {
-      margin-bottom: var(--spacing-md);
+      margin-bottom: $spacing-lg;
 
       label {
         display: block;
-        margin-bottom: var(--spacing-xs);
-        font-size: var(--text-sm);
-        font-weight: 600;
-        color: var(--text-primary);
+        margin-bottom: $spacing-xs;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-semibold;
+        color: $neutral-700;
 
-        .required {
-          color: var(--error);
-        }
+        .required { color: $error-500; }
       }
 
       input,
       textarea {
         width: 100%;
-        padding: var(--spacing-sm) var(--spacing-md);
-        font-size: var(--text-base);
-        border: 2px solid var(--border-light);
-        border-radius: var(--radius-md);
+        padding: $spacing-sm $spacing-md;
+        font-size: $font-size-sm;
+        font-family: $font-family;
+        border: 1.5px solid $neutral-300;
+        border-radius: $radius-lg;
         box-sizing: border-box;
+        background: $white;
+        color: $neutral-900;
+        transition: $transition-fast;
 
         &:focus {
           outline: none;
-          border-color: var(--secondary);
+          border-color: $primary-500;
+          box-shadow: 0 0 0 3px rgba($primary-500, 0.12);
         }
+
+        &::placeholder { color: $neutral-400; }
+      }
+
+      textarea { resize: vertical; min-height: 80px; }
+
+      .field-hint {
+        display: block;
+        margin-top: $spacing-xs;
+        font-size: $font-size-xs;
+        color: $neutral-500;
       }
 
       .field-error {
         display: block;
-        margin-top: var(--spacing-xs);
-        font-size: var(--text-sm);
-        color: var(--error);
+        margin-top: $spacing-xs;
+        font-size: $font-size-xs;
+        color: $error-600;
+
+        &::before { content: '⚠ '; }
       }
 
       .char-count {
         display: block;
-        font-size: var(--text-xs);
-        color: var(--text-muted);
-        margin-top: var(--spacing-xs);
+        font-size: $font-size-xs;
+        color: $neutral-400;
+        margin-top: $spacing-xs;
         text-align: right;
       }
     }
 
     .modal-actions {
       display: flex;
-      gap: var(--spacing-md);
-      margin-top: var(--spacing-xl);
+      gap: $spacing-md;
+      margin-top: $spacing-xl;
       justify-content: flex-end;
 
-      .btn-primary,
-      .btn-secondary {
-        padding: var(--spacing-sm) var(--spacing-lg);
-        font-weight: 600;
-        border-radius: var(--radius-md);
+      .btn-primary {
+        padding: $spacing-sm $spacing-lg;
+        font-weight: $font-weight-semibold;
+        border-radius: $radius-full;
+        font-size: $font-size-sm;
         cursor: pointer;
-        transition: opacity 0.2s ease;
+        @include button-gradient;
+        box-shadow: 0 2px 8px rgba($primary-500, 0.35);
 
-        &:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
+        &:hover:not(:disabled) { transform: translateY(-1px); box-shadow: $shadow-primary; }
+        &:disabled { opacity: 0.6; cursor: not-allowed; }
       }
 
-      .btn-primary {
-        background: var(--accent-gradient);
-        color: white;
-        border: none;
+      .btn-secondary {
+        padding: $spacing-sm $spacing-lg;
+        font-weight: $font-weight-semibold;
+        border-radius: $radius-full;
+        cursor: pointer;
+        background: transparent;
+        color: $neutral-600;
+        border: 1.5px solid $neutral-300;
+        font-size: $font-size-sm;
+        transition: $transition-base;
+
+        &:hover:not(:disabled) { background: $neutral-100; }
+        &:disabled { opacity: 0.6; cursor: not-allowed; }
       }
 
       .btn-danger {
-        background: var(--error);
-        color: white;
-        border: none;
-        padding: var(--spacing-sm) var(--spacing-lg);
-        font-weight: 600;
-        border-radius: var(--radius-md);
+        padding: $spacing-sm $spacing-lg;
+        font-weight: $font-weight-semibold;
+        border-radius: $radius-full;
+        font-size: $font-size-sm;
         cursor: pointer;
-        transition: opacity 0.2s ease;
+        background: $error-500;
+        color: $white;
+        border: none;
+        transition: $transition-base;
 
-        &:hover:not(:disabled) {
-          opacity: 0.9;
-        }
-
-        &:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-      }
-
-      .btn-secondary {
-        background: transparent;
-        color: var(--text-secondary);
-        border: 1px solid var(--border-light);
-
-        &:hover:not(:disabled) {
-          background: var(--bg-base);
-        }
-
-        &:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
+        &:hover:not(:disabled) { background: $error-600; transform: translateY(-1px); }
+        &:disabled { opacity: 0.6; cursor: not-allowed; }
       }
     }
   }
 }
+
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }

@@ -1,21 +1,16 @@
 /* Freelancia Design System - Global Styles */
 
 :root {
-  /* Freelancia Brand Colors */
-  --primary: #EAC3A9;
-  --primary-light: #F5DDD0;
-  --primary-dark: #D9A484;
+  /* Updated Palette */
+  --primary: #E37E33;         /* Was #EAC3A9 - Now darker orange */
+  --primary-light: #FCE8D6;   /* New tint */
+  --primary-dark: #C25E12;    /* Darker shade for active states */
 
-  --secondary: #E37E33;
+  --secondary: #E23D59;       /* Retained */
   --secondary-end: #E23D59;
   --accent-gradient: linear-gradient(135deg, #E37E33 0%, #E23D59 100%);
 
-  /* Neutral Warm Greys */
-  --text-primary: #4A3F35;
-  --text-secondary: #6B5D52;
-  --text-muted: #9B8D7F;
-
-  --bg-base: #FFF9F5;
+  --bg-base: #F8F9FA;         /* Neutral-50 */
   --bg-card: #FFFFFF;
   --bg-hover: #FFF3EB;
 
@@ -36,6 +31,19 @@
   --error-light: #FFEBEE;
   --info: #2196F3;
   --info-light: #E3F2FD;
+
+  /* Text Colors */
+  --text-primary: #111827;    /* Neutral-900 */
+  --text-secondary: #4B5563;  /* Neutral-600 */
+  --text-muted: #6B7280;      /* Neutral-500 */
+
+  /* Spacing & Radius */
+  --card-padding: 24px;       /* $spacing-lg */
+  --card-radius: 16px;        /* $radius-xl */
+
+  /* Timeline */
+  --timeline-width: 2px;
+  --timeline-color: #E5E7EB;  /* Neutral-200 */
 
   /* Spacing System */
   --spacing-xs: 0.25rem;    /* 4px */

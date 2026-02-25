@@ -1,32 +1,531 @@
-.dashboard-home-page {
+@import '../../../../styles/variables';
+
+// ════════════════════════════════════════════════════════════════
+// CONTRACT DASHBOARD
+// ════════════════════════════════════════════════════════════════
+
+.contracts-page {
   max-width: 1200px;
+  padding-bottom: $spacing-4xl;
+}
 
-  h1 {
-    font-size: var(--text-4xl);
-    margin-bottom: var(--spacing-sm);
+// ── Page Header ──────────────────────────────────────────────────
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  font-size: $font-size-3xl;
+  font-weight: $font-weight-extrabold;
+  color: $neutral-900;
+  margin: 0 0 $spacing-xs;
+}
+
+.page-sub {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $neutral-500;
+}
+
+// ── Buttons ──────────────────────────────────────────────────────
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-full;
+  background: $gradient-primary;
+  color: $white;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  border: none;
+  cursor: pointer;
+  transition: $transition-base;
+  box-shadow: 0 2px 8px rgba($primary-500, 0.35);
+  white-space: nowrap;
+
+  .btn-icon { font-size: $font-size-lg; line-height: 1; }
+
+  &:hover { background: $gradient-primary-hover; transform: translateY(-1px); box-shadow: $shadow-primary; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+}
+
+.btn-ghost {
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-full;
+  background: transparent;
+  color: $neutral-600;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  border: 1.5px solid $neutral-300;
+  cursor: pointer;
+  transition: $transition-base;
+  &:hover { background: $neutral-100; border-color: $neutral-400; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+// ── Filter Bar ───────────────────────────────────────────────────
+.filter-bar {
+  display: flex;
+  gap: $spacing-xs;
+  flex-wrap: wrap;
+  margin-bottom: $spacing-xl;
+  padding-bottom: $spacing-sm;
+  border-bottom: 1.5px solid $neutral-200;
+}
+
+.filter-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px $spacing-md;
+  border-radius: $radius-full;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  background: transparent;
+  color: $neutral-500;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: $transition-fast;
+  white-space: nowrap;
+
+  &:hover { color: $neutral-700; background: $neutral-100; }
+
+  &.active {
+    background: rgba($primary-500, 0.1);
+    color: $primary-500;
+    border-color: rgba($primary-500, 0.3);
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.filter-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: $radius-full;
+  font-size: 11px;
+  font-weight: $font-weight-bold;
+  background: $neutral-200;
+  color: $neutral-600;
+
+  .filter-tab.active & {
+    background: rgba($primary-500, 0.2);
+    color: $primary-600;
+  }
+}
+
+// ── Loading Skeletons ─────────────────────────────────────────────
+.loading-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: $spacing-lg;
+}
+
+.skeleton-card {
+  background: $white;
+  border-radius: $radius-xl;
+  border: 1.5px solid $neutral-200;
+  padding: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.skel {
+  border-radius: $radius-md;
+  background: linear-gradient(90deg, $neutral-200 25%, $neutral-100 50%, $neutral-200 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+
+  &.skel-title  { height: 20px; width: 70%; }
+  &.skel-text   { height: 14px; width: 90%; }
+  &.skel-text.short { width: 50%; }
+  &.skel-footer { height: 36px; width: 40%; margin-top: $spacing-sm; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+// ── Alert ────────────────────────────────────────────────────────
+.alert-error {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-md $spacing-lg;
+  border-radius: $radius-xl;
+  background: $error-50;
+  border: 1.5px solid rgba($error-500, 0.25);
+  color: $error-700;
+  font-size: $font-size-sm;
+  margin-bottom: $spacing-lg;
+
+  &.small { font-size: $font-size-xs; padding: $spacing-sm $spacing-md; margin-bottom: $spacing-md; }
+}
+
+// ── Empty State ───────────────────────────────────────────────────
+.empty-state {
+  text-align: center;
+  padding: $spacing-3xl $spacing-xl;
+  .empty-icon { font-size: 52px; margin-bottom: $spacing-md; }
+  h3 { font-size: $font-size-xl; font-weight: $font-weight-bold; color: $neutral-700; margin: 0 0 $spacing-xs; }
+  p  { color: $neutral-500; font-size: $font-size-sm; margin: 0 0 $spacing-lg; }
+}
+
+// ── Contract Cards Grid ───────────────────────────────────────────
+.contracts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: $spacing-lg;
+}
+
+.contract-card {
+  background: $white;
+  border-radius: $radius-xl;
+  border: 1.5px solid $neutral-200;
+  padding: $spacing-lg;
+  cursor: pointer;
+  transition: $transition-base;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+
+  &:hover {
+    border-color: $primary-500;
+    box-shadow: 0 6px 24px rgba($primary-500, 0.12);
+    transform: translateY(-2px);
+  }
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $spacing-md;
+}
+
+.card-left { flex: 1; min-width: 0; }
+
+.card-title {
+  font-size: $font-size-base;
+  font-weight: $font-weight-bold;
+  color: $neutral-800;
+  margin: $spacing-xs 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-desc {
+  font-size: $font-size-sm;
+  color: $neutral-500;
+  margin: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.card-amount {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.amount-value {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-extrabold;
+  background: $gradient-primary;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.amount-label {
+  font-size: $font-size-xs;
+  color: $neutral-400;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+// Status badges
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px $spacing-sm;
+  border-radius: $radius-full;
+  font-size: 11px;
+  font-weight: $font-weight-bold;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+
+  &.status-draft             { background: $neutral-100; color: $neutral-600; }
+  &.status-pending_signature { background: $warning-50;  color: $warning-700; }
+  &.status-active            { background: $success-50;  color: $success-700; }
+  &.status-in_conflict       { background: $error-50;    color: $error-700; }
+  &.status-completed         { background: $info-50;     color: $info-600; }
+  &.status-cancelled         { background: $neutral-200; color: $neutral-500; }
+}
+
+// Card meta row
+.card-meta {
+  display: flex;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-xs;
+  color: $neutral-500;
+  .meta-icon { font-size: 13px; }
+}
+
+// Signature indicators
+.card-sig-row {
+  display: flex;
+  gap: $spacing-md;
+}
+
+.sig-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: $font-size-xs;
+  color: $neutral-400;
+
+  .sig-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: $radius-full;
+    background: $neutral-300;
+    transition: $transition-base;
   }
 
-  .subtitle {
-    font-size: var(--text-lg);
-    color: var(--text-secondary);
-    margin-bottom: var(--spacing-2xl);
+  &.signed {
+    color: $success-600;
+    .sig-dot { background: $success-500; }
+  }
+}
+
+// View button
+.card-footer {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid $neutral-100;
+  padding-top: $spacing-sm;
+}
+
+.btn-view {
+  padding: $spacing-xs $spacing-md;
+  border-radius: $radius-full;
+  background: transparent;
+  color: $primary-500;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  border: 1.5px solid rgba($primary-500, 0.3);
+  cursor: pointer;
+  transition: $transition-fast;
+  &:hover { background: rgba($primary-500, 0.08); border-color: $primary-500; }
+}
+
+// ════════════════════════════════════════════════════════════════
+// CREATE CONTRACT MODAL
+// ════════════════════════════════════════════════════════════════
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba($neutral-900, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1400;
+  padding: $spacing-md;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-box {
+  background: $white;
+  border-radius: $radius-2xl;
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: $shadow-2xl;
+  animation: slideUp 0.25s ease;
+  overflow: hidden;
+}
+
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-lg $spacing-xl;
+  border-bottom: 1px solid $neutral-200;
+
+  h2 { margin: 0; font-size: $font-size-xl; font-weight: $font-weight-bold; color: $neutral-900; }
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: $radius-full;
+  background: $neutral-100;
+  border: none;
+  cursor: pointer;
+  font-size: $font-size-base;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $neutral-600;
+  transition: $transition-fast;
+  &:hover { background: $neutral-200; color: $neutral-800; }
+}
+
+.modal-body {
+  padding: $spacing-xl;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-md;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+
+  &.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: $neutral-700;
+    .req { color: $primary-600; }
   }
 
-  .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: var(--spacing-xl);
+  input, textarea, select {
+    padding: $spacing-sm $spacing-md;
+    border-radius: $radius-lg;
+    border: 1.5px solid $neutral-300;
+    font-size: $font-size-sm;
+    color: $neutral-800;
+    transition: $transition-fast;
+    background: $white;
+    font-family: inherit;
+    resize: vertical;
 
-    app-card {
-      h3 {
-        font-size: var(--text-xl);
-        margin-bottom: var(--spacing-md);
-      }
-
-      p {
-        color: var(--text-secondary);
-        line-height: 1.6;
-      }
+    &:focus {
+      outline: none;
+      border-color: $primary-500;
+      box-shadow: 0 0 0 3px rgba($primary-500, 0.12);
     }
+    &::placeholder { color: $neutral-400; }
   }
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $spacing-sm;
+  padding: $spacing-lg $spacing-xl;
+  border-top: 1px solid $neutral-200;
+}
+
+// ── Field validation states ───────────────────────────────────────
+.field-hint {
+  font-size: $font-size-xs;
+  color: $neutral-400;
+  margin-top: 2px;
+}
+
+.field-err-msg {
+  font-size: $font-size-xs;
+  color: $error-600;
+  font-weight: $font-weight-medium;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  &::before { content: '⚠ '; }
+}
+
+.field.field-error {
+  label { color: $error-600; }
+}
+
+.input-invalid {
+  border-color: $error-500 !important;
+  background: $error-50 !important;
+  &:focus {
+    box-shadow: 0 0 0 3px rgba($error-500, 0.12) !important;
+  }
+}
+
+// ── Freelancer email lookup ───────────────────────────────────────
+.lookup-row {
+  display: flex;
+  gap: $spacing-xs;
+  align-items: stretch;
+
+  input {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.btn-lookup {
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-lg;
+  background: rgba($primary-500, 0.1);
+  color: $primary-600;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  border: 1.5px solid rgba($primary-500, 0.3);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: $transition-fast;
+
+  &:hover:not(:disabled) {
+    background: rgba($primary-500, 0.18);
+    border-color: $primary-500;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.lookup-success {
+  margin-top: $spacing-xs;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-md;
+  background: $success-50;
+  color: $success-700;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  border: 1px solid rgba($success-500, 0.25);
 }

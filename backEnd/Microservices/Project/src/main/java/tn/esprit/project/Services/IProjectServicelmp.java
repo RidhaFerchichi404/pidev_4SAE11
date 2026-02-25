@@ -39,9 +39,4 @@ public class IProjectServicelmp implements IProjectService{
         return projectRepository.findByClientId(clientId);
     }
 
-    @Override
-    public List<Project> getProjectsByFreelancerId(Long freelancerId) {
-        return projectRepository.findByFreelancerId(freelancerId);
-    }
-
 }

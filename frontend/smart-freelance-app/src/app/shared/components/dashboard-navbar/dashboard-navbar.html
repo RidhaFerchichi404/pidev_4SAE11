@@ -1,0 +1,41 @@
+<nav class="dashboard-navbar">
+
+  <!-- ── Desktop: scrollable tab bar ── -->
+  <div class="navbar-inner">
+    <div class="nav-scroll">
+      @for (item of navItems; track item.route) {
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+          class="nav-item">
+          <span class="nav-icon">{{ item.icon }}</span>
+          <span class="nav-label">{{ item.label }}</span>
+        </a>
+      }
+    </div>
+
+    <!-- ── Mobile: hamburger ── -->
+    <button class="hamburger" (click)="toggle()" [class.open]="mobileOpen()" aria-label="Toggle navigation">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </div>
+
+  <!-- ── Mobile dropdown menu ── -->
+  <div class="mobile-menu" [class.open]="mobileOpen()">
+    @for (item of navItems; track item.route) {
+      <a
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+        class="mobile-item"
+        (click)="mobileOpen.set(false)">
+        <span class="nav-icon">{{ item.icon }}</span>
+        <span>{{ item.label }}</span>
+      </a>
+    }
+  </div>
+
+</nav>

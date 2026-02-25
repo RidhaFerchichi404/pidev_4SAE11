@@ -1,30 +1,238 @@
-<div class="dashboard-home-page">
-  <h1>Welcome to Freelancia! 👋</h1>
-  <p class="subtitle">You're logged in as: <strong>{{ auth.getUserRole() }}</strong></p>
+<div class="contracts-page">
 
-  <div class="cards-grid">
-    <app-card>
-      <h3>🚀 Quick Start</h3>
-      <p>Explore the sidebar to navigate to different sections of your dashboard.</p>
-    </app-card>
-
+  <!-- ── PAGE HEADER ──────────────────────────────────────────── -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1 class="page-title">My Contracts</h1>
+      <p class="page-sub">{{ contracts.length }} contract{{ contracts.length !== 1 ? 's' : '' }}</p>
+    </div>
     @if (auth.isClient()) {
-      <app-card>
-        <h3>💼 For Clients</h3>
-        <p>Post jobs, browse freelancers, and manage your projects from here.</p>
-      </app-card>
+      <button class="btn-primary" (click)="openCreate()">
+        <span class="btn-icon">+</span> New Contract
+      </button>
     }
-
-    @if (auth.isFreelancer()) {
-      <app-card>
-        <h3>🎨 For Freelancers</h3>
-        <p>Browse jobs, manage applications, and build your portfolio.</p>
-      </app-card>
-    }
-
-    <app-card>
-      <h3>🎯 Coming Soon</h3>
-      <p>Full dashboard features are being developed. This is a placeholder to show the structure.</p>
-    </app-card>
   </div>
+
+  <!-- ── FILTER TABS ────────────────────────────────────────────── -->
+  <div class="filter-bar">
+    @for (tab of filterTabs; track tab) {
+      <button class="filter-tab"
+              [class.active]="activeFilter === tab"
+              (click)="setFilter(tab)">
+        {{ getTabLabel(tab) }}
+        @if (countByStatus(tab) > 0) {
+          <span class="filter-badge">{{ countByStatus(tab) }}</span>
+        }
+      </button>
+    }
+  </div>
+
+  <!-- ── LOADING ────────────────────────────────────────────────── -->
+  @if (isLoading) {
+    <div class="loading-grid">
+      @for (n of skeletonItems; track n) {
+        <div class="skeleton-card">
+          <div class="skel skel-title"></div>
+          <div class="skel skel-text"></div>
+          <div class="skel skel-text short"></div>
+          <div class="skel skel-footer"></div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── ERROR ──────────────────────────────────────────────────── -->
+  @if (errorMsg) {
+    <div class="alert-error">
+      <span>⚠️</span> {{ errorMsg }}
+    </div>
+  }
+
+  <!-- ── EMPTY STATE ────────────────────────────────────────────── -->
+  @if (!isLoading && !errorMsg && filtered.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <h3>No contracts yet</h3>
+      @if (auth.isClient()) {
+        <p>Create your first contract to start working with freelancers.</p>
+        <button class="btn-primary" (click)="openCreate()">Create Contract</button>
+      } @else {
+        <p>Contracts assigned to you will appear here.</p>
+      }
+    </div>
+  }
+
+  <!-- ── CONTRACT CARDS ─────────────────────────────────────────── -->
+  @if (!isLoading && filtered.length > 0) {
+    <div class="contracts-grid">
+      @for (c of filtered; track c.id) {
+        <div class="contract-card" (click)="viewDetail(c.id)">
+          <div class="card-top">
+            <div class="card-left">
+              <span class="status-badge status-{{ c.status?.toLowerCase() }}">
+                {{ getStatusLabel(c.status) }}
+              </span>
+              <h3 class="card-title">{{ c.title }}</h3>
+              @if (c.description) {
+                <p class="card-desc">{{ c.description }}</p>
+              }
+            </div>
+            <div class="card-amount">
+              <span class="amount-value">${{ c.amount | number:'1.0-0' }}</span>
+              <span class="amount-label">Budget</span>
+            </div>
+          </div>
+
+          <div class="card-meta">
+            <div class="meta-item">
+              <span class="meta-icon">📅</span>
+              <span>{{ formatDate(c.startDate) }} – {{ formatDate(c.endDate) }}</span>
+            </div>
+            @if (c.createdAt) {
+              <div class="meta-item">
+                <span class="meta-icon">🕐</span>
+                <span>Created {{ formatDate(c.createdAt) }}</span>
+              </div>
+            }
+          </div>
+
+          <!-- Signature indicators -->
+          <div class="card-sig-row">
+            <div class="sig-indicator" [class.signed]="c.clientSignatureUrl">
+              <span class="sig-dot"></span>
+              <span>Client sig</span>
+            </div>
+            <div class="sig-indicator" [class.signed]="c.freelancerSignatureUrl">
+              <span class="sig-dot"></span>
+              <span>Freelancer sig</span>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <button class="btn-view" (click)="$event.stopPropagation(); viewDetail(c.id)">
+              View Details →
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
 </div>
+
+<!-- ══════════════════ CREATE CONTRACT MODAL ══════════════════ -->
+@if (showCreateModal) {
+  <div class="modal-backdrop" (click)="closeCreate()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <h2>Create New Contract</h2>
+        <button class="modal-close" (click)="closeCreate()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        @if (createError) {
+          <div class="alert-error small">{{ createError }}</div>
+        }
+
+        <div class="form-grid">
+
+          <!-- Title -->
+          <div class="field full" [class.field-error]="fieldErrors['title']">
+            <label>Contract Title <span class="req">*</span></label>
+            <input type="text" [(ngModel)]="form.title"
+                   placeholder="e.g. Website Redesign Project"
+                   [class.input-invalid]="fieldErrors['title']" />
+            <span class="field-hint">Must start with a capital letter and be at least 5 characters.</span>
+            @if (fieldErrors['title']) {
+              <span class="field-err-msg">{{ fieldErrors['title'] }}</span>
+            }
+          </div>
+
+          <!-- Description -->
+          <div class="field full">
+            <label>Description</label>
+            <textarea [(ngModel)]="form.description" rows="2"
+              placeholder="Brief overview of the contract..."></textarea>
+          </div>
+
+          <!-- Terms -->
+          <div class="field full" [class.field-error]="fieldErrors['terms']">
+            <label>Terms & Conditions <span class="req">*</span></label>
+            <textarea [(ngModel)]="form.terms" rows="4"
+              placeholder="Detailed terms: deliverables, milestones, payment schedule..."
+              [class.input-invalid]="fieldErrors['terms']"></textarea>
+            <span class="field-hint">{{ form.terms.length }}/20 minimum characters.</span>
+            @if (fieldErrors['terms']) {
+              <span class="field-err-msg">{{ fieldErrors['terms'] }}</span>
+            }
+          </div>
+
+          <!-- Freelancer lookup (full row) -->
+          <div class="field full" [class.field-error]="fieldErrors['freelancer']">
+            <label>Freelancer <span class="req">*</span></label>
+            <div class="lookup-row">
+              <input type="email" [(ngModel)]="freelancerEmail"
+                     placeholder="freelancer@example.com"
+                     [class.input-invalid]="fieldErrors['freelancer']"
+                     (keyup.enter)="lookupFreelancer()" />
+              <button class="btn-lookup" (click)="lookupFreelancer()" [disabled]="isLookingUp">
+                @if (isLookingUp) { Searching… } @else { Find }
+              </button>
+            </div>
+            @if (freelancerName) {
+              <div class="lookup-success">
+                ✓ {{ freelancerName }}
+              </div>
+            }
+            @if (lookupError) {
+              <span class="field-err-msg">{{ lookupError }}</span>
+            }
+            @if (fieldErrors['freelancer'] && !lookupError) {
+              <span class="field-err-msg">{{ fieldErrors['freelancer'] }}</span>
+            }
+          </div>
+
+          <!-- Budget -->
+          <div class="field" [class.field-error]="fieldErrors['amount']">
+            <label>Budget (USD) <span class="req">*</span></label>
+            <input type="number" [(ngModel)]="form.amount" placeholder="0.00" min="0"
+                   [class.input-invalid]="fieldErrors['amount']" />
+            @if (fieldErrors['amount']) {
+              <span class="field-err-msg">{{ fieldErrors['amount'] }}</span>
+            }
+          </div>
+
+          <!-- Start Date -->
+          <div class="field" [class.field-error]="fieldErrors['startDate']">
+            <label>Start Date <span class="req">*</span></label>
+            <input type="date" [(ngModel)]="form.startDate" [min]="todayIso"
+                   [class.input-invalid]="fieldErrors['startDate']" />
+            @if (fieldErrors['startDate']) {
+              <span class="field-err-msg">{{ fieldErrors['startDate'] }}</span>
+            }
+          </div>
+
+          <!-- End Date -->
+          <div class="field" [class.field-error]="fieldErrors['endDate']">
+            <label>End Date <span class="req">*</span></label>
+            <input type="date" [(ngModel)]="form.endDate"
+                   [min]="form.startDate || todayIso"
+                   [class.input-invalid]="fieldErrors['endDate']" />
+            @if (fieldErrors['endDate']) {
+              <span class="field-err-msg">{{ fieldErrors['endDate'] }}</span>
+            }
+          </div>
+
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-ghost" (click)="closeCreate()" [disabled]="isSubmitting">Cancel</button>
+        <button class="btn-primary" (click)="submitCreate()" [disabled]="isSubmitting">
+          @if (isSubmitting) { Saving… } @else { Create Contract }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}

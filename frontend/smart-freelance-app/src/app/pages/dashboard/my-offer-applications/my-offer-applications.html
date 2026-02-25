@@ -6,7 +6,10 @@
     <button type="button" class="btn-refresh" (click)="load()" [disabled]="loading">{{ loading ? 'Loading...' : 'Refresh' }}</button>
   </div>
   <p class="loading-msg" *ngIf="loading && applications.length === 0">Loading...</p>
-  <p class="empty-msg" *ngIf="!loading && applications.length === 0">You have not applied to any offers yet. Browse offers to apply.</p>
+  <div class="empty-state" *ngIf="!loading && applications.length === 0">
+    <span class="empty-icon">📨</span>
+    <p>You have not applied to any offers yet. Browse offers to apply.</p>
+  </div>
   <div class="applications-list" *ngIf="applications.length > 0">
     <div class="app-card" *ngFor="let app of applications">
       <div class="app-main">

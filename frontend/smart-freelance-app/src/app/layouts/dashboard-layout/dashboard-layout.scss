@@ -2,23 +2,27 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-}
-
-.dashboard-body {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
+  width: 100%;
+  background: var(--bg-base);
 }
 
 .dashboard-content {
   flex: 1;
-  overflow-y: auto;
-  padding: var(--spacing-xl);
-  background: var(--bg-base);
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-content {
+    padding: var(--spacing-xl) var(--spacing-lg);
+  }
 }
 
 @media (max-width: 768px) {
   .dashboard-content {
-    padding: var(--spacing-md);
+    padding: var(--spacing-lg) var(--spacing-md);
   }
 }

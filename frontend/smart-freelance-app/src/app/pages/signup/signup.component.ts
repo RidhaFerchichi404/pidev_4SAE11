@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -14,14 +14,18 @@ const ROLES = ['CLIENT', 'FREELANCER', 'ADMIN'];
   templateUrl: './signup.component.html',
   styleUrl: './signup.component.scss',
 })
-export class SignupComponent {
+export class SignupComponent implements OnDestroy {
   form: FormGroup;
   errorMessage = '';
   successMessage = '';
   loading = false;
   checkingEmail = false;
+  /** Shown while uploading avatar after signup (deferred upload). */
   avatarUploading = false;
   roles = ROLES;
+  /** Avatar file selected on signup is uploaded after registration (no auth during signup). */
+  pendingAvatarFile: File | null = null;
+  private pendingAvatarObjectUrl: string | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -74,28 +78,32 @@ export class SignupComponent {
     return '';
   }
 
+  /** Store avatar file for upload after signup (avatar endpoint requires auth). */
   onAvatarFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input?.files?.[0];
     if (!file || !file.type.startsWith('image/')) return;
-    this.avatarUploading = true;
+    this.clearPendingAvatar();
+    this.pendingAvatarFile = file;
+    this.pendingAvatarObjectUrl = URL.createObjectURL(file);
     this.errorMessage = '';
-    this.userService.uploadAvatar(file).subscribe({
-      next: (url) => {
-        this.avatarUploading = false;
-        if (url) this.form.patchValue({ avatarUrl: url });
-        else this.errorMessage = 'Image upload failed. You can enter a URL instead.';
-        input.value = '';
-      },
-      error: () => {
-        this.avatarUploading = false;
-        this.errorMessage = 'Image upload failed. You can enter a URL instead.';
-        input.value = '';
-      },
-    });
+    input.value = '';
+  }
+
+  clearPendingAvatar(): void {
+    if (this.pendingAvatarObjectUrl) {
+      URL.revokeObjectURL(this.pendingAvatarObjectUrl);
+      this.pendingAvatarObjectUrl = null;
+    }
+    this.pendingAvatarFile = null;
+  }
+
+  ngOnDestroy(): void {
+    this.clearPendingAvatar();
   }
 
   get avatarPreviewUrl(): string | null {
+    if (this.pendingAvatarObjectUrl) return this.pendingAvatarObjectUrl;
     const url = this.form.get('avatarUrl')?.value;
     return (url && typeof url === 'string' && url.trim()) ? url.trim() : null;
   }
@@ -141,14 +149,66 @@ export class SignupComponent {
     };
     this.auth.register(request).subscribe({
       next: (res) => {
-        this.loading = false;
         if (res && 'error' in res) {
+          this.loading = false;
           this.errorMessage = res.error;
-        } else if (res?.message) {
+          return;
+        }
+        if (!res?.message) {
+          this.loading = false;
+          this.errorMessage = 'Registration failed. Please try again.';
+          return;
+        }
+        const file = this.pendingAvatarFile;
+        if (file) {
+          this.loading = false;
+          this.avatarUploading = true;
+          this.auth.login(value.email, value.password).subscribe({
+            next: (loginRes) => {
+              if (loginRes && 'error' in loginRes) {
+                this.avatarUploading = false;
+                this.clearPendingAvatar();
+                this.successMessage = 'Account created. You can now sign in.';
+                this.form.reset({ role: 'CLIENT', phone: '', avatarUrl: '' });
+                return;
+              }
+              const userId = this.auth.getUserId();
+              if (userId) {
+                this.userService.uploadAvatar(file).subscribe({
+                  next: (url) => {
+                    if (url) {
+                      this.userService.update(userId, { avatarUrl: url }).subscribe();
+                    }
+                    this.avatarUploading = false;
+                    this.clearPendingAvatar();
+                    this.successMessage = 'Account created. You can now sign in.';
+                    this.form.reset({ role: 'CLIENT', phone: '', avatarUrl: '' });
+                  },
+                  error: () => {
+                    this.avatarUploading = false;
+                    this.clearPendingAvatar();
+                    this.successMessage = 'Account created. You can now sign in.';
+                    this.form.reset({ role: 'CLIENT', phone: '', avatarUrl: '' });
+                  },
+                });
+              } else {
+                this.avatarUploading = false;
+                this.clearPendingAvatar();
+                this.successMessage = 'Account created. You can now sign in.';
+                this.form.reset({ role: 'CLIENT', phone: '', avatarUrl: '' });
+              }
+            },
+            error: () => {
+              this.avatarUploading = false;
+              this.clearPendingAvatar();
+              this.successMessage = 'Account created. You can now sign in.';
+              this.form.reset({ role: 'CLIENT', phone: '', avatarUrl: '' });
+            },
+          });
+        } else {
+          this.loading = false;
           this.successMessage = 'Account created. You can now sign in.';
           this.form.reset({ role: 'CLIENT', phone: '', avatarUrl: '' });
-        } else {
-          this.errorMessage = 'Registration failed. Please try again.';
         }
       },
       error: (err) => {

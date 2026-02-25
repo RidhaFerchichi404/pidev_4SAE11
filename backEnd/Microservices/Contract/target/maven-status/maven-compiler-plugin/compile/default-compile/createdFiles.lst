@@ -1,0 +1,12 @@
+org\example\contract\ContractApplication.class
+org\example\contract\entity\Contract.class
+org\example\contract\dto\SignatureRequest.class
+org\example\contract\controller\ConflictController.class
+org\example\contract\entity\ConflictStatus.class
+org\example\contract\repository\ConflictRepository.class
+org\example\contract\entity\Conflict.class
+org\example\contract\controller\ContractController.class
+org\example\contract\repository\ContractRepository.class
+org\example\contract\service\ContractService.class
+org\example\contract\entity\ContractStatus.class
+org\example\contract\service\ConflictService.class

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
@@ -9,11 +9,16 @@ import {
   ProgressUpdate,
   ProgressComment,
   ProgressUpdateRequest,
+  FreelancerProgressStatsDto,
+  PageResponse,
 } from '../../../core/services/planning.service';
 import { Card } from '../../../shared/components/card/card';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subject, Subscription } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 
 const TITLE_MAX = 200;
+const SEARCH_DEBOUNCE_MS = 350;
+const PAGE_SIZE = 10;
 const DESCRIPTION_MAX = 2000;
 
 export interface ProjectWithDetails {
@@ -28,7 +33,10 @@ export interface ProjectWithDetails {
   templateUrl: './progress-updates.html',
   styleUrl: './progress-updates.scss',
 })
-export class ProgressUpdates implements OnInit {
+export class ProgressUpdates implements OnInit, OnDestroy {
+  private searchTrigger$ = new Subject<void>();
+  private searchSub: Subscription | null = null;
+
   projects: ProjectWithDetails[] = [];
   selectedProject: Project | null = null;
   updates: ProgressUpdate[] = [];
@@ -38,11 +46,24 @@ export class ProgressUpdates implements OnInit {
   errorMessage = '';
   currentUser: User | null = null;
   form: FormGroup;
+  filterForm: FormGroup;
+  /** Search/filter for the project list (when no project selected). */
+  projectFilterForm: FormGroup;
   modalOpen = false;
   editing: ProgressUpdate | null = null;
   saving = false;
   deleteTarget: ProgressUpdate | null = null;
   deleting = false;
+
+  /** Freelancer stats (your progress across all projects) */
+  stats: FreelancerProgressStatsDto | null = null;
+  statsLoading = false;
+
+  /** Pagination for updates list (when project selected) */
+  page = 0;
+  size = PAGE_SIZE;
+  totalElements = 0;
+  totalPages = 0;
 
   readonly titleMax = TITLE_MAX;
   readonly descriptionMax = DESCRIPTION_MAX;
@@ -60,6 +81,21 @@ export class ProgressUpdates implements OnInit {
       description: ['', [Validators.maxLength(DESCRIPTION_MAX)]],
       progressPercentage: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
     });
+    this.filterForm = this.fb.group({ search: [''] });
+    this.projectFilterForm = this.fb.group({ search: [''] });
+  }
+
+  /** Projects filtered by project list search (title, description, id). */
+  get filteredProjects(): ProjectWithDetails[] {
+    const q = this.projectFilterForm?.get('search')?.value?.trim()?.toLowerCase() ?? '';
+    if (!q) return this.projects;
+    return this.projects.filter((item) => {
+      const p = item.project;
+      const title = (p.title ?? '').toLowerCase();
+      const desc = (p.description ?? '').toLowerCase();
+      const idStr = (p.id ?? '').toString();
+      return title.includes(q) || desc.includes(q) || idStr.includes(q);
+    });
   }
 
   ngOnInit(): void {
@@ -74,6 +110,11 @@ export class ProgressUpdates implements OnInit {
       this.currentUser = user ?? null;
       if (this.currentUser) {
         this.loadProjects();
+        this.loadFreelancerStats();
+        this.searchSub = this.searchTrigger$.pipe(debounceTime(SEARCH_DEBOUNCE_MS)).subscribe(() => {
+          this.page = 0;
+          this.loadUpdatesForProject();
+        });
       } else {
         this.loading = false;
         this.errorMessage = 'Could not load your profile.';
@@ -82,13 +123,56 @@ export class ProgressUpdates implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    this.searchSub?.unsubscribe();
+  }
+
+  loadFreelancerStats(): void {
+    if (!this.currentUser?.id) return;
+    this.statsLoading = true;
+    this.planning.getStatsByFreelancer(this.currentUser.id).subscribe({
+      next: (s) => {
+        this.stats = s ?? null;
+        this.statsLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.statsLoading = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  onSearchChange(): void {
+    this.searchTrigger$.next();
+  }
+
+  clearSearch(): void {
+    this.filterForm.patchValue({ search: '' });
+    this.page = 0;
+    this.loadUpdatesForProject();
+  }
+
+  clearProjectSearch(): void {
+    this.projectFilterForm.patchValue({ search: '' });
+    this.cdr.detectChanges();
+  }
+
+  goToPage(p: number): void {
+    if (p < 0 || p >= this.totalPages) return;
+    this.page = p;
+    this.loadUpdatesForProject();
+  }
+
   loadProjects(): void {
     if (!this.currentUser?.id) return;
     this.loading = true;
     this.errorMessage = '';
     this.projectService.getApplicationsByFreelancer(this.currentUser.id).subscribe({
       next: (applications: ProjectApplication[]) => {
-        const uniqueProjectIds = [...new Set((applications || []).map((a: ProjectApplication) => a.projectId))];
+        const appList = applications || [];
+        const getProjectId = (a: ProjectApplication & { project?: { id?: number } }) => a.projectId ?? a.project?.id;
+        const uniqueProjectIds = [...new Set(appList.map(getProjectId).filter((id): id is number => id != null && !Number.isNaN(Number(id))))];
         if (uniqueProjectIds.length === 0) {
           this.projects = [];
           this.loading = false;
@@ -99,10 +183,10 @@ export class ProgressUpdates implements OnInit {
         forkJoin(projectRequests).subscribe({
           next: (projectResults) => {
             this.projects = projectResults
-              .filter((p): p is Project => p != null)
+              .filter((p): p is Project => p != null && p.id != null)
               .map((project) => ({
                 project,
-                application: applications.find((a: ProjectApplication) => a.projectId === project.id),
+                application: appList.find((a: ProjectApplication & { project?: { id?: number } }) => (a.projectId ?? a.project?.id) === project.id),
               }));
             this.loading = false;
             this.cdr.detectChanges();
@@ -125,6 +209,8 @@ export class ProgressUpdates implements OnInit {
   selectProject(project: Project): void {
     this.selectedProject = project;
     this.errorMessage = '';
+    this.filterForm.patchValue({ search: '' });
+    this.page = 0;
     this.loadUpdatesForProject();
   }
 
@@ -132,15 +218,30 @@ export class ProgressUpdates implements OnInit {
     this.selectedProject = null;
     this.updates = [];
     this.commentsByUpdateId = {};
+    this.totalElements = 0;
+    this.totalPages = 0;
   }
 
   loadUpdatesForProject(): void {
     const projectId = this.selectedProject?.id;
-    if (!this.selectedProject || projectId == null) return;
+    const freelancerId = this.currentUser?.id;
+    if (!this.selectedProject || projectId == null || freelancerId == null) return;
     this.loadingUpdates = true;
-    this.planning.getProgressUpdatesByProjectId(projectId).subscribe({
-      next: (list) => {
-        this.updates = (list || []).filter((u) => u.freelancerId === this.currentUser?.id);
+    const search = this.filterForm.get('search')?.value?.trim() || null;
+    this.planning.getFilteredProgressUpdates({
+      projectId,
+      freelancerId,
+      search: search || null,
+      page: this.page,
+      size: this.size,
+      sort: 'createdAt,desc',
+    }).subscribe({
+      next: (res: PageResponse<ProgressUpdate>) => {
+        this.updates = res.content ?? [];
+        this.totalElements = res.totalElements ?? 0;
+        this.totalPages = res.totalPages ?? 0;
+        this.size = res.size ?? this.size;
+        this.page = res.number ?? 0;
         this.commentsByUpdateId = {};
         this.updates.forEach((u) => this.loadComments(u.id));
         this.loadingUpdates = false;
@@ -167,20 +268,40 @@ export class ProgressUpdates implements OnInit {
     });
   }
 
+  /** Minimum progress % allowed for this project (from previous updates). */
+  minProgressHint = 0;
+
   openCreate(): void {
     this.editing = null;
     this.errorMessage = '';
-    this.form.reset({ title: '', description: '', progressPercentage: 0 });
+    this.minProgressHint = this.updates.length ? Math.max(...this.updates.map((x) => x.progressPercentage)) : 0;
+    this.form.reset({ title: '', description: '', progressPercentage: this.minProgressHint });
+    this.form.get('progressPercentage')?.setValidators([
+      Validators.required,
+      Validators.min(this.minProgressHint),
+      Validators.max(100),
+    ]);
+    this.form.get('progressPercentage')?.updateValueAndValidity();
     this.modalOpen = true;
   }
 
   openEdit(u: ProgressUpdate): void {
     this.editing = u;
+    this.minProgressHint =
+      this.updates.filter((x) => x.id !== u.id).length > 0
+        ? Math.max(...this.updates.filter((x) => x.id !== u.id).map((x) => x.progressPercentage))
+        : 0;
     this.form.patchValue({
       title: u.title,
       description: u.description ?? '',
       progressPercentage: u.progressPercentage,
     });
+    this.form.get('progressPercentage')?.setValidators([
+      Validators.required,
+      Validators.min(this.minProgressHint),
+      Validators.max(100),
+    ]);
+    this.form.get('progressPercentage')?.updateValueAndValidity();
     this.modalOpen = true;
   }
 
@@ -214,9 +335,13 @@ export class ProgressUpdates implements OnInit {
           }
           this.cdr.detectChanges();
         },
-        error: () => {
+        error: (err: { status?: number; error?: { message?: string; minAllowed?: number }; message?: string }) => {
           this.saving = false;
-          this.errorMessage = 'Failed to update.';
+          const msg =
+            err?.status === 400 && err?.error?.message
+              ? String(err.error.message)
+              : 'Failed to update.';
+          this.errorMessage = msg;
           this.cdr.detectChanges();
         },
       });
@@ -229,12 +354,14 @@ export class ProgressUpdates implements OnInit {
           this.loadUpdatesForProject();
           this.cdr.detectChanges();
         },
-        error: (err: { status?: number; error?: { message?: string; error?: string }; message?: string }) => {
+        error: (err: { status?: number; error?: { message?: string; error?: string; minAllowed?: number }; message?: string }) => {
           this.saving = false;
           const status = err?.status;
           let msg: string;
           if (status === 0) {
             msg = 'Cannot connect to the server. Start the API Gateway (port 8078) and the Planning service (port 8081), then try again.';
+          } else if (status === 400 && err?.error?.message) {
+            msg = String(err.error.message);
           } else {
             const body = err?.error?.message ?? err?.error?.error ?? err?.message;
             msg = body && typeof body === 'string' ? body : 'Failed to create progress update. Check that the Planning service is running.';
@@ -299,7 +426,7 @@ export class ProgressUpdates implements OnInit {
     const c = this.form.get('progressPercentage');
     if (!c?.touched || !c?.errors) return '';
     if (c.errors['required']) return 'Progress is required.';
-    if (c.errors['min'] != null) return 'Minimum 0%.';
+    if (c.errors['min'] != null) return `Minimum ${this.minProgressHint}% for this project (cannot be less than previous update).`;
     if (c.errors['max'] != null) return 'Maximum 100%.';
     return '';
   }

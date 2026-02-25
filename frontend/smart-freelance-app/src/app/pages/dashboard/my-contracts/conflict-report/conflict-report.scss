@@ -1,0 +1,218 @@
+@import '../../../../../styles/variables';
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba($neutral-900, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1500;
+  padding: $spacing-md;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-box {
+  background: $white;
+  border-radius: $radius-2xl;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: $shadow-2xl;
+  overflow: hidden;
+  animation: slideUp 0.25s ease;
+  border-top: 4px solid $error-500;
+}
+
+@keyframes fadeIn  { from { opacity: 0; }              to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+// ── Modal Header ────────────────────────────────────────────────
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-lg $spacing-xl;
+  border-bottom: 1px solid $neutral-200;
+  background: $error-50;
+}
+
+.modal-title-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  .conflict-icon { font-size: 24px; }
+  h2 { margin: 0; font-size: $font-size-xl; font-weight: $font-weight-bold; color: $error-700; }
+}
+
+.modal-close {
+  width: 32px; height: 32px; border-radius: $radius-full;
+  background: rgba($error-500, 0.1); border: none; cursor: pointer;
+  font-size: $font-size-base; display: flex; align-items: center; justify-content: center;
+  color: $error-600; transition: $transition-fast;
+  &:hover { background: rgba($error-500, 0.2); }
+}
+
+// ── Modal Body ───────────────────────────────────────────────────
+.modal-body {
+  padding: $spacing-xl;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.modal-intro {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $neutral-600;
+  line-height: $line-height-relaxed;
+}
+
+.field-error-banner {
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-lg;
+  background: $error-50;
+  border: 1.5px solid rgba($error-500, 0.3);
+  color: $error-700;
+  font-size: $font-size-sm;
+}
+
+// ── Form Fields ───────────────────────────────────────────────────
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+
+  label {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-bold;
+    color: $neutral-700;
+    .req { color: $error-600; }
+    .opt { color: $neutral-400; font-weight: $font-weight-normal; font-size: $font-size-xs; }
+  }
+
+  textarea, input {
+    padding: $spacing-sm $spacing-md;
+    border-radius: $radius-lg;
+    border: 1.5px solid $neutral-300;
+    font-size: $font-size-sm;
+    color: $neutral-800;
+    background: $white;
+    font-family: inherit;
+    resize: vertical;
+    transition: $transition-fast;
+
+    &:focus {
+      outline: none;
+      border-color: $error-500;
+      box-shadow: 0 0 0 3px rgba($error-500, 0.1);
+    }
+    &::placeholder { color: $neutral-400; }
+  }
+}
+
+.char-count {
+  font-size: 11px;
+  color: $neutral-400;
+  text-align: right;
+  &.warn { color: $warning-600; }
+}
+
+.field-error {
+  font-size: $font-size-xs;
+  color: $error-600;
+  font-weight: $font-weight-medium;
+}
+
+.field-hint {
+  font-size: $font-size-xs;
+  color: $neutral-400;
+}
+
+// ── Reason Chips ─────────────────────────────────────────────────
+.reason-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.reason-chip {
+  padding: 6px $spacing-md;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  background: $neutral-100;
+  color: $neutral-600;
+  border: 1.5px solid $neutral-200;
+  cursor: pointer;
+  transition: $transition-fast;
+  white-space: nowrap;
+
+  &:hover { background: $neutral-200; color: $neutral-800; }
+
+  &.selected {
+    background: rgba($error-500, 0.1);
+    color: $error-700;
+    border-color: rgba($error-500, 0.4);
+  }
+}
+
+// ── Modal Footer ──────────────────────────────────────────────────
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $spacing-sm;
+  padding: $spacing-lg $spacing-xl;
+  border-top: 1px solid $neutral-200;
+}
+
+.btn-ghost {
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-full;
+  background: transparent;
+  color: $neutral-600;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  border: 1.5px solid $neutral-300;
+  cursor: pointer;
+  transition: $transition-fast;
+  &:hover { background: $neutral-100; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-full;
+  background: $error-600;
+  color: $white;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  border: none;
+  cursor: pointer;
+  transition: $transition-base;
+  box-shadow: 0 2px 8px rgba($error-600, 0.35);
+
+  &:hover { background: $error-700; transform: translateY(-1px); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+}
+
+.btn-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: $radius-full;
+  border: 2px solid rgba($white, 0.4);
+  border-top-color: $white;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

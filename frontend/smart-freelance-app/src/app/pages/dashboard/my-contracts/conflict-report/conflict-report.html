@@ -1,0 +1,80 @@
+<div class="modal-backdrop" (click)="cancel()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="modal-header">
+      <div class="modal-title-row">
+        <span class="conflict-icon">⚠️</span>
+        <h2>Report a Conflict</h2>
+      </div>
+      <button class="modal-close" (click)="cancel()">✕</button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body">
+      <p class="modal-intro">
+        Describe the issue clearly. Both parties will be notified and the contract will be flagged.
+      </p>
+
+      @if (error) {
+        <div class="field-error-banner">{{ error }}</div>
+      }
+
+      <!-- Reason -->
+      <div class="field">
+        <label>Reason <span class="req">*</span></label>
+        <div class="reason-grid">
+          @for (r of reasons; track r) {
+            <button class="reason-chip"
+                    [class.selected]="form.reason === r"
+                    type="button"
+                    (click)="form.reason = r">
+              {{ r }}
+            </button>
+          }
+        </div>
+        @if (fieldErrors['reason']) {
+          <span class="field-error">{{ fieldErrors['reason'] }}</span>
+        }
+      </div>
+
+      <!-- Description -->
+      <div class="field">
+        <label>Detailed Description <span class="req">*</span></label>
+        <textarea
+          [(ngModel)]="form.description"
+          rows="5"
+          placeholder="Explain what happened, when it occurred, and any supporting context...">
+        </textarea>
+        <span class="char-count" [class.warn]="form.description.length < 20">
+          {{ form.description.length }} chars (min 20)
+        </span>
+        @if (fieldErrors['description']) {
+          <span class="field-error">{{ fieldErrors['description'] }}</span>
+        }
+      </div>
+
+      <!-- Evidence URL -->
+      <div class="field">
+        <label>Evidence URL <span class="opt">(optional)</span></label>
+        <input type="url"
+               [(ngModel)]="form.evidenceUrl"
+               placeholder="https://drive.google.com/... or any link to screenshots/documents" />
+        <span class="field-hint">Link to screenshots, documents, or recordings that support your claim.</span>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button class="btn-ghost" (click)="cancel()" [disabled]="isSubmitting">Cancel</button>
+      <button class="btn-danger" (click)="submit()" [disabled]="isSubmitting">
+        @if (isSubmitting) {
+          <span class="btn-spinner"></span> Submitting…
+        } @else {
+          ⚠️ Submit Conflict
+        }
+      </button>
+    </div>
+
+  </div>
+</div>

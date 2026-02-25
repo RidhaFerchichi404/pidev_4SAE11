@@ -1,48 +1,60 @@
-// Matches list-projects container, toolbar, grid, and card styles
+@import '../../../../styles/variables';
 
 .browse-offers-page {
-  max-width: 1400px;
-  padding: 4rem 2rem;
+  max-width: 1200px;
+  padding: $spacing-3xl $spacing-lg;
   margin: 0 auto;
+  font-family: $font-family;
+
+  @include breakpoint(md) {
+    padding: $spacing-3xl $spacing-2xl;
+  }
 
   h1 {
-    font-size: clamp(1.8rem, 5vw, 2.5rem);
-    margin: 0 0 0.5rem;
-    color: #0f172a;
+    margin: 0 0 $spacing-xs;
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-extrabold;
+    background: $gradient-primary;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   .subtitle {
-    color: #64748b;
-    margin-bottom: 1.5rem;
+    color: $neutral-500;
+    margin-bottom: $spacing-xl;
+    font-size: $font-size-sm;
   }
 
+  // ── Toolbar ────────────────────────────────────────────────────────
   .toolbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 1.5rem;
+    margin-bottom: $spacing-lg;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: $spacing-md;
 
     .count {
-      font-weight: 600;
-      color: #64748b;
+      font-weight: $font-weight-semibold;
+      color: $neutral-500;
+      font-size: $font-size-sm;
     }
 
     .btn-refresh {
-      padding: 0.5rem 1rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: #475569;
+      padding: $spacing-xs $spacing-md;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-medium;
+      color: $neutral-600;
       background: transparent;
-      border: 1px solid #94a3b8;
-      border-radius: 8px;
+      border: 1.5px solid $neutral-300;
+      border-radius: $radius-full;
       cursor: pointer;
+      transition: $transition-base;
 
       &:hover:not(:disabled) {
-        background: #475569;
-        color: white;
-        border-color: #475569;
+        background: $neutral-100;
+        border-color: $neutral-400;
       }
 
       &:disabled {
@@ -52,98 +64,147 @@
     }
   }
 
-  .loading-msg,
-  .empty-msg {
-    color: #64748b;
-    padding: 2rem;
+  .loading-msg {
+    color: $neutral-500;
+    padding: $spacing-xl;
+    text-align: center;
+    font-size: $font-size-sm;
   }
 
+  // ── Grid ───────────────────────────────────────────────────────────
   .offers-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 2.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: $spacing-lg;
   }
 
+  // ── Offer Card ─────────────────────────────────────────────────────
   .offer-card {
-    background: white;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
-    padding: 1.6rem 1.5rem 2rem;
+    background: $white;
+    border-radius: $radius-xl;
+    border: 1.5px solid $neutral-200;
+    padding: $spacing-lg;
+    transition: $transition-base;
+    display: flex;
+    flex-direction: column;
 
     &:hover {
-      transform: translateY(-12px);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+      border-color: $primary-500;
+      box-shadow: 0 6px 24px rgba($primary-500, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .offer-content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
     }
 
     .offer-title {
-      margin: 0 0 0.5rem;
-      font-size: 1.45rem;
-      color: #1e293b;
+      margin: 0 0 $spacing-sm;
+      font-size: $font-size-lg;
+      font-weight: $font-weight-bold;
+      color: $neutral-900;
+      line-height: $line-height-snug;
     }
 
     .offer-domain {
       display: inline-block;
-      background: #f1f5f9;
-      color: #475569;
-      padding: 0.28rem 0.8rem;
-      border-radius: 999px;
-      font-size: 0.78rem;
-      font-weight: 500;
-      margin-bottom: 0.75rem;
+      background: $gradient-soft;
+      color: $primary-500;
+      padding: 2px $spacing-sm;
+      border-radius: $radius-full;
+      font-size: 11px;
+      font-weight: $font-weight-bold;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: $spacing-sm;
+      border: 1px solid rgba($primary-500, 0.15);
     }
 
     .offer-desc {
-      font-size: 0.97rem;
-      color: #64748b;
-      line-height: 1.5;
-      margin-bottom: 1rem;
+      font-size: $font-size-sm;
+      color: $neutral-600;
+      line-height: $line-height-relaxed;
+      margin-bottom: $spacing-md;
+      flex: 1;
     }
 
-    .offer-meta .price {
-      font-weight: 600;
-      color: #1e293b;
+    .offer-meta {
+      margin-bottom: $spacing-xs;
+
+      .price {
+        font-size: $font-size-sm;
+        font-weight: $font-weight-semibold;
+        color: $neutral-800;
+      }
     }
 
     .btn-view {
       display: inline-flex;
       align-items: center;
-      margin-top: 1rem;
-      padding: 0.65rem 1.35rem;
-      background: #3b82f6;
-      color: white;
-      border-radius: 10px;
+      justify-content: center;
+      margin-top: $spacing-md;
+      padding: $spacing-sm $spacing-lg;
+      @include button-gradient;
+      border-radius: $radius-full;
       text-decoration: none;
-      font-weight: 500;
-      font-size: 0.94rem;
-      transition: all 0.22s ease;
+      font-weight: $font-weight-semibold;
+      font-size: $font-size-sm;
+      box-shadow: 0 2px 8px rgba($primary-500, 0.35);
+      transition: $transition-base;
+      align-self: flex-start;
 
       &:hover {
-        background: #2563eb;
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+        box-shadow: $shadow-primary;
       }
     }
   }
 
+  // ── Empty State ────────────────────────────────────────────────────
+  .empty-state {
+    text-align: center;
+    padding: $spacing-3xl $spacing-xl;
+    background: $neutral-50;
+    border-radius: $radius-xl;
+    border: 2px dashed $neutral-300;
+
+    .empty-icon {
+      font-size: 52px;
+      display: block;
+      margin-bottom: $spacing-md;
+    }
+
+    p {
+      margin: 0;
+      color: $neutral-500;
+      font-size: $font-size-base;
+    }
+  }
+
+  // ── Pagination ─────────────────────────────────────────────────────
   .pagination {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
-    margin-top: 2rem;
+    gap: $spacing-md;
+    margin-top: $spacing-xl;
 
     button {
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
+      padding: $spacing-xs $spacing-md;
+      border-radius: $radius-full;
       cursor: pointer;
-      border: 1px solid #cbd5e1;
-      background: white;
-      font-weight: 500;
+      border: 1.5px solid $neutral-300;
+      background: $white;
+      font-weight: $font-weight-medium;
+      font-size: $font-size-sm;
+      color: $neutral-600;
+      transition: $transition-base;
 
       &:hover:not(:disabled) {
-        background: #f1f5f9;
+        background: $neutral-100;
+        border-color: $neutral-400;
       }
 
       &:disabled {
@@ -151,11 +212,11 @@
         cursor: not-allowed;
       }
     }
-  }
-}
 
-@media (max-width: 600px) {
-  .browse-offers-page {
-    padding: 3rem 1.2rem;
+    span {
+      font-size: $font-size-sm;
+      color: $neutral-500;
+      font-weight: $font-weight-medium;
+    }
   }
 }

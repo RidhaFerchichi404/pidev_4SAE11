@@ -42,6 +42,7 @@
   </div>
 
   <div class="empty-state" *ngIf="!loading && !errorMessage && reviews.length === 0">
+    <span class="empty-icon">✍️</span>
     <p>You haven't left any reviews yet.</p>
     <a routerLink="/dashboard/reviews/add" class="btn btn--add">Leave your first review</a>
   </div>

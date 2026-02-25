@@ -7,6 +7,10 @@ import { UserService } from '../../../core/services/user.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { interval, Subscription, forkJoin, of } from 'rxjs';
 import { catchError, map, filter } from 'rxjs/operators';
+import { FormsModule } from '@angular/forms';
+import { Chart, ChartData, ChartOptions, registerables } from 'chart.js';
+import { BaseChartDirective } from 'ng2-charts';
+
 
 const AUTO_REFRESH_INTERVAL_MS = 60_000;
 
@@ -21,14 +25,47 @@ function toProjectList(res: unknown): Project[] {
   return [];
 }
 
+Chart.register(...registerables);
+
 @Component({
   selector: 'app-list-projects',
   standalone: true,
-  imports: [RouterLink, CommonModule],
+  imports: [RouterLink, CommonModule, FormsModule, BaseChartDirective],
   templateUrl: './list-projects.html',
   styleUrl: './list-projects.scss',
 })
 export class ListProjects implements OnInit, OnDestroy {
+
+  // Only for admin statistics
+  statusChartData: ChartData<'doughnut', number[], string> = {
+    labels: ['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'],
+    datasets: [
+      {
+        data: [0, 0, 0, 0],
+        backgroundColor: ['#36A2EB', '#FFCE56', '#4BC0C0', '#FF6384'],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  statusChartOptions: ChartOptions<'doughnut'> = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'bottom',
+      },
+      tooltip: {
+        enabled: true,
+      },
+    },
+  };
+
+  canManageProjects = false;
+
+  searchTerm: string = '';
+  selectedStatus: string = 'ALL';
+  filteredProjects: Project[] = [];
+
   projects: Project[] = [];
   isLoading = false;
   errorMessage: string | null = null;
@@ -46,8 +83,14 @@ export class ListProjects implements OnInit, OnDestroy {
     private router: Router
   ) {}
 
+  public userRole: string | null = null;
+
   ngOnInit(): void {
     this.previousUrl = this.router.url;
+
+    this.userRole = this.authService.getUserRole();
+    this.canManageProjects = this.userRole === 'CLIENT';
+
     this.loadProjects();
     this.autoRefreshSub = interval(AUTO_REFRESH_INTERVAL_MS).subscribe(() => {
       if (!this.isLoading) this.loadProjects();
@@ -117,37 +160,53 @@ export class ListProjects implements OnInit, OnDestroy {
     }
 
     const user$ = this.userService.getByEmail(email).pipe(catchError(() => of(null)));
+    const projects$ = this.projectService.getAllProjects().pipe(map((res) => toProjectList(res)));
 
-    forkJoin({ user: user$ }).subscribe({
-      next: ({ user }) => {
-        if (!user?.id) {
-          this.projects = [];
-          this.isLoading = false;
-          this.cdr.detectChanges();
-          return;
-        }
-        let projects$;
-        if (user.role === 'CLIENT') {
-          projects$ = this.projectService.getByClientId(user.id).pipe(map((res) => toProjectList(res)));
-        } else if (user.role === 'FREELANCER') {
-          projects$ = this.projectService.getByFreelancerId(user.id).pipe(map((res) => toProjectList(res)));
+    forkJoin({ user: user$, projects: projects$ }).subscribe({
+      next: ({ user, projects }) => {
+        const list = Array.isArray(projects) ? projects : toProjectList(projects);
+        
+        if (this.userRole === 'CLIENT') {
+          const clientId =
+            user?.id != null ? user.id : null;
+
+          this.projects =
+            clientId != null
+              ? list.filter((p) => Number(p.clientId) === Number(clientId))
+              : [];
+          this.applyFilters();
+
+        } else if (this.userRole === 'FREELANCER') {
+
+          // Freelancer sees only OPEN projects
+          this.projects = list.filter((p) => p.status === 'OPEN');
+          this.applyFilters();
+
         } else {
-          projects$ = this.projectService.getAllProjects().pipe(map((res) => toProjectList(res)));
+
+          // ADMIN sees all projects
+          this.projects = list;
+          this.applyFilters();
+
+
+          // ADMIN Stat
+          const statusCounts = { OPEN: 0, IN_PROGRESS: 0, COMPLETED: 0, CANCELLED: 0 };
+          this.projects.forEach(p => {
+            if (statusCounts[p.status as keyof typeof statusCounts] !== undefined) {
+              statusCounts[p.status as keyof typeof statusCounts]++;
+            }
+          });
+
+          this.statusChartData.datasets[0].data = [
+            statusCounts.OPEN,
+            statusCounts.IN_PROGRESS,
+            statusCounts.COMPLETED,
+            statusCounts.CANCELLED,
+          ];
         }
-        projects$.subscribe({
-          next: (list) => {
-            this.projects = Array.isArray(list) ? list : toProjectList(list);
-            this.isLoading = false;
-            this.cdr.detectChanges();
-          },
-          error: (err: HttpErrorResponse) => {
-            this.errorMessage = this.isTimeoutError(err)
-              ? 'Request timed out. Use Refresh to try again.'
-              : 'Failed to load projects.';
-            this.isLoading = false;
-            this.cdr.detectChanges();
-          },
-        });
+
+        this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: (err: HttpErrorResponse) => {
         this.errorMessage = this.isTimeoutError(err)
@@ -169,4 +228,32 @@ export class ListProjects implements OnInit, OnDestroy {
       .filter(Boolean);
   }
 
+  applyFilters(): void {
+    let temp = [...this.projects];
+
+    // Search filter
+    if (this.searchTerm.trim() !== '') {
+      const term = this.searchTerm.toLowerCase();
+      temp = temp.filter(p =>
+        p.title?.toLowerCase().includes(term) ||
+        p.category?.toLowerCase().includes(term) ||
+        p.description?.toLowerCase().includes(term)
+      );
+    }
+
+    // Status filter
+    if (this.selectedStatus !== 'ALL') {
+      temp = temp.filter(p => p.status === this.selectedStatus);
+    }
+
+    this.filteredProjects = temp;
+  }
+
+  onSearchChange(): void {
+    this.applyFilters();
+  }
+
+  onStatusChange(): void {
+    this.applyFilters();
+  }
 }

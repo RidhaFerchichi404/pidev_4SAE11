@@ -26,6 +26,7 @@ export class Sidebar {
       return [
         { label: 'Dashboard', route: '/admin', icon: '📊' },
         { label: 'Users', route: '/admin/users', icon: '👥' },
+        { label: 'Contracts', route: '/admin/contracts', icon: '📋' },
         { label: 'Offers', route: '/admin/offers', icon: '💼' },
         { label: 'Projects', route: '/admin/projects', icon: '🚀' },
         { label: 'Planning', route: '/admin/planning', icon: '📅' },

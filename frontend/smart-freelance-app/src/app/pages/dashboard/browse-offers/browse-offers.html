@@ -6,7 +6,10 @@
     <button type="button" class="btn-refresh" (click)="load()" [disabled]="loading">{{ loading ? 'Loading...' : 'Refresh' }}</button>
   </div>
   <p class="loading-msg" *ngIf="loading && offers.length === 0">Loading offers...</p>
-  <p class="empty-msg" *ngIf="!loading && offers.length === 0">No offers available.</p>
+  <div class="empty-state" *ngIf="!loading && offers.length === 0">
+    <span class="empty-icon">🔍</span>
+    <p>No offers available right now. Check back soon!</p>
+  </div>
   <div class="offers-grid" *ngIf="offers.length > 0">
     <div class="offer-card" *ngFor="let o of offers">
       <div class="offer-content">

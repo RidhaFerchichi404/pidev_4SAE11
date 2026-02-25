@@ -1,0 +1,97 @@
+<section class="update-project-application">
+  <div class="update-project-application__container">
+    <h1 class="update-project-application__title">Edit Application</h1>
+    <p class="update-project-application__subtitle">Update your proposal details below</p>
+
+    <form class="project-form" [formGroup]="updateApplicationForm" (ngSubmit)="updateApplication()">
+      <!-- Proposed Price -->
+      <div class="form-group">
+        <label class="form-label"> Proposed Price (USD) <span class="required">*</span> </label>
+        <input type="number" formControlName="proposedPrice" class="form-input" min="1" />
+        <div
+          *ngIf="
+            updateApplicationForm.get('proposedPrice')?.invalid &&
+            updateApplicationForm.get('proposedPrice')?.touched
+          "
+          class="error"
+        >
+          <span *ngIf="updateApplicationForm.get('proposedPrice')?.errors?.['required']">
+            Price is required.
+          </span>
+          <span *ngIf="updateApplicationForm.get('proposedPrice')?.errors?.['min']">
+            Price must be at least 1.
+          </span>
+        </div>
+      </div>
+
+      <!-- Proposed Duration -->
+      <div class="form-group">
+        <label class="form-label"> Proposed Duration (days) <span class="required">*</span> </label>
+        <input type="number" formControlName="proposedDuration" class="form-input" min="1" />
+        <div
+          *ngIf="
+            updateApplicationForm.get('proposedDuration')?.invalid &&
+            updateApplicationForm.get('proposedDuration')?.touched
+          "
+          class="error"
+        >
+          Duration is required and must be at least 1 day.
+        </div>
+      </div>
+
+      <!-- Cover Letter -->
+      <div class="form-group">
+        <label class="form-label"> Cover Letter <span class="required">*</span> </label>
+        <textarea formControlName="coverLetter" class="form-textarea" minlength="20"></textarea>
+
+        <div
+          *ngIf="
+            updateApplicationForm.get('coverLetter')?.invalid &&
+            updateApplicationForm.get('coverLetter')?.touched
+          "
+          class="error"
+        >
+          <span *ngIf="updateApplicationForm.get('coverLetter')?.errors?.['required']">
+            Cover letter is required.
+          </span>
+          <span *ngIf="updateApplicationForm.get('coverLetter')?.errors?.['minlength']">
+            Must be at least 20 characters.
+          </span>
+        </div>
+      </div>
+
+      <!-- Loading / Messages -->
+      <div *ngIf="isLoading" class="form-message loading">Loading application...</div>
+
+      <div *ngIf="submitSuccess" class="form-message success">
+        Application updated successfully!
+      </div>
+
+      <div *ngIf="submitError" class="form-message error">
+        {{ submitError }}
+      </div>
+
+      <div *ngIf="isSubmitting" class="form-message loading">Updating application...</div>
+
+      <!-- Buttons -->
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn btn--cancel"
+          (click)="onCancel()"
+          [disabled]="isSubmitting"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          class="btn btn--submit"
+          [disabled]="isSubmitting || updateApplicationForm.invalid || isLoading"
+        >
+          {{ isSubmitting ? 'Updating...' : 'Update Application' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</section>

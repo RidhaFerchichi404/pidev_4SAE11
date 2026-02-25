@@ -1,0 +1,1009 @@
+@import '../../../../styles/variables';
+
+.skill-management-container {
+  padding: var(--spacing-xl);
+  max-width: 1200px;
+  margin: 0 auto;
+
+  // Header Section
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-3xl);
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+
+    h2 {
+      margin: 0;
+      font-size: var(--text-2xl); // Reduced from 3xl per feedback
+      font-weight: 700;
+      color: var(--text-primary);
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: var(--accent-gradient);
+      padding: var(--spacing-sm) var(--spacing-xl);
+      border-radius: var(--radius-full);
+      font-size: var(--text-base);
+      font-weight: 600;
+      color: white;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      box-shadow: var(--shadow-lg);
+      transition: transform 0.2s, box-shadow 0.2s;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-xl);
+      }
+
+      span:first-child {
+        font-size: var(--text-xl);
+        line-height: 1;
+      }
+
+      &.btn-outline {
+        background: white;
+        border: 1.5px solid $primary-500;
+        color: $primary-500;
+        box-shadow: none;
+
+        &:hover {
+          background: rgba($primary-500, 0.06);
+        }
+      }
+    }
+  }
+
+  // Skills Grouped by Domain
+  .skills-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2xl); // Reduced from 3xl
+  }
+
+  .domain-section {
+    .domain-title {
+      font-size: var(--text-2xl); // Increased
+      font-weight: 700;
+      color: var(--text-primary); // Darker
+      margin-bottom: var(--spacing-xl); // Increased
+      padding: var(--spacing-md) 0; // Added padding
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+
+      &::before {
+        content: '';
+        display: block;
+        width: 4px; // Thinner
+        height: 28px; // Taller
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border-radius: var(--radius-sm);
+      }
+    }
+  }
+
+  // Skills Grid
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: $spacing-lg;
+  }
+
+  // ── Skill Card ─────────────────────────────────────────────
+  .skill-card {
+    background: $white;
+    border: 1px solid $neutral-100;
+    border-radius: $radius-2xl;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: $spacing-xl;
+    transition: transform 280ms $ease-out, box-shadow 280ms $ease-out, border-color 280ms;
+
+    // ── Color themes via CSS custom properties
+    &[data-color="1"] { --card-gradient: linear-gradient(135deg,#E37E33,#E23D59); --card-rgb: 227,126,51; }
+    &[data-color="2"] { --card-gradient: linear-gradient(135deg,#3B82F6,#6366F1); --card-rgb: 99,102,241; }
+    &[data-color="3"] { --card-gradient: linear-gradient(135deg,#10B981,#059669); --card-rgb: 16,185,129; }
+    &[data-color="4"] { --card-gradient: linear-gradient(135deg,#8B5CF6,#EC4899); --card-rgb: 139,92,246; }
+    &[data-color="5"] { --card-gradient: linear-gradient(135deg,#F59E0B,#EF4444); --card-rgb: 245,158,11; }
+    &[data-color="6"] { --card-gradient: linear-gradient(135deg,#06B6D4,#3B82F6); --card-rgb: 6,182,212; }
+
+    // ── Top gradient accent strip
+    &::before {
+      content: '';
+      display: block;
+      width: 100%;
+      height: 5px;
+      background: var(--card-gradient);
+      flex-shrink: 0;
+    }
+
+    // ── Hover lift
+    &:hover {
+      transform: translateY(-6px);
+      box-shadow:
+        0 24px 48px -12px rgba(var(--card-rgb), 0.22),
+        0 6px 12px rgba(0, 0, 0, 0.06);
+      border-color: rgba(var(--card-rgb), 0.2);
+
+      .card-glow   { opacity: 0.18; }
+      .delete-btn  { opacity: 1; transform: scale(1); }
+    }
+
+    // ── Ambient glow blob behind avatar
+    .card-glow {
+      position: absolute;
+      top: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 110px;
+      height: 90px;
+      border-radius: 50%;
+      background: var(--card-gradient);
+      opacity: 0.07;
+      filter: blur(30px);
+      pointer-events: none;
+      transition: opacity 280ms;
+    }
+
+    // ── Delete button — absolute top-right
+    .delete-btn {
+      position: absolute;
+      top: $spacing-sm;
+      right: $spacing-sm;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: $white;
+      border: 1px solid $neutral-200;
+      border-radius: $radius-md;
+      color: $neutral-400;
+      cursor: pointer;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: opacity 200ms, transform 200ms, background 200ms, color 200ms;
+      z-index: 2;
+
+      &:hover {
+        background: $error-50;
+        border-color: $error-200;
+        color: $error-500;
+      }
+
+      @media (max-width: $breakpoint-md) {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    // ── Big circular avatar
+    .card-avatar {
+      margin-top: $spacing-xl;
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: var(--card-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: $font-size-2xl;
+      font-weight: $font-weight-extrabold;
+      color: $white;
+      box-shadow: 0 10px 24px -6px rgba(var(--card-rgb), 0.45);
+      position: relative;
+      z-index: 1;
+      letter-spacing: -0.01em;
+    }
+
+    // ── Skill name + chips
+    .card-body {
+      text-align: center;
+      padding: $spacing-md $spacing-lg 0;
+      width: 100%;
+
+      .skill-name {
+        margin: 0 0 $spacing-xs;
+        font-size: $font-size-lg;
+        font-weight: $font-weight-bold;
+        color: $neutral-900;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .skill-tags {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: $spacing-xs;
+        flex-wrap: wrap;
+      }
+
+      .domain-chip {
+        font-size: $font-size-xs;
+        font-weight: $font-weight-semibold;
+        color: rgba(var(--card-rgb), 1);
+        background: rgba(var(--card-rgb), 0.1);
+        padding: 2px $spacing-sm;
+        border-radius: $radius-full;
+        white-space: nowrap;
+      }
+
+      .verified-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: $font-size-xs;
+        font-weight: $font-weight-bold;
+        color: $success-700;
+        background: $success-100;
+        padding: 2px $spacing-sm;
+        border-radius: $radius-full;
+      }
+    }
+
+    // ── Score bar
+    .score-section {
+      width: 100%;
+      padding: $spacing-md $spacing-lg 0;
+
+      .score-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+
+        .score-label {
+          font-size: $font-size-xs;
+          color: $neutral-400;
+          font-weight: $font-weight-medium;
+        }
+
+        .score-pct {
+          font-size: $font-size-sm;
+          font-weight: $font-weight-bold;
+          color: $neutral-800;
+        }
+      }
+
+      .score-track {
+        height: 5px;
+        background: $neutral-100;
+        border-radius: $radius-full;
+        overflow: hidden;
+
+        .score-fill {
+          height: 100%;
+          background: var(--card-gradient);
+          border-radius: $radius-full;
+          transition: width 600ms $ease-out;
+        }
+      }
+    }
+
+    // ── Footer action
+    .card-footer {
+      margin-top: auto;
+      padding: $spacing-md $spacing-lg 0;
+      width: 100%;
+
+      .verify-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: $spacing-xs;
+        padding: 10px $spacing-md;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-semibold;
+        border-radius: $radius-full;
+        border: none;
+        background: var(--card-gradient);
+        color: $white;
+        cursor: pointer;
+        transition: transform 200ms, box-shadow 200ms;
+        box-shadow: 0 4px 14px -4px rgba(var(--card-rgb), 0.4);
+
+        &:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 8px 20px -4px rgba(var(--card-rgb), 0.55);
+        }
+
+        &:active {
+          transform: scale(0.97);
+        }
+      }
+
+      .verified-badge-footer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: $spacing-xs;
+        padding: 10px $spacing-md;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-semibold;
+        color: $success-700;
+        background: $success-50;
+        border-radius: $radius-full;
+        border: 1.5px solid $success-200;
+      }
+    }
+  }
+
+  // Empty State
+  .empty-state {
+    text-align: center;
+    padding: var(--spacing-3xl) 0;
+
+    .empty-icon {
+      font-size: var(--text-5xl);
+      margin-bottom: var(--spacing-md);
+      opacity: 0.5;
+    }
+
+    h3 {
+      font-size: var(--text-xl);
+      color: var(--text-primary);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    p {
+      color: var(--text-secondary);
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .btn-secondary {
+      background: white;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      padding: var(--spacing-sm) var(--spacing-xl);
+      border-radius: var(--radius-full);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        background: var(--primary-light);
+      }
+    }
+  }
+}
+
+// ============================================
+// Modal Overlay (shared by all modals)
+// ============================================
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1300;
+  padding: $spacing-md;
+  overflow-y: auto;
+  animation: modalFadeIn 200ms ease-in-out;
+
+  @keyframes modalFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  // ── Modal Content Card ──
+  .modal-content {
+    background: $white;
+    border-radius: $radius-2xl;
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: $shadow-2xl;
+    animation: modalSlideUp 300ms $ease-out;
+    position: relative;
+
+    @include custom-scrollbar;
+
+    @keyframes modalSlideUp {
+      from { transform: translateY(32px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    &.test-content {
+      max-width: 640px;
+    }
+
+    &.history-content {
+      max-width: 720px;
+    }
+
+    h3 {
+      margin: 0;
+      padding: $spacing-2xl $spacing-2xl $spacing-lg;
+      font-size: $font-size-2xl;
+      font-weight: $font-weight-bold;
+      color: $neutral-900;
+      border-bottom: 1px solid $neutral-100;
+    }
+
+    // Form body padding
+    .form-body {
+      padding: $spacing-lg $spacing-2xl;
+    }
+
+    .form-group {
+      margin-bottom: $spacing-lg;
+
+      label {
+        display: block;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-semibold;
+        color: $neutral-700;
+        margin-bottom: $spacing-xs;
+
+        .req { color: $error-500; }
+      }
+
+      input {
+        width: 100%;
+        padding: $spacing-sm $spacing-md;
+        border: 1.5px solid $neutral-200;
+        border-radius: $radius-lg;
+        font-size: $font-size-base;
+        color: $neutral-900;
+        background: $white;
+        transition: border-color $transition-base;
+        box-sizing: border-box;
+
+        &:focus {
+          outline: none;
+          border-color: $primary-500;
+          box-shadow: 0 0 0 3px rgba($primary-500, 0.12);
+        }
+
+        &.input-invalid {
+          border-color: $error-500 !important;
+          background: $error-50 !important;
+
+          &:focus {
+            box-shadow: 0 0 0 3px rgba($error-500, 0.14);
+          }
+        }
+      }
+
+      .field-err-msg {
+        display: block;
+        font-size: $font-size-xs;
+        color: $error-600;
+        margin-top: 4px;
+
+        &::before { content: '⚠ '; }
+      }
+
+      .field-hint {
+        display: block;
+        font-size: $font-size-xs;
+        color: $neutral-400;
+        margin-top: 4px;
+      }
+    }
+
+    // Modal action buttons row
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: $spacing-sm;
+      padding: $spacing-lg $spacing-2xl $spacing-2xl;
+      border-top: 1px solid $neutral-100;
+      flex-wrap: wrap;
+
+      button {
+        padding: $spacing-sm $spacing-xl;
+        border-radius: $radius-full;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-semibold;
+        cursor: pointer;
+        border: 1.5px solid $neutral-200;
+        background: $white;
+        color: $neutral-700;
+        transition: all $transition-base;
+
+        &:hover {
+          background: $neutral-100;
+        }
+
+        &.btn-primary {
+          background: $gradient-primary;
+          border-color: transparent;
+          color: $white;
+          box-shadow: $shadow-primary;
+
+          &:hover {
+            background: $gradient-primary-hover;
+          }
+
+          &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+        }
+
+        &.btn-danger {
+          background: $error-500;
+          border-color: transparent;
+          color: $white;
+
+          &:hover {
+            background: $error-600;
+          }
+        }
+      }
+    }
+  }
+}
+
+// ============================================
+// Test Modal — Loading State
+// ============================================
+.loading-state {
+  padding: $spacing-3xl $spacing-2xl;
+  text-align: center;
+
+  .spinner {
+    width: 56px;
+    height: 56px;
+    border: 4px solid $neutral-200;
+    border-top-color: $primary-500;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto $spacing-lg;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  h3 {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    color: $neutral-900;
+    margin: 0 0 $spacing-sm !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  p {
+    color: $neutral-500;
+    font-size: $font-size-sm;
+    margin: 0;
+    line-height: $line-height-relaxed;
+  }
+}
+
+// ============================================
+// Test Modal — Question Box
+// ============================================
+.question-box {
+  padding: $spacing-lg $spacing-2xl;
+
+  .progress-indicator {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: $neutral-500;
+    margin-bottom: $spacing-md;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+
+    .progress-bar {
+      height: 4px;
+      background: $neutral-100;
+      border-radius: $radius-full;
+      overflow: hidden;
+
+      .progress-fill {
+        height: 100%;
+        background: $gradient-primary;
+        border-radius: $radius-full;
+        transition: width 0.4s $ease-out;
+      }
+    }
+  }
+
+  h4 {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+    color: $neutral-900;
+    margin: 0 0 $spacing-lg;
+    line-height: $line-height-snug;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: $spacing-sm;
+      padding: $spacing-sm $spacing-md;
+      border: 1.5px solid $neutral-200;
+      border-radius: $radius-lg;
+      cursor: pointer;
+      font-size: $font-size-sm;
+      color: $neutral-700;
+      transition: all $transition-base;
+      user-select: none;
+
+      input[type="radio"] {
+        accent-color: $primary-500;
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+      }
+
+      &:hover:not([class]) {
+        border-color: $primary-500;
+        background: rgba($primary-500, 0.04);
+        color: $neutral-900;
+      }
+
+      &.correct {
+        border-color: $success-500;
+        background: $success-50;
+        color: $success-700;
+        font-weight: $font-weight-semibold;
+      }
+
+      &.wrong {
+        border-color: $error-500;
+        background: $error-50;
+        color: $error-600;
+      }
+    }
+  }
+
+  .feedback {
+    margin-top: $spacing-md;
+    padding: $spacing-sm $spacing-md;
+    border-radius: $radius-lg;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+
+    p {
+      margin: 0;
+    }
+
+    .success {
+      color: $success-700;
+      background: $success-50;
+      padding: $spacing-sm $spacing-md;
+      border-radius: $radius-md;
+    }
+
+    .error {
+      color: $error-600;
+      background: $error-50;
+      padding: $spacing-sm $spacing-md;
+      border-radius: $radius-md;
+    }
+  }
+}
+
+// ============================================
+// Test Modal — Result Box
+// ============================================
+.result-box {
+  padding: $spacing-2xl;
+  text-align: center;
+
+  h3 {
+    font-size: $font-size-2xl;
+    font-weight: $font-weight-bold;
+    color: $neutral-900;
+    margin: 0 0 $spacing-xl !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  .score-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $spacing-md;
+    margin-bottom: $spacing-xl;
+
+    .score-circle {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: $neutral-100;
+      border: 6px solid $neutral-300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: $font-size-3xl;
+      font-weight: $font-weight-extrabold;
+      color: $neutral-700;
+    }
+
+    .status-text {
+      font-size: $font-size-lg;
+      font-weight: $font-weight-bold;
+      letter-spacing: $letter-spacing-wide;
+      color: $neutral-500;
+      margin: 0;
+    }
+
+    &.passed {
+      .score-circle {
+        background: $success-50;
+        border-color: $success-500;
+        color: $success-700;
+      }
+
+      .status-text {
+        color: $success-600;
+      }
+    }
+
+    &.failed {
+      .score-circle {
+        background: $error-50;
+        border-color: $error-500;
+        color: $error-600;
+      }
+
+      .status-text {
+        color: $error-600;
+      }
+    }
+  }
+
+  .result-detail {
+    font-size: $font-size-sm;
+    color: $neutral-500;
+    margin-bottom: $spacing-xl;
+  }
+
+  .result-actions {
+    display: flex;
+    justify-content: center;
+    gap: $spacing-sm;
+    flex-wrap: wrap;
+
+    button {
+      padding: $spacing-sm $spacing-xl;
+      border-radius: $radius-full;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-semibold;
+      cursor: pointer;
+      transition: all $transition-base;
+
+      &.btn-primary {
+        background: $gradient-primary;
+        border: none;
+        color: $white;
+        box-shadow: $shadow-primary;
+
+        &:hover {
+          background: $gradient-primary-hover;
+        }
+      }
+
+      &.btn-outline {
+        background: $white;
+        border: 1.5px solid $primary-500;
+        color: $primary-500;
+
+        &:hover {
+          background: rgba($primary-500, 0.06);
+        }
+      }
+    }
+  }
+}
+
+// ============================================
+// History Modal
+// ============================================
+.history-list {
+  padding: $spacing-md $spacing-2xl $spacing-2xl;
+
+  .history-empty {
+    text-align: center;
+    padding: $spacing-3xl 0;
+    color: $neutral-400;
+
+    .history-empty-icon {
+      font-size: 48px;
+      margin-bottom: $spacing-md;
+    }
+
+    p {
+      font-size: $font-size-base;
+      margin: 0;
+    }
+  }
+
+  .history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $spacing-md $spacing-lg;
+    border: 1.5px solid $neutral-200;
+    border-radius: $radius-xl;
+    margin-bottom: $spacing-sm;
+    transition: all $transition-base;
+    gap: $spacing-md;
+
+    &:hover {
+      border-color: rgba($primary-500, 0.3);
+      box-shadow: $shadow-sm;
+    }
+
+    .history-item-left {
+      display: flex;
+      align-items: center;
+      gap: $spacing-md;
+      flex: 1;
+      min-width: 0;
+
+      .history-skill-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: $radius-md;
+        background: rgba($primary-500, 0.1);
+        color: $primary-500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: $font-size-lg;
+        font-weight: $font-weight-bold;
+        flex-shrink: 0;
+      }
+
+      .history-item-info {
+        min-width: 0;
+
+        .history-skill-name {
+          font-size: $font-size-base;
+          font-weight: $font-weight-semibold;
+          color: $neutral-900;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .history-date {
+          font-size: $font-size-xs;
+          color: $neutral-400;
+          margin-top: 2px;
+        }
+
+        .history-result-text {
+          font-size: $font-size-xs;
+          color: $neutral-500;
+          margin-top: 2px;
+        }
+      }
+    }
+
+    .history-item-right {
+      display: flex;
+      align-items: center;
+      gap: $spacing-md;
+      flex-shrink: 0;
+
+      .history-score {
+        font-size: $font-size-xl;
+        font-weight: $font-weight-extrabold;
+        color: $neutral-900;
+      }
+
+      .history-badge {
+        padding: $spacing-xs $spacing-sm;
+        border-radius: $radius-full;
+        font-size: $font-size-xs;
+        font-weight: $font-weight-bold;
+        letter-spacing: $letter-spacing-wide;
+
+        &.passed {
+          background: $success-100;
+          color: $success-700;
+        }
+
+        &.failed {
+          background: $error-100;
+          color: $error-600;
+        }
+      }
+    }
+  }
+}
+
+// ============================================
+// Error Banner
+// ============================================
+.error-banner {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FCA5A5;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+// Mobile Responsiveness
+@media (max-width: 768px) {
+  .skill-management-container {
+    padding: var(--spacing-md);
+
+    .header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--spacing-md);
+
+      .header-actions {
+        width: 100%;
+
+        button {
+          flex: 1;
+          justify-content: center;
+        }
+      }
+    }
+
+    .skills-grid {
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
+  }
+
+  .modal {
+    .modal-content {
+      h3 {
+        padding: $spacing-lg $spacing-lg $spacing-md;
+      }
+
+      .form-body,
+      .question-box,
+      .history-list,
+      .result-box {
+        padding-left: $spacing-lg;
+        padding-right: $spacing-lg;
+      }
+
+      .modal-actions {
+        padding: $spacing-md $spacing-lg $spacing-lg;
+      }
+    }
+  }
+}

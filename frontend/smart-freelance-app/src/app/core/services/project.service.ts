@@ -11,7 +11,7 @@ const APPLICATIONS_API = `${environment.apiGatewayUrl}/project/applications`;
 export interface Project {
   id?: number;
   clientId?: number;
-  freelancerId?: number;
+  freelancerId?: number | null;
   title: string;
   description: string;
   budget?: number;
@@ -37,6 +37,10 @@ export interface ProjectApplication {
 
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
+
+  private apiUrl = `${environment.apiGatewayUrl}/projects`;
+
+
   constructor(private http: HttpClient) {}
 
   getById(id: number): Observable<Project | null> {

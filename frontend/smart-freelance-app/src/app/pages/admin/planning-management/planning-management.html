@@ -1,79 +1,242 @@
-<div class="admin-management-page">
-  <h1>Planning (Progress Updates) Management</h1>
-  <p class="subtitle">Manage progress updates (Planning microservice)</p>
+<div class="planning-page">
+  <header class="page-header">
+    <div class="page-header__top">
+      <span class="page-badge">Admin</span>
+    </div>
+    <h1 class="page-title">Planning</h1>
+    <p class="page-subtitle">Track progress updates, view statistics, and manage project activity in one place.</p>
+  </header>
 
   @if (errorMessage) {
-    <div class="error-banner" role="alert">{{ errorMessage }}</div>
+    <div class="error-banner" role="alert">
+      <span class="error-banner__icon" aria-hidden="true"></span>
+      <span>{{ errorMessage }}</span>
+    </div>
   }
 
-  <app-card>
-    <div class="toolbar">
-      <span class="count">{{ updates.length }} update(s)</span>
-      <div class="toolbar-actions">
-        <button type="button" class="btn-add" (click)="openAdd()">Add progress update</button>
-        <button type="button" class="btn-refresh" (click)="loadUpdates()" [disabled]="loading">
-          {{ loading ? 'Loading…' : 'Refresh' }}
-        </button>
+  <section class="planning-section planning-section--stats" aria-labelledby="stats-heading">
+    <app-card class="card-stats">
+      <h2 id="stats-heading" class="section-title">
+        <span class="section-title__icon">📊</span>
+        Statistics
+      </h2>
+    @if (statsLoading && !dashboardStats) {
+      <div class="state-box state-box--loading">
+        <span class="state-box__spinner" aria-hidden="true"></span>
+        <p class="state-box__text">Loading statistics…</p>
       </div>
-    </div>
+    } @else if (dashboardStats) {
+      <div class="stats-grid">
+        <div class="stat-card stat-card--updates">
+          <span class="stat-value">{{ dashboardStats.totalUpdates }}</span>
+          <span class="stat-label">Total updates</span>
+        </div>
+        <div class="stat-card stat-card--comments">
+          <span class="stat-value">{{ dashboardStats.totalComments }}</span>
+          <span class="stat-label">Total comments</span>
+        </div>
+        <div class="stat-card stat-card--progress">
+          <span class="stat-value">{{ dashboardStats.averageProgressPercentage != null ? (dashboardStats.averageProgressPercentage | number:'1.1-1') + '%' : '—' }}</span>
+          <span class="stat-label">Avg. progress</span>
+        </div>
+        <div class="stat-card stat-card--projects">
+          <span class="stat-value">{{ dashboardStats.distinctProjectCount }}</span>
+          <span class="stat-label">Projects</span>
+        </div>
+        <div class="stat-card stat-card--freelancers">
+          <span class="stat-value">{{ dashboardStats.distinctFreelancerCount }}</span>
+          <span class="stat-label">Freelancers</span>
+        </div>
+      </div>
+      <div class="stats-chart-overview">
+        <h3>Overview</h3>
+        <div class="chart-container chart-container--bar">
+          <canvas baseChart
+            [data]="overviewChartData"
+            [type]="'bar'"
+            [options]="overviewChartOptions">
+          </canvas>
+        </div>
+      </div>
+      <div class="stats-extra">
+        <div class="stats-block">
+          <h3>Stalled projects (no update in 7 days)</h3>
+          @if (stalledProjects.length === 0) {
+            <p class="empty-msg">None</p>
+          } @else {
+            <ul class="mini-list">
+              @for (s of stalledProjects; track s.projectId) {
+                <li>{{ getProjectTitle(s.projectId) }} — last {{ s.lastUpdateAt | date:'short' }} ({{ s.lastProgressPercentage }}%)</li>
+              }
+            </ul>
+          }
+        </div>
+        <div class="stats-block stats-block--chart">
+          <h3>Top freelancers by activity</h3>
+          @if (topFreelancers.length === 0) {
+            <p class="empty-msg">None</p>
+          } @else {
+            <div class="chart-container chart-container--horizontal">
+              <canvas baseChart
+                [data]="topFreelancersChartData"
+                [type]="'bar'"
+                [options]="topFreelancersChartOptions">
+              </canvas>
+            </div>
+          }
+        </div>
+        <div class="stats-block stats-block--chart">
+          <h3>Most active projects</h3>
+          @if (mostActiveProjects.length === 0) {
+            <p class="empty-msg">None</p>
+          } @else {
+            <div class="chart-container chart-container--horizontal">
+              <canvas baseChart
+                [data]="mostActiveProjectsChartData"
+                [type]="'bar'"
+                [options]="mostActiveProjectsChartOptions">
+              </canvas>
+            </div>
+          }
+        </div>
+      </div>
+    } @else {
+      <p class="empty-msg">Statistics unavailable (Planning service may be down).</p>
+    }
+    </app-card>
+  </section>
+
+  <section class="planning-section planning-section--list" aria-labelledby="list-heading">
+    <app-card class="card-list">
+      <div class="list-section-header">
+        <h2 id="list-heading" class="section-title">
+          <span class="section-title__icon">📋</span>
+          Progress updates
+        </h2>
+        <div class="toolbar-filters" [formGroup]="filterForm">
+          <label class="search-label" for="planning-search">
+            <span class="search-label__text">Search</span>
+          </label>
+          <div class="search-wrap">
+            <input
+              id="planning-search"
+              type="text"
+              formControlName="search"
+              (input)="onSearchChange()"
+              class="search-input"
+              placeholder="Search by title or description…"
+              aria-label="Search progress updates"
+            />
+            <button type="button" class="btn-clear-search" (click)="clearSearch()" [disabled]="loading" aria-label="Clear search">Clear</button>
+          </div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <span class="toolbar-count">{{ totalElements }} <span class="toolbar-count__label">total</span> · Page {{ page + 1 }} of {{ totalPages || 1 }}</span>
+        <div class="toolbar-actions">
+          <button type="button" class="btn-add" (click)="openAdd()">
+            <span class="btn-add__label">Add progress update</span>
+          </button>
+        </div>
+      </div>
 
     @if (loading && updates.length === 0) {
-      <p class="loading-msg">Loading progress updates…</p>
+      <div class="state-box state-box--loading">
+        <span class="state-box__spinner" aria-hidden="true"></span>
+        <p class="state-box__text">Loading progress updates…</p>
+      </div>
     } @else if (updates.length === 0) {
-      <p class="empty-msg">No progress updates found.</p>
+      <div class="state-box state-box--empty">
+        <p class="state-box__text">No progress updates found.</p>
+        <p class="state-box__hint">Use the search above or add a new progress update.</p>
+      </div>
     } @else {
       <div class="table-wrap">
-        <table class="data-table">
+        <table class="data-table" role="grid">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Title</th>
-              <th>Project ID</th>
-              <th>Freelancer ID</th>
-              <th>Progress %</th>
-              <th>Created</th>
-              <th>Actions</th>
+              <th scope="col" class="col-id">ID</th>
+              <th scope="col" class="col-title">Title</th>
+              <th scope="col" class="col-project">Project</th>
+              <th scope="col" class="col-freelancer">Freelancer</th>
+              <th scope="col" class="col-progress">Progress</th>
+              <th scope="col" class="col-created">Created</th>
+              <th scope="col" class="col-actions">Actions</th>
             </tr>
           </thead>
           <tbody>
             @for (u of updates; track u.id) {
-              <tr>
-                <td>{{ u.id }}</td>
-                <td>{{ u.title }}</td>
-                <td>{{ u.projectId }}</td>
-                <td>{{ u.freelancerId }}</td>
-                <td>{{ u.progressPercentage }}%</td>
-                <td>{{ u.createdAt | date:'short' }}</td>
-                <td class="actions">
-                  <button type="button" class="btn-action btn-edit" (click)="openEdit(u)">Edit</button>
-                  <button type="button" class="btn-action btn-delete" (click)="openDeleteModal(u)">Delete</button>
+              <tr class="data-row">
+                <td class="col-id"><span class="cell-id">{{ u.id }}</span></td>
+                <td class="col-title"><span class="cell-title">{{ u.title }}</span></td>
+                <td class="col-project"><span class="cell-meta">{{ getProjectTitle(u.projectId) }} <em>(#{{ u.projectId }})</em></span></td>
+                <td class="col-freelancer"><span class="cell-meta">{{ getFreelancerName(u.freelancerId) }} <em>(#{{ u.freelancerId }})</em></span></td>
+                <td class="col-progress">
+                  <div class="progress-cell">
+                    <div class="progress-cell__bar" role="presentation">
+                      <span class="progress-cell__fill" [style.width.%]="u.progressPercentage"></span>
+                    </div>
+                    <span class="progress-cell__pct">{{ u.progressPercentage }}%</span>
+                  </div>
+                </td>
+                <td class="col-created"><span class="cell-date">{{ u.createdAt | date:'short' }}</span></td>
+                <td class="col-actions">
+                  <div class="action-buttons">
+                    <button type="button" class="btn-action btn-show" (click)="openShow(u)">Show</button>
+                    <button type="button" class="btn-action btn-edit" (click)="openEdit(u)">Edit</button>
+                    <button type="button" class="btn-action btn-delete" (click)="openDeleteModal(u)">Delete</button>
+                  </div>
                 </td>
               </tr>
             }
           </tbody>
         </table>
       </div>
+      @if (totalPages > 1) {
+        <nav class="pagination" aria-label="Progress updates pagination">
+          <button type="button" class="btn-pagination btn-pagination--nav" (click)="goToPage(0)" [disabled]="page === 0 || loading" aria-label="First page">First</button>
+          <button type="button" class="btn-pagination btn-pagination--nav" (click)="goToPage(page - 1)" [disabled]="page === 0 || loading" aria-label="Previous page">Prev</button>
+          <span class="pagination-info" aria-current="page">Page {{ page + 1 }} of {{ totalPages }}</span>
+          <button type="button" class="btn-pagination btn-pagination--nav" (click)="goToPage(page + 1)" [disabled]="page >= totalPages - 1 || loading" aria-label="Next page">Next</button>
+          <button type="button" class="btn-pagination btn-pagination--nav" (click)="goToPage(totalPages - 1)" [disabled]="page >= totalPages - 1 || loading" aria-label="Last page">Last</button>
+        </nav>
+      }
     }
-  </app-card>
+    </app-card>
+  </section>
 
   @if (addModalOpen) {
     <div class="modal-overlay" (click)="closeAdd()">
       <div class="modal modal--form" (click)="$event.stopPropagation()">
-        <h3>Add progress update</h3>
+        <div class="modal-header">
+          <h3>Add progress update</h3>
+        </div>
         <form [formGroup]="addForm" (ngSubmit)="saveAdd()">
           <div class="field">
-            <label for="add-projectId">Project ID</label>
-            <input id="add-projectId" type="number" formControlName="projectId" min="1" />
+            <label for="add-projectId">Project</label>
+            <select id="add-projectId" formControlName="projectId">
+              <option [ngValue]="null">Select a project…</option>
+              @for (p of projectsForAdd; track p.id) {
+                <option [ngValue]="p.id">{{ getProjectLabel(p) }}</option>
+              }
+            </select>
             @if (addForm.get('projectId')?.invalid && addForm.get('projectId')?.touched) {
-              <span class="field-error">Required, min 1.</span>
+              <span class="field-error">Please select a project.</span>
             }
+            <span class="field-hint">Auto-filled when you select a freelancer (from their latest progress or application).</span>
           </div>
           <div class="field">
-            <label for="add-freelancerId">Freelancer ID</label>
-            <input id="add-freelancerId" type="number" formControlName="freelancerId" min="1" />
+            <label for="add-freelancerId">Freelancer</label>
+            <select id="add-freelancerId" formControlName="freelancerId">
+              <option [ngValue]="null">Select a freelancer…</option>
+              @for (u of freelancersForAdd; track u.id) {
+                <option [ngValue]="u.id">{{ getFreelancerLabel(u) }}</option>
+              }
+            </select>
             @if (addForm.get('freelancerId')?.invalid && addForm.get('freelancerId')?.touched) {
-              <span class="field-error">Required, min 1.</span>
+              <span class="field-error">Please select a freelancer.</span>
             }
+            <span class="field-hint">Auto-filled when you select a project (from progress updates or applications).</span>
           </div>
           <div class="field">
             <label for="add-title">Title</label>
@@ -88,9 +251,15 @@
           </div>
           <div class="field">
             <label for="add-progressPercentage">Progress %</label>
-            <input id="add-progressPercentage" type="number" formControlName="progressPercentage" min="0" max="100" />
-            @if (addForm.get('progressPercentage')?.invalid && addForm.get('progressPercentage')?.touched) {
-              <span class="field-error">0–100.</span>
+            <input id="add-progressPercentage" type="number" formControlName="progressPercentage" [min]="addMinProgress" max="100" />
+            @if (addProgressError) {
+              <span class="field-error">{{ addProgressError }}</span>
+            }
+            @if (addMinProgress > 0 && !addProgressError) {
+              <span class="field-hint">Minimum {{ addMinProgress }}% for this project (cannot be less than previous update).</span>
+            }
+            @if (addForm.get('progressPercentage')?.invalid && addForm.get('progressPercentage')?.touched && !addProgressError) {
+              <span class="field-error">Must be between {{ addMinProgress }} and 100.</span>
             }
           </div>
           <div class="modal-actions">
@@ -107,21 +276,33 @@
   @if (editingUpdate) {
     <div class="modal-overlay" (click)="closeEdit()">
       <div class="modal modal--form" (click)="$event.stopPropagation()">
-        <h3>Edit progress update</h3>
-        <p class="modal-hint">ID: {{ editingUpdate.id }}</p>
+        <div class="modal-header">
+          <h3>Edit progress update</h3>
+          <p class="modal-hint">ID: {{ editingUpdate.id }}</p>
+        </div>
         <form [formGroup]="editForm" (ngSubmit)="saveEdit()">
           <div class="field">
-            <label for="edit-projectId">Project ID</label>
-            <input id="edit-projectId" type="number" formControlName="projectId" min="1" />
+            <label for="edit-projectId">Project</label>
+            <select id="edit-projectId" formControlName="projectId">
+              <option [ngValue]="null">Select a project…</option>
+              @for (p of projectsForAdd; track p.id) {
+                <option [ngValue]="p.id">{{ getProjectLabel(p) }}</option>
+              }
+            </select>
             @if (editForm.get('projectId')?.invalid && editForm.get('projectId')?.touched) {
-              <span class="field-error">Required, min 1.</span>
+              <span class="field-error">Please select a project.</span>
             }
           </div>
           <div class="field">
-            <label for="edit-freelancerId">Freelancer ID</label>
-            <input id="edit-freelancerId" type="number" formControlName="freelancerId" min="1" />
+            <label for="edit-freelancerId">Freelancer</label>
+            <select id="edit-freelancerId" formControlName="freelancerId">
+              <option [ngValue]="null">Select a freelancer…</option>
+              @for (u of freelancersForAdd; track u.id) {
+                <option [ngValue]="u.id">{{ getFreelancerLabel(u) }}</option>
+              }
+            </select>
             @if (editForm.get('freelancerId')?.invalid && editForm.get('freelancerId')?.touched) {
-              <span class="field-error">Required, min 1.</span>
+              <span class="field-error">Please select a freelancer.</span>
             }
           </div>
           <div class="field">
@@ -137,9 +318,15 @@
           </div>
           <div class="field">
             <label for="edit-progressPercentage">Progress %</label>
-            <input id="edit-progressPercentage" type="number" formControlName="progressPercentage" min="0" max="100" />
-            @if (editForm.get('progressPercentage')?.invalid && editForm.get('progressPercentage')?.touched) {
-              <span class="field-error">0–100.</span>
+            <input id="edit-progressPercentage" type="number" formControlName="progressPercentage" [min]="editMinProgress" max="100" />
+            @if (editProgressError) {
+              <span class="field-error">{{ editProgressError }}</span>
+            }
+            @if (editMinProgress > 0 && !editProgressError) {
+              <span class="field-hint">Minimum {{ editMinProgress }}% for this project (cannot be less than previous update).</span>
+            }
+            @if (editForm.get('progressPercentage')?.invalid && editForm.get('progressPercentage')?.touched && !editProgressError) {
+              <span class="field-error">Must be between {{ editMinProgress }} and 100.</span>
             }
           </div>
           <div class="modal-actions">
@@ -153,10 +340,69 @@
     </div>
   }
 
+  @if (showUpdate) {
+    <div class="modal-overlay" (click)="closeShow()">
+      <div class="modal modal--detail" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Progress update #{{ showUpdate.id }}</h3>
+        </div>
+        <div class="detail-body">
+          <div class="detail-row">
+            <span class="detail-label">Title</span>
+            <span class="detail-value">{{ showUpdate.title }}</span>
+          </div>
+          @if (showUpdate.description) {
+            <div class="detail-row">
+              <span class="detail-label">Description</span>
+              <span class="detail-value detail-value--block">{{ showUpdate.description }}</span>
+            </div>
+          }
+          <div class="detail-row">
+            <span class="detail-label">Project</span>
+            <span class="detail-value">{{ getProjectTitle(showUpdate.projectId) }} (#{{ showUpdate.projectId }})</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Freelancer</span>
+            <span class="detail-value">{{ getFreelancerName(showUpdate.freelancerId) }} (#{{ showUpdate.freelancerId }})</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Progress</span>
+            <div class="detail-progress-wrap">
+              <div class="detail-progress-bar">
+                <div class="detail-progress-fill" [style.width.%]="showUpdate.progressPercentage"></div>
+              </div>
+              <span class="detail-progress-pct">{{ showUpdate.progressPercentage }}%</span>
+            </div>
+          </div>
+          @if (showUpdate.contractId != null) {
+            <div class="detail-row">
+              <span class="detail-label">Contract ID</span>
+              <span class="detail-value">{{ showUpdate.contractId }}</span>
+            </div>
+          }
+          <div class="detail-row">
+            <span class="detail-label">Created</span>
+            <span class="detail-value">{{ showUpdate.createdAt | date:'medium' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Updated</span>
+            <span class="detail-value">{{ showUpdate.updatedAt | date:'medium' }}</span>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="closeShow()">Close</button>
+          <button type="button" class="btn-primary" (click)="editShownUpdate()">Edit</button>
+        </div>
+      </div>
+    </div>
+  }
+
   @if (updateToDelete) {
     <div class="modal-overlay" (click)="closeDeleteModal()">
       <div class="modal modal--confirm" (click)="$event.stopPropagation()">
-        <h3>Delete progress update</h3>
+        <div class="modal-header modal-header--danger">
+          <h3>Delete progress update</h3>
+        </div>
         <p class="modal-message">
           Are you sure you want to delete <strong>{{ updateToDelete.title }}</strong>? This action cannot be undone.
         </p>

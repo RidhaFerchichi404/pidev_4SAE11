@@ -1,316 +1,312 @@
-// Match list-projects / list-offers styles
+@import '../../../../../styles/variables';
+
+// ════════════════════════════════════════════════════════════════
+// MY REVIEWS
+// ════════════════════════════════════════════════════════════════
 
 .reviews-container {
-  padding: 4rem 2rem;
-  max-width: 1400px;
+  max-width: 1200px;
+  padding: $spacing-3xl $spacing-lg;
   margin: 0 auto;
+  font-family: $font-family;
+
+  @include breakpoint(md) {
+    padding: $spacing-3xl $spacing-2xl;
+  }
 }
 
+// ── Page Header ───────────────────────────────────────────────────
 .reviews-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
 }
 
 .section-title {
   margin: 0;
-  font-size: clamp(1.8rem, 5vw, 2.5rem);
-  color: #0f172a;
+  font-size: $font-size-3xl;
+  font-weight: $font-weight-extrabold;
+  background: $gradient-primary;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
+// ── Add Button ─────────────────────────────────────────────────────
+.btn--add {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-lg;
+  @include button-gradient;
+  border-radius: $radius-full;
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-sm;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba($primary-500, 0.35);
+  transition: $transition-base;
+
+  &:hover { transform: translateY(-1px); box-shadow: $shadow-primary; }
+}
+
+// ── Toolbar ────────────────────────────────────────────────────────
 .toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.5rem;
+  margin-bottom: $spacing-lg;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: $spacing-md;
 
   .toolbar-count {
-    font-weight: 600;
-    color: #64748b;
+    font-weight: $font-weight-semibold;
+    color: $neutral-500;
+    font-size: $font-size-sm;
   }
 
   .btn-refresh {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #475569;
+    padding: $spacing-xs $spacing-md;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $neutral-600;
     background: transparent;
-    border: 1px solid #94a3b8;
-    border-radius: 8px;
+    border: 1.5px solid $neutral-300;
+    border-radius: $radius-full;
     cursor: pointer;
+    transition: $transition-base;
 
-    &:hover:not(:disabled) {
-      background: #475569;
-      color: white;
-      border-color: #475569;
-    }
-
-    &:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
+    &:hover:not(:disabled) { background: $neutral-100; border-color: $neutral-400; }
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
   }
 }
 
-.btn--add {
-  background-color: #10b981;
-  color: white;
-  padding: 0.75rem 1.6rem;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 1.02rem;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.22s ease;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
-
-  &:hover {
-    background-color: #059669;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
-  }
-}
-
+// ── Loading / Error ────────────────────────────────────────────────
 .loading-state,
 .error-state {
-  padding: 2rem;
+  padding: $spacing-xl;
   text-align: center;
 
-  .error {
-    color: #dc2626;
-    margin-bottom: 1rem;
-  }
+  .error { color: $error-600; margin-bottom: $spacing-md; font-size: $font-size-sm; }
 }
 
 .btn--retry {
-  padding: 0.5rem 1rem;
-  background: #64748b;
-  color: white;
+  padding: $spacing-xs $spacing-md;
+  background: $neutral-600;
+  color: $white;
   border: none;
-  border-radius: 8px;
+  border-radius: $radius-full;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: $font-weight-medium;
+  font-size: $font-size-sm;
+  transition: $transition-base;
+
+  &:hover { background: $neutral-700; }
 }
 
+// ── Reviews Grid ───────────────────────────────────────────────────
 .reviews-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 2.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: $spacing-lg;
 }
 
+// ── Review Card ────────────────────────────────────────────────────
 .review-card {
-  background: white;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
+  background: $white;
+  border-radius: $radius-xl;
+  border: 1.5px solid $neutral-200;
+  transition: $transition-base;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+    border-color: $primary-500;
+    box-shadow: 0 6px 24px rgba($primary-500, 0.12);
+    transform: translateY(-2px);
   }
 }
 
-.review-content {
-  padding: 1.6rem 1.5rem 2rem;
-}
+.review-content { padding: $spacing-lg; }
 
 .review-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
+  gap: $spacing-md;
+  margin-bottom: $spacing-sm;
 }
 
 .review-title {
-  font-size: 1.25rem;
+  font-size: $font-size-base;
+  font-weight: $font-weight-bold;
   margin: 0;
-  color: #1e293b;
-  line-height: 1.3;
+  color: $neutral-900;
+  line-height: $line-height-snug;
   flex: 1;
 }
 
+// ── Rating Badge ───────────────────────────────────────────────────
 .rating-badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.35rem 0.9rem;
-  border-radius: 999px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  background: #fef3c7;
-  color: #92400e;
+  padding: 3px $spacing-sm;
+  border-radius: $radius-full;
+  font-size: 11px;
+  font-weight: $font-weight-bold;
+  letter-spacing: 0.4px;
+  background: $warning-100;
+  color: $warning-700;
+  white-space: nowrap;
 }
 
 .review-meta {
-  font-size: 0.875rem;
-  color: #64748b;
-  margin: 0 0 0.5rem;
+  font-size: $font-size-xs;
+  color: $neutral-500;
+  margin: 0 0 $spacing-sm;
 }
 
 .review-comment {
-  color: #334155;
-  line-height: 1.5;
-  margin-bottom: 0.5rem;
-  font-size: 0.95rem;
+  color: $neutral-700;
+  line-height: $line-height-relaxed;
+  margin-bottom: $spacing-sm;
+  font-size: $font-size-sm;
 
   &.empty {
-    color: #94a3b8;
+    color: $neutral-400;
     font-style: italic;
   }
 }
 
 .review-date {
-  font-size: 0.8rem;
-  color: #94a3b8;
-  margin-bottom: 1rem;
+  font-size: $font-size-xs;
+  color: $neutral-400;
+  margin-bottom: $spacing-md;
 }
 
+// ── Card Actions ───────────────────────────────────────────────────
 .review-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.9rem;
-  margin-top: 1rem;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+  padding-top: $spacing-sm;
+  border-top: 1px solid $neutral-100;
   justify-content: flex-end;
 
   .btn {
-    padding: 0.65rem 1.35rem;
-    font-size: 0.94rem;
-    font-weight: 500;
-    border-radius: 10px;
+    padding: $spacing-xs $spacing-md;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    border-radius: $radius-full;
     border: none;
     cursor: pointer;
-    text-decoration: none;
+    transition: $transition-base;
     display: inline-flex;
     align-items: center;
-    min-width: 90px;
+    text-decoration: none;
+    min-width: 70px;
     justify-content: center;
+
+    &:hover { transform: translateY(-1px); }
   }
 
-  .btn--update {
-    background: #10b981;
-    color: white;
-
-    &:hover {
-      background: #059669;
-    }
-  }
-
-  .btn--delete {
-    background: #ef4444;
-    color: white;
-
-    &:hover {
-      background: #dc2626;
-    }
-  }
+  .btn--update { background: $success-50; color: $success-700; &:hover { background: $success-500; color: $white; } }
+  .btn--delete { background: $error-50;   color: $error-700;   &:hover { background: $error-500;   color: $white; } }
 }
 
+// ── Empty State ────────────────────────────────────────────────────
 .empty-state {
-  padding: 3rem 2rem;
   text-align: center;
-  color: #64748b;
+  padding: $spacing-3xl $spacing-xl;
+  background: $neutral-50;
+  border-radius: $radius-xl;
+  border: 2px dashed $neutral-300;
 
-  .btn--add {
-    margin-top: 1rem;
-  }
+  .empty-icon { font-size: 52px; display: block; margin-bottom: $spacing-md; }
+  p           { color: $neutral-500; font-size: $font-size-base; margin: 0 0 $spacing-lg; }
+
+  .btn--add { display: inline-flex; margin-top: $spacing-md; }
 }
 
+// ── Confirm Modal ─────────────────────────────────────────────────
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba($neutral-900, 0.5);
+  @include backdrop-blur;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  padding: 1.5rem;
+  z-index: $z-modal-backdrop;
+  padding: $spacing-md;
+  animation: fadeIn $transition-base;
 }
 
 .modal {
-  background: #fff;
-  border-radius: 12px;
-  padding: 1.5rem 2rem;
+  background: $white;
+  border-radius: $radius-2xl;
+  padding: $spacing-xl $spacing-2xl;
   max-width: 420px;
   width: 100%;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: $shadow-2xl;
+  animation: slideUp $transition-slow;
 
   h3 {
-    margin: 0 0 0.5rem;
-    font-size: 1.25rem;
+    margin: 0 0 $spacing-xs;
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    color: $neutral-900;
   }
 
   .modal-message {
-    color: #334155;
-    font-size: 1rem;
-    line-height: 1.5;
-    margin: 0 0 1.5rem;
+    color: $neutral-700;
+    font-size: $font-size-sm;
+    line-height: $line-height-relaxed;
+    margin: 0 0 $spacing-lg;
   }
 
   .modal-actions {
     display: flex;
-    gap: 0.75rem;
+    gap: $spacing-md;
     justify-content: flex-end;
 
     .btn-secondary {
-      padding: 0.5rem 1rem;
-      font-weight: 600;
-      border-radius: 8px;
+      padding: $spacing-sm $spacing-lg;
+      font-weight: $font-weight-semibold;
+      border-radius: $radius-full;
       cursor: pointer;
       background: transparent;
-      color: #64748b;
-      border: 1px solid #cbd5e1;
+      color: $neutral-600;
+      border: 1.5px solid $neutral-300;
+      font-size: $font-size-sm;
+      transition: $transition-base;
 
-      &:hover:not(:disabled) {
-        background: #f1f5f9;
-      }
-
-      &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
+      &:hover:not(:disabled) { background: $neutral-100; }
+      &:disabled { opacity: 0.6; cursor: not-allowed; }
     }
 
     .btn-danger {
-      background: #dc2626;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      font-weight: 600;
-      border-radius: 8px;
+      padding: $spacing-sm $spacing-lg;
+      font-weight: $font-weight-semibold;
+      border-radius: $radius-full;
+      font-size: $font-size-sm;
       cursor: pointer;
+      background: $error-500;
+      color: $white;
+      border: none;
+      transition: $transition-base;
 
-      &:hover:not(:disabled) {
-        opacity: 0.9;
-      }
-
-      &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
+      &:hover:not(:disabled) { background: $error-600; transform: translateY(-1px); }
+      &:disabled { opacity: 0.6; cursor: not-allowed; }
     }
   }
 }
 
-@media (max-width: 600px) {
-  .reviews-container {
-    padding: 3rem 1.2rem;
-  }
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-  .reviews-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .btn--add {
-    width: 100%;
-    justify-content: center;
-  }
+@media (max-width: $breakpoint-sm) {
+  .reviews-header { flex-direction: column; align-items: flex-start; }
+  .btn--add { width: 100%; justify-content: center; }
 }

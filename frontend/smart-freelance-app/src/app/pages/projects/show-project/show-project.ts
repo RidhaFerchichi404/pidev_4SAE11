@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ProjectService, Project } from '../../../core/services/project.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { UserService, User } from '../../../core/services/user.service';
-import { ReviewService } from '../../../core/services/review.service';
+import { ProjectApplication, ProjectApplicationService } from '../../../core/services/project-application.service';
+import { UserService } from '../../../core/services/user.service';
 
 @Component({
   selector: 'app-show-project',
@@ -15,25 +15,27 @@ import { ReviewService } from '../../../core/services/review.service';
 })
 export class ShowProject implements OnInit {
   project: Project | null = null;
+  applications: ProjectApplication[] = [];
+  usersMap: { [key: number]: any } = {};
   isLoading = true;
+  isLoadingApplications = false;
   errorMessage: string | null = null;
   id!: number;
-  currentUser: User | null = null;
-  canLeaveReview = false;
-  revieweeId: number | null = null;
-  revieweeLabel = '';
+
+  public userRole: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router,
     private projectService: ProjectService,
-    private auth: AuthService,
-    private userService: UserService,
-    private reviewService: ReviewService,
-    private cdr: ChangeDetectorRef
+    private applicationService: ProjectApplicationService,
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService,
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
+    this.userRole = this.authService.getUserRole();
+
     this.id = Number(this.route.snapshot.paramMap.get('id'));
     if (!this.id || Number.isNaN(this.id)) {
       this.errorMessage = 'Invalid project.';
@@ -54,28 +56,15 @@ export class ShowProject implements OnInit {
         this.project = res ?? null;
         if (!this.project) {
           this.errorMessage = 'Project not found.';
-          this.isLoading = false;
-          this.cdr.detectChanges();
-          return;
         }
-        const email = this.auth.getPreferredUsername();
-        if (email) {
-          this.userService.getByEmail(email).subscribe({
-            next: (user) => {
-              this.currentUser = user ?? null;
-              if (this.currentUser && this.project) this.checkCanLeaveReview();
-              this.isLoading = false;
-              this.cdr.detectChanges();
-            },
-            error: () => {
-              this.isLoading = false;
-              this.cdr.detectChanges();
-            },
-          });
-        } else {
-          this.isLoading = false;
-          this.cdr.detectChanges();
+
+        // Load applications only if the user is a client
+        if (this.userRole === 'CLIENT' || this.userRole === 'ADMIN') {
+          this.loadApplications();
         }
+
+        this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.errorMessage = 'Failed to load project details.';
@@ -85,30 +74,54 @@ export class ShowProject implements OnInit {
     });
   }
 
-  private checkCanLeaveReview(): void {
-    if (!this.project || !this.currentUser?.id) return;
-    const reviewee = this.currentUser.role === 'CLIENT' ? this.project.freelancerId : this.project.clientId;
-    if (reviewee == null) return;
-    const isMyProject = this.currentUser.role === 'CLIENT'
-      ? Number(this.project.clientId) === this.currentUser.id
-      : Number(this.project.freelancerId) === this.currentUser.id;
-    if (!isMyProject) return;
-    this.reviewService.getByReviewerId(this.currentUser.id).subscribe((reviews) => {
-      const alreadyReviewed = (reviews ?? []).some((r) => Number(r.projectId) === Number(this.project!.id));
-      this.canLeaveReview = !alreadyReviewed;
-      this.revieweeId = reviewee;
-      this.userService.getById(reviewee).subscribe((u) => {
-        this.revieweeLabel = u ? (u.firstName + ' ' + u.lastName).trim() || u.email : 'User #' + reviewee;
+  loadApplications(): void {
+    if (!this.project?.id) return;
+
+    this.isLoadingApplications = true;
+    this.applicationService.getApplicationsByProject(this.project.id).subscribe({
+      next: (res) => {
+        // Optional: fetch freelancer info for each application
+        this.applications = res;
+
+        // For each application, fetch freelancer
+        this.applications.forEach(app => {
+          this.userService.getById(app.freelanceId).subscribe({
+            next: (user) => {
+              this.usersMap[app.freelanceId] = user;
+              this.cdr.detectChanges();
+            },
+            error: () => {
+              this.usersMap[app.freelanceId] = null;
+            }
+          });
+        });
+
+        this.isLoadingApplications = false;
         this.cdr.detectChanges();
-      });
-      this.cdr.detectChanges();
+      },
+      error: () => {
+        this.isLoadingApplications = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 
-  leaveReview(): void {
-    if (this.revieweeId == null || !this.project?.id) return;
-    this.router.navigate(['/dashboard/reviews/add'], {
-      state: { projectId: this.project.id, revieweeId: this.revieweeId, revieweeLabel: this.revieweeLabel },
+  // Accept or reject an application
+  changeApplicationStatus(application: ProjectApplication, status: 'ACCEPTED' | 'REJECTED'): void {
+    if (!application.id) return;
+    
+    this.applicationService.updateApplication({ id: application.id, status })
+    .subscribe({
+      next: (updated) => {
+        if (updated) {
+          // Update locally so the UI reflects the change immediately
+          application.status = status;
+          this.cdr.detectChanges();
+        }
+      },
+      error: () => {
+        console.error('Failed to update application status');
+      }
     });
   }
 

@@ -3,6 +3,9 @@
 # Service instances are resolved at runtime from Eureka. Add a new route block
 # for any new microservice (same pattern: id, uri lb://<eureka-service-id>, Path, StripPrefix=1).
 spring:
+  # Allow large JSON bodies (e.g. Base64 signature images) through the reactive gateway
+  codec:
+    max-in-memory-size: 10MB
   cloud:
     gateway:
       globalcors:
@@ -45,12 +48,16 @@ spring:
           filters:
             - StripPrefix=1
 
-        - id: evaluation
-          uri: lb://Evaluation
+        - id: portfolio
+          uri: lb://PORTFOLIO
           predicates:
-            - Path=/evaluation/**
+            - Path=/portfolio/**
           filters:
             - StripPrefix=1
+          metadata:
+            response-timeout: 120000
+            connect-timeout: 10000
+
 
         # Planning: direct URL (no Eureka), same as project
         - id: planning
@@ -80,5 +87,12 @@ spring:
           uri: lb://Offer
           predicates:
             - Path=/offer/**
+          filters:
+            - StripPrefix=1
+
+        - id: contract
+          uri: http://localhost:8083
+          predicates:
+            - Path=/contract/**
           filters:
             - StripPrefix=1

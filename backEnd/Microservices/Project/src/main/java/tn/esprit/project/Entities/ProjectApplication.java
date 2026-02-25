@@ -3,6 +3,7 @@ package tn.esprit.project.Entities;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.CreationTimestamp;
 import tn.esprit.project.Entities.Enums.ApplicationStatus;
 
 import java.math.BigDecimal;
@@ -18,13 +19,13 @@ public class ProjectApplication {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "project_id", insertable = false, updatable = false)
-    private Long projectId;
     Long freelanceId;
     String coverLetter;
     BigDecimal proposedPrice;
     Integer proposedDuration;
     ApplicationStatus status;
+
+    @CreationTimestamp
     LocalDateTime appliedAt;
     LocalDateTime respondedAt;
 

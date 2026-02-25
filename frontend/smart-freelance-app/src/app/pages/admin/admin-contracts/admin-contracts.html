@@ -1,0 +1,155 @@
+<div class="admin-contracts-page">
+
+  <h1>Contract Management</h1>
+  <p class="subtitle">View and manage all platform contracts</p>
+
+  <!-- Toast -->
+  @if (actionMsg) {
+    <div class="toast-banner" (click)="actionMsg = null">{{ actionMsg }} &nbsp;✕</div>
+  }
+
+  <!-- Error -->
+  @if (errorMsg) {
+    <div class="error-banner">⚠️ {{ errorMsg }}</div>
+  }
+
+  <!-- ── STAT CARDS ──────────────────────────────────────────────── -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <span class="stat-value">{{ contracts.length }}</span>
+      <span class="stat-label">Total Contracts</span>
+    </div>
+    <div class="stat-card stat-active">
+      <span class="stat-value">{{ activeCount }}</span>
+      <span class="stat-label">Active</span>
+    </div>
+    <div class="stat-card stat-conflict">
+      <span class="stat-value">{{ conflictCount }}</span>
+      <span class="stat-label">In Conflict</span>
+    </div>
+    <div class="stat-card stat-done">
+      <span class="stat-value">{{ completedCount }}</span>
+      <span class="stat-label">Completed</span>
+    </div>
+    <div class="stat-card stat-value-card">
+      <span class="stat-value">${{ totalValue | number:'1.0-0' }}</span>
+      <span class="stat-label">Total Value</span>
+    </div>
+  </div>
+
+  <!-- ── TABLE CARD ─────────────────────────────────────────────── -->
+  <app-card>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <!-- Filter tabs -->
+      <div class="filter-bar">
+        @for (tab of filterTabs; track tab) {
+          <button class="filter-tab" [class.active]="activeFilter === tab" (click)="setFilter(tab)">
+            {{ getTabLabel(tab) }}
+            @if (countByStatus(tab) > 0) {
+              <span class="filter-badge">{{ countByStatus(tab) }}</span>
+            }
+          </button>
+        }
+      </div>
+
+      <button class="btn-refresh" (click)="load()" [disabled]="isLoading">
+        {{ isLoading ? 'Loading…' : 'Refresh' }}
+      </button>
+    </div>
+
+    <!-- Loading / empty -->
+    @if (isLoading) {
+      <p class="loading-msg">Loading contracts…</p>
+    } @else if (filtered.length === 0) {
+      <p class="empty-msg">No contracts found for this filter.</p>
+    } @else {
+
+      <div class="table-wrap">
+        <table class="contracts-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Title</th>
+              <th>Client ID</th>
+              <th>Freelancer ID</th>
+              <th>Amount</th>
+              <th>Timeline</th>
+              <th>Status</th>
+              <th>Change Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of filtered; track c.id) {
+              <tr [class.row-conflict]="c.status === 'IN_CONFLICT'">
+                <td class="id-cell">{{ c.id }}</td>
+                <td class="title-cell">
+                  <span class="contract-title">{{ c.title }}</span>
+                  @if (c.description) {
+                    <span class="contract-desc">{{ c.description }}</span>
+                  }
+                </td>
+                <td>#{{ c.clientId }}</td>
+                <td>#{{ c.freelancerId }}</td>
+                <td class="amount-cell">${{ c.amount | number:'1.0-0' }}</td>
+                <td class="date-cell">
+                  <span>{{ formatDate(c.startDate) }}</span>
+                  <span class="date-sep">→</span>
+                  <span>{{ formatDate(c.endDate) }}</span>
+                </td>
+                <td>
+                  <span class="status-badge status-{{ c.status?.toLowerCase() }}">
+                    {{ getStatusLabel(c.status) }}
+                  </span>
+                </td>
+                <td class="select-cell">
+                  <select
+                    [value]="c.status"
+                    (change)="changeStatus(c, $any($event.target).value)"
+                    [disabled]="changingStatusId === c.id"
+                    class="status-select status-{{ c.status?.toLowerCase() }}">
+                    @for (s of allStatuses; track s) {
+                      <option [value]="s" [selected]="c.status === s">{{ getStatusLabel(s) }}</option>
+                    }
+                  </select>
+                  @if (changingStatusId === c.id) {
+                    <span class="saving-indicator">Saving…</span>
+                  }
+                </td>
+                <td class="actions">
+                  <button class="btn-action btn-delete" (click)="openDelete(c)"
+                          [disabled]="changingStatusId === c.id">
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+    }
+  </app-card>
+</div>
+
+<!-- ══════════════ DELETE CONFIRM MODAL ══════════════════════ -->
+@if (contractToDelete) {
+  <div class="modal-overlay" (click)="closeDelete()">
+    <div class="modal modal--confirm" (click)="$event.stopPropagation()">
+      <h3>Delete Contract</h3>
+      <p class="modal-message">
+        Are you sure you want to permanently delete
+        <strong>"{{ contractToDelete.title }}"</strong>?
+        This action cannot be undone.
+      </p>
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="closeDelete()" [disabled]="isDeleting">Cancel</button>
+        <button class="btn-danger" (click)="confirmDelete()" [disabled]="isDeleting">
+          {{ isDeleting ? 'Deleting…' : 'Delete' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

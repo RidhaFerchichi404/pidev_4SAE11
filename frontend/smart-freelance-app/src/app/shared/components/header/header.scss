@@ -1,115 +1,429 @@
+@import '../../../../styles/variables';
+
+// ═══════════════════════════════════════════════════════════
+//  Header shell
+// ═══════════════════════════════════════════════════════════
+
 .header {
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border-light);
-  box-shadow: var(--shadow-sm);
+  background: #ffffff;
+  border-bottom: 1px solid $neutral-200;
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: $z-fixed;
+  transition: box-shadow $transition-base, border-color $transition-base;
+
+  &.scrolled {
+    border-bottom-color: transparent;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.09);
+  }
 }
+
+// ═══════════════════════════════════════════════════════════
+//  Container
+// ═══════════════════════════════════════════════════════════
 
 .header-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: var(--spacing-md) var(--spacing-xl);
+  padding: 0 $spacing-xl;
+  height: 64px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-xl);
+  gap: $spacing-md;
 }
 
+// ═══════════════════════════════════════════════════════════
+//  Logo
+// ═══════════════════════════════════════════════════════════
+
 .header-logo {
-  text-decoration: none;
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 7px;
+  text-decoration: none;
+  flex-shrink: 0;
+  outline: none;
+
+  &:focus-visible { @include focus-ring; border-radius: $radius-sm; }
+
+  .logo-mark {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+  }
 
   .logo-text {
-    font-family: var(--font-heading);
-    font-size: var(--text-2xl);
-    font-weight: 800;
-    background: var(--accent-gradient);
+    font-size: 20px;
+    font-weight: $font-weight-bold;
+    letter-spacing: -0.02em;
+    background: $gradient-primary;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    line-height: 1;
   }
 }
+
+// ═══════════════════════════════════════════════════════════
+//  Main navigation — grouped dropdowns (desktop)
+// ═══════════════════════════════════════════════════════════
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+// ── Nav group (hover area) ──
+
+.nav-group {
+  position: relative;
+}
+
+// ── Trigger button ──
+
+.nav-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 11px;
+  background: transparent;
+  border: none;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $neutral-600;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: $font-family;
+  transition: background $transition-fast, color $transition-fast;
+
+  .chevron {
+    width: 14px;
+    height: 14px;
+    transition: transform $transition-fast;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: $neutral-100;
+    color: $neutral-900;
+  }
+
+  &.open {
+    background: $neutral-100;
+    color: $neutral-900;
+
+    .chevron { transform: rotate(180deg); }
+  }
+
+  &:focus-visible { @include focus-ring; }
+}
+
+// ── Direct nav link (no dropdown) ──
+
+.nav-direct {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 11px;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $neutral-600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background $transition-fast, color $transition-fast;
+
+  &:hover {
+    background: $neutral-100;
+    color: $neutral-900;
+  }
+
+  &.active {
+    color: $primary-500;
+    background: rgba($primary-500, 0.08);
+    font-weight: $font-weight-semibold;
+  }
+
+  &:focus-visible { @include focus-ring; }
+}
+
+// ── Dropdown panel ──
+
+.nav-dropdown {
+  position: absolute;
+  top: 100%;
+  margin-top: 4px;
+  left: 0;
+  min-width: 210px;
+  background: #ffffff;
+  border: 1px solid $neutral-200;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-lg;
+  padding: 6px 0;
+  z-index: $z-dropdown;
+  animation: dropIn 0.14s $ease-out both;
+}
+
+@keyframes dropIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px $spacing-md;
+  color: $neutral-700;
+  text-decoration: none;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  transition: background $transition-fast, color $transition-fast;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    color: $neutral-400;
+    flex-shrink: 0;
+    transition: color $transition-fast;
+  }
+
+  &:hover {
+    background: $neutral-50;
+    color: $neutral-900;
+    svg { color: $primary-500; }
+  }
+
+  &:focus-visible { @include focus-ring; outline-offset: -2px; }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Search bar
+// ═══════════════════════════════════════════════════════════
+
+.search-form {
+  flex: 1;
+  max-width: 360px;
+  min-width: 160px;
+}
+
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  background: $neutral-100;
+  border: 1.5px solid transparent;
+  border-radius: $radius-full;
+  overflow: hidden;
+  transition: border-color $transition-fast, background $transition-fast, box-shadow $transition-fast;
+
+  &:focus-within {
+    border-color: $primary-500;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba($primary-500, 0.12);
+  }
+}
+
+.search-icon-left {
+  width: 16px;
+  height: 16px;
+  color: $neutral-400;
+  margin-left: 12px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0 10px;
+  font-size: $font-size-sm;
+  color: $neutral-900;
+  font-family: $font-family;
+
+  &::placeholder { color: $neutral-400; }
+  &::-webkit-search-cancel-button { display: none; }
+}
+
+.search-submit-btn {
+  flex-shrink: 0;
+  background: $gradient-primary;
+  color: #ffffff;
+  border: none;
+  padding: 0 $spacing-md;
+  height: 100%;
+  font-size: 12px;
+  font-weight: $font-weight-semibold;
+  font-family: $font-family;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity $transition-fast;
+  letter-spacing: 0.01em;
+
+  &:hover { opacity: 0.88; }
+  &:focus-visible { outline: 2px solid $primary-500; outline-offset: -2px; }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Public header center nav
+// ═══════════════════════════════════════════════════════════
 
 .header-nav {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xl);
+  gap: $spacing-xl;
   flex: 1;
   justify-content: center;
 
   .nav-link {
-    color: var(--text-secondary);
+    color: $neutral-600;
     text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s ease;
-    position: relative;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    transition: color $transition-fast;
 
-    &:hover {
-      color: var(--text-primary);
-    }
-
-    &.active {
-      color: var(--secondary);
-
-      &::after {
-        content: '';
-        position: absolute;
-        bottom: -8px;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: var(--accent-gradient);
-      }
-    }
+    &:hover { color: $neutral-900; }
+    &.active { color: $primary-500; font-weight: $font-weight-semibold; }
+    &:focus-visible { @include focus-ring; border-radius: 2px; }
   }
 }
+
+// ═══════════════════════════════════════════════════════════
+//  Right actions
+// ═══════════════════════════════════════════════════════════
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
 }
+
+// ── Icon buttons (Messages, Notifications) ──
+
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: $radius-md;
+  color: $neutral-500;
+  text-decoration: none;
+  position: relative;
+  flex-shrink: 0;
+  transition: background $transition-fast, color $transition-fast;
+
+  svg { width: 19px; height: 19px; }
+
+  &:hover {
+    background: $neutral-100;
+    color: $neutral-800;
+  }
+
+  &:focus-visible { @include focus-ring; }
+}
+
+// Notification dot badge
+.notif-btn::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 7px;
+  height: 7px;
+  background: $primary-600;
+  border: 2px solid #ffffff;
+  border-radius: $radius-full;
+}
+
+// ── Primary CTA button ──
+
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  background: $gradient-primary;
+  color: #ffffff;
+  border: none;
+  border-radius: $radius-full;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  font-family: $font-family;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: opacity $transition-fast, box-shadow $transition-fast, transform $transition-fast;
+
+  svg { width: 14px; height: 14px; }
+
+  &:hover {
+    opacity: 0.9;
+    box-shadow: $shadow-primary;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  &:focus-visible { @include focus-ring; }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  User menu
+// ═══════════════════════════════════════════════════════════
 
 .user-menu-container {
   position: relative;
+  flex-shrink: 0;
 }
 
 .user-menu-trigger {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
+  gap: 8px;
+  padding: 5px 10px 5px 5px;
   background: transparent;
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-full);
+  border: 1.5px solid $neutral-200;
+  border-radius: $radius-full;
   cursor: pointer;
-  transition: all 0.2s ease;
+  font-family: $font-family;
+  transition: border-color $transition-fast, background $transition-fast;
 
   &:hover {
-    background: var(--bg-hover);
-    border-color: var(--border-default);
+    background: $neutral-50;
+    border-color: $neutral-300;
   }
+
+  &:focus-visible { @include focus-ring; border-radius: $radius-full; }
 
   .user-avatar,
   .user-avatar-img {
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-full);
+    width: 28px;
+    height: 28px;
+    border-radius: $radius-full;
     flex-shrink: 0;
   }
 
   .user-avatar {
-    background: var(--accent-gradient);
-    color: white;
+    background: $gradient-primary;
+    color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 600;
-    font-size: var(--text-sm);
+    font-weight: $font-weight-semibold;
+    font-size: 11px;
+    letter-spacing: 0.02em;
   }
 
   .user-avatar-img {
@@ -118,34 +432,48 @@
   }
 
   .user-name {
-    font-weight: 500;
-    color: var(--text-primary);
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $neutral-700;
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .dropdown-icon {
-    color: var(--text-muted);
+  .chevron-user {
+    width: 14px;
+    height: 14px;
+    color: $neutral-400;
+    flex-shrink: 0;
+    transition: transform $transition-fast;
+
+    &.rotated { transform: rotate(180deg); }
   }
 }
 
 .user-menu-dropdown {
   position: absolute;
-  top: calc(100% + var(--spacing-sm));
+  top: calc(100% + 8px);
   right: 0;
-  min-width: 200px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  padding: var(--spacing-sm) 0;
-  z-index: 1000;
+  min-width: 196px;
+  background: #ffffff;
+  border: 1px solid $neutral-200;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-lg;
+  padding: 6px 0;
+  z-index: $z-dropdown;
+  animation: dropIn 0.14s $ease-out both;
 
   .dropdown-item {
     display: block;
-    padding: var(--spacing-sm) var(--spacing-lg);
-    color: var(--text-primary);
+    padding: 10px $spacing-md;
+    color: $neutral-700;
     text-decoration: none;
-    font-size: var(--text-sm);
-    transition: background 0.2s ease;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    font-family: $font-family;
+    transition: background $transition-fast, color $transition-fast;
     border: none;
     background: transparent;
     width: 100%;
@@ -153,74 +481,217 @@
     cursor: pointer;
 
     &:hover {
-      background: var(--bg-hover);
+      background: $neutral-50;
+      color: $neutral-900;
     }
 
     &.logout {
-      color: var(--error);
-      font-weight: 500;
+      color: #EF4444;
+      &:hover { background: #FEF2F2; color: #DC2626; }
     }
+
+    &:focus-visible { @include focus-ring; outline-offset: -2px; }
   }
 
   .dropdown-divider {
     height: 1px;
-    background: var(--border-light);
-    margin: var(--spacing-sm) 0;
+    background: $neutral-200;
+    margin: 4px 0;
   }
 }
 
+// ═══════════════════════════════════════════════════════════
+//  Mobile toggles
+// ═══════════════════════════════════════════════════════════
+
 .mobile-menu-toggle {
   display: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
   background: transparent;
   border: none;
-  padding: var(--spacing-sm);
+  border-radius: $radius-md;
   cursor: pointer;
-  color: var(--text-primary);
+  color: $neutral-700;
+  transition: background $transition-fast;
+
+  svg { width: 20px; height: 20px; }
+  &:hover { background: $neutral-100; }
 }
 
-/* Mobile styles */
-@media (max-width: 768px) {
+.mobile-hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: transparent;
+  border: none;
+  border-radius: $radius-md;
+  cursor: pointer;
+  color: $neutral-700;
+  flex-shrink: 0;
+  transition: background $transition-fast;
+
+  svg { width: 20px; height: 20px; }
+
+  &:hover { background: $neutral-100; }
+  &:focus-visible { @include focus-ring; }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Mobile drawer (dashboard)
+// ═══════════════════════════════════════════════════════════
+
+.mobile-drawer {
+  display: none;
+  flex-direction: column;
+  background: #ffffff;
+  border-top: 1px solid $neutral-200;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s $ease-out;
+
+  &.open {
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+}
+
+// Mobile search inside drawer
+
+.mobile-search-form {
+  padding: $spacing-md $spacing-md 10px;
+
+  .search-wrapper { height: 42px; }
+}
+
+// Mobile nav body
+
+.mobile-nav-body {
+  padding: 4px 0 $spacing-sm;
+}
+
+.mobile-section {
+  padding-bottom: 4px;
+
+  & + & {
+    border-top: 1px solid $neutral-100;
+    padding-top: 4px;
+  }
+}
+
+.mobile-section-label {
+  display: block;
+  padding: 8px $spacing-md 4px;
+  font-size: 10px;
+  font-weight: $font-weight-semibold;
+  color: $neutral-400;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.mobile-nav-item {
+  display: block;
+  padding: 11px $spacing-md;
+  color: $neutral-700;
+  text-decoration: none;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  border-left: 3px solid transparent;
+  transition: background $transition-fast, color $transition-fast, border-color $transition-fast;
+
+  &:hover {
+    background: $neutral-50;
+    color: $neutral-900;
+  }
+
+  &.active {
+    color: $primary-500;
+    border-left-color: $primary-500;
+    background: rgba($primary-500, 0.05);
+    font-weight: $font-weight-semibold;
+  }
+
+  &:focus-visible { @include focus-ring; }
+}
+
+// Mobile CTA row
+
+.mobile-cta-row {
+  padding: $spacing-md;
+  border-top: 1px solid $neutral-200;
+
+  .mobile-cta {
+    width: 100%;
+    justify-content: center;
+    padding: 12px $spacing-md;
+    border-radius: $radius-lg;
+    font-size: $font-size-base;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Responsive breakpoints
+// ═══════════════════════════════════════════════════════════
+
+// ── Tablet (≤ 1024px): hide grouped nav, show hamburger ──
+
+@media (max-width: $breakpoint-lg) {
+  .main-nav       { display: none; }
+  .mobile-hamburger { display: flex; }
+  .mobile-drawer  { display: flex; }
+
+  .search-form {
+    max-width: 260px;
+  }
+
+  .cta-btn.desktop-cta {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+
+  .header-container {
+    gap: $spacing-sm;
+  }
+}
+
+// ── Mobile (≤ 768px): hide search bar and CTA ──
+
+@media (max-width: $breakpoint-md) {
+  .header-container {
+    padding: 0 $spacing-md;
+    gap: $spacing-xs;
+  }
+
+  .search-form        { display: none; }
+  .cta-btn.desktop-cta { display: none; }
+  .mobile-menu-toggle  { display: flex; }
+  .user-name           { display: none !important; }
+
+  // Public mobile nav panel
   .header-nav {
     display: none;
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
-    background: var(--bg-card);
-    border-top: 1px solid var(--border-light);
+    background: #ffffff;
+    border-top: 1px solid $neutral-200;
     flex-direction: column;
     align-items: flex-start;
-    padding: var(--spacing-lg);
-    box-shadow: var(--shadow-md);
+    padding: $spacing-lg;
+    box-shadow: $shadow-md;
+    z-index: $z-dropdown;
 
-    &.open {
-      display: flex;
-    }
+    &.open { display: flex; }
 
     .nav-link {
       width: 100%;
-      padding: var(--spacing-sm) 0;
-
-      &.active::after {
-        bottom: 0;
-      }
+      padding: $spacing-sm 0;
+      font-size: $font-size-base;
     }
-  }
-
-  .mobile-menu-toggle {
-    display: block;
-  }
-
-  .header-actions {
-    gap: var(--spacing-sm);
-
-    app-button {
-      font-size: var(--text-xs);
-      padding: var(--spacing-xs) var(--spacing-sm);
-    }
-  }
-
-  .user-name {
-    display: none;
   }
 }

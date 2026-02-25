@@ -1,200 +1,103 @@
+@import '../../../../styles/variables';
+
+// ════════════════════════════════════════════════════════════════
+// SHOW PROJECT — Detail view
+// ════════════════════════════════════════════════════════════════
+
 .project-details {
-  padding: 40px;
+  padding: $spacing-3xl $spacing-lg;
+  max-width: 900px;
+  margin: 0 auto;
+  font-family: $font-family;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-}
 
-.project-details .loading,
-.project-details .error {
-  font-size: 18px;
-  font-weight: 500;
-  padding: 20px;
-  border-radius: 10px;
-}
+  @include breakpoint(md) {
+    padding: $spacing-3xl $spacing-2xl;
+  }
 
-.project-details .loading {
-  background: #e8f1ff;
-  color: #2b6cb0;
-}
+  // ── Loading / Error ──────────────────────────────────────────
+  .loading {
+    padding: $spacing-xl;
+    border-radius: $radius-xl;
+    background: $info-50;
+    color: $info-600;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    text-align: center;
+  }
 
-.project-details .error {
-  background: #ffe5e5;
-  color: #c53030;
-}
+  .error {
+    padding: $spacing-xl;
+    border-radius: $radius-xl;
+    background: $error-50;
+    color: $error-700;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    text-align: center;
+  }
 
-.project-details .project-card {
-  width: 100%;
-  max-width: 850px;
-  background: #fff;
-  padding: 35px;
-  border-radius: 18px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  transition: 0.3s ease;
-}
+  // ── Project Card ─────────────────────────────────────────────
+  .project-card {
+    width: 100%;
+    background: $white;
+    border-radius: $radius-xl;
+    border: 1.5px solid $neutral-200;
+    padding: $spacing-xl;
+    transition: $transition-base;
 
-.project-details .project-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.12);
-}
+    &:hover {
+      border-color: $primary-500;
+      box-shadow: 0 6px 24px rgba($primary-500, 0.08);
+    }
+  }
 
-/* HEADER */
-.project-details .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 25px;
-}
+  // ── Header ──────────────────────────────────────────────────
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: $spacing-md;
+    margin-bottom: $spacing-lg;
 
-.project-details .header h1 {
-  font-size: 28px;
-  font-weight: 700;
-  color: #1a202c;
-  margin: 0;
-}
+    h1 {
+      font-size: $font-size-2xl;
+      font-weight: $font-weight-extrabold;
+      color: $neutral-900;
+      margin: 0;
+      flex: 1;
+    }
 
-.project-details .header .status {
-  padding: 6px 14px;
-  border-radius: 50px;
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
+    .status {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px $spacing-sm;
+      border-radius: $radius-full;
+      font-size: 11px;
+      font-weight: $font-weight-bold;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      white-space: nowrap;
 
-.project-details .header .status.open {
-  background: #e6fffa;
-  color: #047857;
-}
+      &.open     { background: $info-50;     color: $info-600; }
+      &.progress { background: $warning-100; color: $warning-700; }
+      &.done     { background: $success-50;  color: $success-700; }
+      &.cancel   { background: $error-50;    color: $error-700; }
+    }
+  }
 
-.project-details .header .status.progress {
-  background: #fff7ed;
-  color: #c2410c;
-}
+  // ── Info rows ────────────────────────────────────────────────
+  p {
+    margin: $spacing-sm 0;
+    font-size: $font-size-sm;
+    color: $neutral-600;
 
-.project-details .header .status.done {
-  background: #ecfdf5;
-  color: #059669;
-}
-
-.project-details .header .status.cancel {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-/* INFO ROWS */
-.project-details p {
-  margin: 12px 0;
-  font-size: 16px;
-  color: #4a5568;
-}
-
-.project-details p strong {
-  color: #1a202c;
-  margin-right: 6px;
-}
-
-/* DESCRIPTION */
-.project-details .description {
-  margin-top: 20px;
-}
-
-.project-details .description p {
-  margin-top: 10px;
-  line-height: 1.7;
-  color: #2d3748;
-}
-
-/* SKILLS */
-.project-details .skills {
-  margin-top: 25px;
-}
-
-.project-details .skills strong {
-  display: block;
-  margin-bottom: 10px;
-  color: #1a202c;
-}
-
-.project-details .skills-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.project-details .skill {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: #fff;
-  padding: 6px 14px;
-  border-radius: 50px;
-  font-size: 13px;
-  font-weight: 500;
-  transition: 0.2s;
-}
-
-.project-details .skill:hover {
-  transform: scale(1.05);
-}
-
-.project-details .no-skills {
-  color: #a0aec0;
-  font-style: italic;
-}
-
-/* BUTTONS */
-.project-details .actions {
-  margin-top: 35px;
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.project-details .actions a {
-  text-decoration: none;
-  padding: 10px 20px;
-  border-radius: 10px;
-  font-weight: 600;
-  transition: 0.25s;
-  font-size: 14px;
-}
-
-.project-details .actions .btn-back {
-  background: #edf2f7;
-  color: #2d3748;
-}
-
-.project-details .actions .btn-back:hover {
-  background: #e2e8f0;
-}
-
-.project-details .actions .btn-edit {
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
-  color: #fff;
-}
-
-.project-details .actions .btn-edit:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
-}
-
-.project-details .actions .btn-review {
-  background: #10b981;
-  color: #fff;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.project-details .actions .btn-review:hover {
-  background: #059669;
-  transform: translateY(-2px);
-}
+    strong {
+      color: $neutral-900;
+      font-weight: $font-weight-semibold;
+      margin-right: $spacing-xs;
+    }
+  }
 
 /* Responsive */
 @media (max-width: 768px) {
@@ -202,25 +105,195 @@
     padding: 20px;
   }
 
-  .project-details .project-card {
-    padding: 25px;
+  .skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-xs;
   }
 
-  .project-details .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+  .skill {
+    background: $gradient-soft;
+    color: $primary-500;
+    padding: 3px $spacing-sm;
+    border-radius: $radius-full;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+    border: 1px solid rgba($primary-500, 0.15);
+    transition: $transition-fast;
+
+    &:hover { transform: scale(1.05); }
   }
 
-  .project-details .header h1 {
-    font-size: 22px;
+  .no-skills {
+    color: $neutral-400;
+    font-style: italic;
+    font-size: $font-size-sm;
   }
 
-  .project-details .actions {
-    flex-direction: column;
+  // ── Actions ──────────────────────────────────────────────────
+  .actions {
+    margin-top: $spacing-xl;
+    padding-top: $spacing-lg;
+    border-top: 1.5px solid $neutral-100;
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-sm;
+
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      padding: $spacing-sm $spacing-lg;
+      border-radius: $radius-full;
+      background: transparent;
+      color: $neutral-600;
+      border: 1.5px solid $neutral-300;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-semibold;
+      text-decoration: none;
+      cursor: pointer;
+      transition: $transition-fast;
+
+      &:hover { background: $neutral-100; border-color: $neutral-400; }
+    }
+
+    .btn-edit {
+      display: inline-flex;
+      align-items: center;
+      padding: $spacing-sm $spacing-lg;
+      border-radius: $radius-full;
+      @include button-gradient;
+      color: $white;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-semibold;
+      text-decoration: none;
+      border: none;
+      box-shadow: 0 2px 8px rgba($primary-500, 0.35);
+      transition: $transition-base;
+
+      &:hover { transform: translateY(-1px); box-shadow: $shadow-primary; }
+    }
+
+    .btn-review {
+      display: inline-flex;
+      align-items: center;
+      padding: $spacing-sm $spacing-lg;
+      border-radius: $radius-full;
+      background: $success-50;
+      color: $success-700;
+      border: 1.5px solid rgba($success-500, 0.25);
+      font-size: $font-size-sm;
+      font-weight: $font-weight-semibold;
+      cursor: pointer;
+      transition: $transition-base;
+
+      &:hover { background: $success-500; color: $white; border-color: $success-500; transform: translateY(-1px); }
+    }
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .project-details {
+    padding: $spacing-xl $spacing-md;
+
+    .header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .actions {
+      flex-direction: column;
+
+      .btn-back,
+      .btn-edit,
+      .btn-review { justify-content: center; }
+    }
+  }
+}
+
+
+
+.applications-section {
+  margin-top: 3rem;
+  border-top: 2px solid #e2e8f0;
+  padding-top: 2rem;
+
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: #1e293b;
   }
 
-  .project-details .actions a {
-    text-align: center;
+  .application-card {
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.2rem;
+    background: #f9fafb;
+
+    p {
+      margin: 0.4rem 0;
+    }
+
+    .application-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.8rem;
+
+      button {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s ease;
+      }
+
+      .btn-accept {
+        background: #10b981;
+        color: white;
+      }
+
+      .btn-accept:hover:not(:disabled) {
+        background: #059669;
+      }
+
+      .btn-reject {
+        background: #ef4444;
+        color: white;
+      }
+
+      .btn-reject:hover:not(:disabled) {
+        background: #b91c1c;
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+
+    span.pending {
+      color: #facc15;
+      font-weight: 600;
+    }
+    span.accepted {
+      color: #10b981;
+      font-weight: 600;
+    }
+    span.rejected {
+      color: #ef4444;
+      font-weight: 600;
+    }
+  }
+  }
+
+  .loading {
+    color: #1e40af;
+    font-weight: 500;
+  }
+
+  .no-applications {
+    color: #475569;
+    font-style: italic;
   }
 }

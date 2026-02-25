@@ -57,7 +57,8 @@
   </div>
 
   <div class="empty-state" *ngIf="!loading && !errorMessage && offers.length === 0">
-    <p>No offers yet.</p>
+    <span class="empty-icon">📋</span>
+    <p>No offers yet. Create your first offer to get started!</p>
     <a routerLink="/dashboard/my-offers/add" class="btn btn--add-offer">Create your first offer</a>
   </div>
 

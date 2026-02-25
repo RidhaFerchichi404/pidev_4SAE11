@@ -1,0 +1,356 @@
+<div class="detail-page">
+
+  <!-- LOADING -->
+  @if (isLoading) {
+    <div class="detail-loading">
+      <div class="spinner"></div>
+      <p>Loading contract…</p>
+    </div>
+  }
+
+  @if (!isLoading && errorMsg) {
+    <div class="alert-error">⚠️ {{ errorMsg }}</div>
+    <a routerLink="/dashboard/my-contracts" class="back-link">← Back to contracts</a>
+  }
+
+  @if (!isLoading && contract) {
+
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb">
+      <a routerLink="/dashboard/my-contracts" class="breadcrumb-link">My Contracts</a>
+      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-current">{{ contract.title }}</span>
+    </div>
+
+    <!-- Toast messages -->
+    @if (actionMsg) {
+      <div class="toast toast-success" (click)="dismissMsg()">{{ actionMsg }} ✕</div>
+    }
+    @if (actionError) {
+      <div class="toast toast-error" (click)="dismissMsg()">{{ actionError }} ✕</div>
+    }
+
+    <!-- ── HEADER ──────────────────────────────────────────────── -->
+    <div class="detail-header">
+      <div class="detail-header-left">
+        <span class="status-badge status-{{ contract.status?.toLowerCase() }}">
+          {{ getStatusLabel(contract.status) }}
+        </span>
+        <h1 class="detail-title">{{ contract.title }}</h1>
+        @if (contract.description) {
+          <p class="detail-desc">{{ contract.description }}</p>
+        }
+      </div>
+      <div class="detail-amount-block">
+        <span class="big-amount">${{ contract.amount | number:'1.0-0' }}</span>
+        <span class="big-amount-label">Contract Value</span>
+      </div>
+    </div>
+
+    <!-- ── ACTION BAR ──────────────────────────────────────────── -->
+    <div class="action-bar">
+      @if (canEdit) {
+        <button class="btn-secondary" (click)="openEdit()">✏️ Edit</button>
+      }
+      @if (canSubmitForSignature) {
+        <button class="btn-primary" (click)="submitForSignature()">📤 Submit for Signature</button>
+      }
+      @if (canProposeChanges) {
+        <button class="btn-secondary" (click)="openEdit()">✏️ Propose Changes</button>
+      }
+      @if (canSign) {
+        <button class="btn-primary btn-sign" (click)="openSignPad()">✍️ Sign Contract</button>
+      }
+      @if (canReject) {
+        <button class="btn-danger" (click)="rejectContract()">↩️ Request Revision</button>
+      }
+      @if (canComplete) {
+        <button class="btn-success" (click)="completeContract()">✅ Mark Complete</button>
+      }
+      @if (canReportConflict) {
+        <button class="btn-danger" (click)="openConflictModal()">⚠️ Report Conflict</button>
+      }
+    </div>
+
+    <!-- ── MAIN CONTENT GRID ───────────────────────────────────── -->
+    <div class="detail-grid">
+
+      <!-- LEFT: Contract details -->
+      <div class="detail-main">
+
+        <!-- Terms section -->
+        <div class="section-card">
+          <h2 class="section-title">📄 Terms & Conditions</h2>
+          <div class="terms-body">{{ contract.terms }}</div>
+        </div>
+
+        <!-- Timeline & parties -->
+        <div class="info-cards">
+          <div class="info-card">
+            <span class="info-icon">📅</span>
+            <div>
+              <p class="info-label">Timeline</p>
+              <p class="info-value">{{ formatDate(contract.startDate) }} → {{ formatDate(contract.endDate) }}</p>
+            </div>
+          </div>
+          <div class="info-card">
+            <span class="info-icon">👤</span>
+            <div>
+              <p class="info-label">Client</p>
+              <p class="info-value">{{ clientName ?? ('#' + contract.clientId) }}</p>
+            </div>
+          </div>
+          <div class="info-card">
+            <span class="info-icon">💻</span>
+            <div>
+              <p class="info-label">Freelancer</p>
+              <p class="info-value">{{ freelancerName ?? ('#' + contract.freelancerId) }}</p>
+            </div>
+          </div>
+          @if (contract.createdAt) {
+            <div class="info-card">
+              <span class="info-icon">🕐</span>
+              <div>
+                <p class="info-label">Created</p>
+                <p class="info-value">{{ formatDate(contract.createdAt) }}</p>
+              </div>
+            </div>
+          }
+          @if (contract.signedAt) {
+            <div class="info-card">
+              <span class="info-icon">✅</span>
+              <div>
+                <p class="info-label">Signed At</p>
+                <p class="info-value">{{ formatDate(contract.signedAt) }}</p>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- ── Conflicts ─────────────────────────────────────────── -->
+        @if (canReportConflict || conflicts.length > 0) {
+          <div class="section-card conflict-section">
+
+            <!-- Section header with Report button -->
+            <div class="conflict-section-header">
+              <h2 class="section-title">⚠️ Conflicts <span class="conflict-count">{{ conflicts.length }}</span></h2>
+              @if (canReportConflict) {
+                <button class="btn-report-conflict" (click)="openConflictModal()">
+                  + Report Conflict
+                </button>
+              }
+            </div>
+
+            @if (conflicts.length === 0) {
+              <p class="conflict-empty">No conflicts have been reported for this contract.</p>
+            }
+
+            <!-- Client conflicts -->
+            @if (clientConflicts.length > 0) {
+              <div class="conflict-group">
+                <div class="conflict-group-label client-label">
+                  <span class="group-dot client-dot"></span> Reported by Client
+                </div>
+                @for (cf of clientConflicts; track cf.id) {
+                  <div class="conflict-item" [class.resolved]="cf.status === 'RESOLVED'">
+                    <div class="conflict-top">
+                      <span class="conflict-reason">{{ cf.reason }}</span>
+                      <span class="conflict-badge conflict-{{ cf.status?.toLowerCase() }}">{{ cf.status }}</span>
+                    </div>
+                    <p class="conflict-desc">{{ cf.description }}</p>
+                    @if (cf.evidenceUrl) {
+                      <a class="conflict-evidence" [href]="cf.evidenceUrl" target="_blank" rel="noopener">View Evidence ↗</a>
+                    }
+                    @if (cf.createdAt) {
+                      <p class="conflict-date">Reported {{ formatDate(cf.createdAt) }}</p>
+                    }
+                    @if (cf.resolution) {
+                      <div class="conflict-resolution"><strong>Resolution:</strong> {{ cf.resolution }}</div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- Freelancer conflicts -->
+            @if (freelancerConflicts.length > 0) {
+              <div class="conflict-group">
+                <div class="conflict-group-label freelancer-label">
+                  <span class="group-dot freelancer-dot"></span> Reported by Freelancer
+                </div>
+                @for (cf of freelancerConflicts; track cf.id) {
+                  <div class="conflict-item" [class.resolved]="cf.status === 'RESOLVED'">
+                    <div class="conflict-top">
+                      <span class="conflict-reason">{{ cf.reason }}</span>
+                      <span class="conflict-badge conflict-{{ cf.status?.toLowerCase() }}">{{ cf.status }}</span>
+                    </div>
+                    <p class="conflict-desc">{{ cf.description }}</p>
+                    @if (cf.evidenceUrl) {
+                      <a class="conflict-evidence" [href]="cf.evidenceUrl" target="_blank" rel="noopener">View Evidence ↗</a>
+                    }
+                    @if (cf.createdAt) {
+                      <p class="conflict-date">Reported {{ formatDate(cf.createdAt) }}</p>
+                    }
+                    @if (cf.resolution) {
+                      <div class="conflict-resolution"><strong>Resolution:</strong> {{ cf.resolution }}</div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+
+          </div>
+        }
+      </div>
+
+      <!-- RIGHT: Signatures -->
+      <div class="detail-sidebar">
+        <div class="section-card sig-section">
+          <h2 class="section-title">✍️ Signatures</h2>
+
+          <!-- Client signature -->
+          <div class="sig-block" [class.signed]="contract.clientSignatureUrl">
+            <div class="sig-header">
+              <span class="sig-party">Client</span>
+              @if (contract.clientSignatureUrl) {
+                <span class="sig-status signed-label">Signed ✓</span>
+              } @else {
+                <span class="sig-status unsigned-label">Pending</span>
+              }
+            </div>
+            @if (contract.clientSignatureUrl) {
+              <div class="sig-preview">
+                <img [src]="contract.clientSignatureUrl" alt="Client signature"
+                     onerror="this.style.display='none'" />
+                <span class="sig-fallback">Signature on file</span>
+              </div>
+            } @else if (auth.isClient() && canSign) {
+              <button class="btn-sign-upload" (click)="openSignPad()">Upload Signature</button>
+            } @else {
+              <div class="sig-placeholder">Awaiting signature</div>
+            }
+          </div>
+
+          <div class="sig-divider"></div>
+
+          <!-- Freelancer signature -->
+          <div class="sig-block" [class.signed]="contract.freelancerSignatureUrl">
+            <div class="sig-header">
+              <span class="sig-party">Freelancer</span>
+              @if (contract.freelancerSignatureUrl) {
+                <span class="sig-status signed-label">Signed ✓</span>
+              } @else {
+                <span class="sig-status unsigned-label">Pending</span>
+              }
+            </div>
+            @if (contract.freelancerSignatureUrl) {
+              <div class="sig-preview">
+                <img [src]="contract.freelancerSignatureUrl" alt="Freelancer signature"
+                     onerror="this.style.display='none'" />
+                <span class="sig-fallback">Signature on file</span>
+              </div>
+            } @else if (auth.isFreelancer() && canSign) {
+              <button class="btn-sign-upload" (click)="openSignPad()">Upload Signature</button>
+            } @else {
+              <div class="sig-placeholder">Awaiting signature</div>
+            }
+          </div>
+
+          @if (isSigned) {
+            <div class="fully-signed-banner">🎉 Fully Signed & Active</div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- ══════════════ EDIT / PROPOSE CHANGES MODAL ══════════════ -->
+@if (showEditForm) {
+  <div class="modal-backdrop" (click)="cancelEdit()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ canEdit ? 'Edit Contract' : 'Propose Changes' }}</h2>
+        <button class="modal-close" (click)="cancelEdit()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="field full">
+            <label>Title</label>
+            <input type="text" [(ngModel)]="editDraft.title" />
+          </div>
+          <div class="field full">
+            <label>Description</label>
+            <textarea [(ngModel)]="editDraft.description" rows="2"></textarea>
+          </div>
+          <div class="field full">
+            <label>Terms & Conditions</label>
+            <textarea [(ngModel)]="editDraft.terms" rows="5"></textarea>
+          </div>
+          <div class="field">
+            <label>Budget (USD)</label>
+            <input type="number" [(ngModel)]="editDraft.amount" />
+          </div>
+          <div class="field">
+            <label>Start Date</label>
+            <input type="date" [(ngModel)]="editDraft.startDate" />
+          </div>
+          <div class="field">
+            <label>End Date</label>
+            <input type="date" [(ngModel)]="editDraft.endDate" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" (click)="cancelEdit()" [disabled]="isSavingEdit">Cancel</button>
+        <button class="btn-primary" (click)="saveEdit()" [disabled]="isSavingEdit">
+          @if (isSavingEdit) { Saving… } @else { Save Changes }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ══════════════ SIGNATURE UPLOAD MODAL ═══════════════════ -->
+@if (showSignPad) {
+  <div class="modal-backdrop" (click)="closeSignPad()">
+    <div class="modal-box modal-sm" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Upload Your Signature</h2>
+        <button class="modal-close" (click)="closeSignPad()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="sign-hint">Upload an image of your handwritten signature (PNG or JPG).</p>
+        <div class="file-drop-zone">
+          <input type="file" id="sig-file" accept="image/*" (change)="onSignatureFile($event)" />
+          <label for="sig-file" class="file-drop-label">
+            <span class="drop-icon">📁</span>
+            <span>Click to select signature image</span>
+          </label>
+        </div>
+        @if (signaturePreview) {
+          <div class="sig-preview-box">
+            <img [src]="signaturePreview" alt="Preview" />
+          </div>
+        }
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" (click)="closeSignPad()">Cancel</button>
+        <button class="btn-primary" (click)="submitSignature()"
+                [disabled]="!signaturePreview || isSigningFile">
+          @if (isSigningFile) { Submitting… } @else { Confirm Signature }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ══════════════ CONFLICT MODAL ═══════════════════════════ -->
+@if (showConflictModal && contract) {
+  <app-conflict-report
+    [contractId]="contract.id!"
+    [raisedById]="auth.getUserId()!"
+    (conflictReported)="onConflictReported()"
+    (cancelled)="closeConflictModal()">
+  </app-conflict-report>
+}

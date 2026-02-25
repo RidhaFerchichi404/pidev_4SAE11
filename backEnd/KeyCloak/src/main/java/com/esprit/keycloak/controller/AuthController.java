@@ -64,6 +64,21 @@ public class AuthController {
         return keycloakTokenService.getToken(request.getUsername(), request.getPassword());
     }
 
+    @Operation(summary = "Refresh token", description = "Exchange a refresh_token for a new access_token.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "New tokens returned"),
+        @ApiResponse(responseCode = "400", description = "Missing or invalid refresh_token"),
+        @ApiResponse(responseCode = "401", description = "Refresh token expired or revoked")
+    })
+    @PostMapping(value = "/refresh", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public TokenResponse refresh(@RequestBody Map<String, String> body) {
+        String refreshToken = body.get("refresh_token");
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new IllegalArgumentException("refresh_token is required");
+        }
+        return keycloakTokenService.refreshToken(refreshToken);
+    }
+
     @Operation(summary = "User info", description = "Return current user info from JWT. Requires Bearer token.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "User info"),
