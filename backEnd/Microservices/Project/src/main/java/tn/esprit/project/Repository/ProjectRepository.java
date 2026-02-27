@@ -2,6 +2,8 @@ package tn.esprit.project.Repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import tn.esprit.project.Entities.Enums.ApplicationStatus;
+import tn.esprit.project.Entities.Enums.ProjectStatus;
 import tn.esprit.project.Entities.Project;
 
 import java.util.List;
@@ -11,4 +13,5 @@ import java.util.List;
 public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     List<Project> findByClientId(Long clientId);
+    List<Project> findByStatus(ProjectStatus status);
 }

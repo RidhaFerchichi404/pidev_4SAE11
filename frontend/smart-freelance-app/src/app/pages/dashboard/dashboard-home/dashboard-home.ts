@@ -1,52 +1,69 @@
-import { Component, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { AuthService } from '../../../core/services/auth.service';
-import { OfferService, type DashboardStats } from '../../../core/services/offer.service';
 import { Card } from '../../../shared/components/card/card';
+import { Project, ProjectService } from '../../../core/services/project.service';
+import { UserService } from '../../../core/services/user.service';
+import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-dashboard-home',
-  imports: [Card, CommonModule, RouterLink],
+  imports: [Card, RouterModule, CommonModule],
   templateUrl: './dashboard-home.html',
   styleUrl: './dashboard-home.scss',
   standalone: true,
 })
-export class DashboardHome implements OnInit {
-  stats: DashboardStats | null = null;
-  loading = false;
-  error = '';
-
+export class DashboardHome implements OnInit{
   constructor(
     public auth: AuthService,
-    private offerService: OfferService
+    private ps: ProjectService,
+    private us: UserService,
+    private cdr: ChangeDetectorRef
   ) {}
 
+  userRole: string | null = null;
+  recommendedProjects: Project[] = [];
+  isLoadingRecommendations = false;
+
   ngOnInit(): void {
-    if (this.auth.isFreelancer()) {
-      this.loadDashboardStats();
+
+    this.userRole = this.auth.getUserRole();
+    if (this.userRole === 'FREELANCER') {
+
+      const email = this.auth.getPreferredUsername();
+
+      if (!email) return; // safety check
+
+      this.us.getByEmail(email).subscribe(user => {
+        if (user?.id) {
+          this.loadRecommendations(user.id);
+        }
+      });
+
     }
   }
 
-  loadDashboardStats(): void {
-    const userId = this.auth.getUserId();
-    if (userId == null) return;
-    this.loading = true;
-    this.error = '';
-    this.offerService.getFreelancerDashboardStats(userId).subscribe({
-      next: (data) => {
-        this.stats = data ?? null;
-        this.loading = false;
-      },
-      error: () => {
-        this.error = 'Could not load dashboard statistics.';
-        this.loading = false;
-      },
-    });
+
+  loadRecommendations(userId: number): void {
+
+    this.isLoadingRecommendations = true;
+    this.cdr.detectChanges(); // 👈 force UI update
+
+    this.ps.getRecommendedProjects(userId)
+      .subscribe({
+        next: (projects) => {
+
+          this.recommendedProjects = projects || [];
+          this.isLoadingRecommendations = false;
+
+          this.cdr.detectChanges(); // 👈 update UI
+        },
+        error: () => {
+
+          this.isLoadingRecommendations = false;
+          this.cdr.detectChanges(); // 👈 update UI
+        }
+      });
   }
 
-  formatCurrency(value: number | undefined): string {
-    if (value == null) return '0';
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(value);
-  }
 }

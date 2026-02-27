@@ -2,79 +2,61 @@
   <h1>Welcome to Freelancia! 👋</h1>
   <p class="subtitle">You're logged in as: <strong>{{ auth.getUserRole() }}</strong></p>
 
-  @if (auth.isFreelancer()) {
-    <section class="dashboard-stats-section">
-      <h2>Your overview</h2>
-      @if (loading) {
-        <p class="stats-loading">Loading statistics…</p>
-      } @else if (error) {
-        <p class="stats-error">{{ error }}</p>
-        <button type="button" class="btn-retry" (click)="loadDashboardStats()">Retry</button>
-      } @else if (stats) {
-        <div class="stats-grid">
-          <app-card class="stat-card stat-contracts">
-            <span class="stat-value">{{ stats.activeContracts ?? 0 }}</span>
-            <span class="stat-label">Active contracts</span>
-          </app-card>
-          <app-card class="stat-card stat-week">
-            <span class="stat-value">{{ stats.activeContractsThisWeek ?? 0 }}</span>
-            <span class="stat-label">New this week</span>
-          </app-card>
-          <app-card class="stat-card stat-spent">
-            <span class="stat-value">{{ formatCurrency(stats.totalSpentLast30Days) }}</span>
-            <span class="stat-label">Spent (last 30 days)</span>
-          </app-card>
-          <app-card class="stat-card stat-projects">
-            <span class="stat-value">{{ stats.totalProjectsPosted ?? 0 }}</span>
-            <span class="stat-label">Total projects posted</span>
-          </app-card>
-          <app-card class="stat-card stat-pending">
-            <span class="stat-value">{{ stats.pendingApplications ?? 0 }}</span>
-            <span class="stat-label">Pending applications</span>
-            @if ((stats.pendingApplications ?? 0) > 0) {
-              <a routerLink="/dashboard/my-offers" class="stat-link">Review →</a>
-            }
-          </app-card>
-          <app-card class="stat-card stat-offers">
-            <span class="stat-value">{{ stats.activeOffers ?? 0 }}</span>
-            <span class="stat-label">Active offers</span>
-            <a routerLink="/dashboard/my-offers" class="stat-link">Manage →</a>
-          </app-card>
-        </div>
-      }
-    </section>
-  }
+  <div class="cards-grid">
+    <app-card>
+      <h3>🚀 Quick Start</h3>
+      <p>Explore the sidebar to navigate to different sections of your dashboard.</p>
+    </app-card>
 
-  <section class="quick-actions">
-    <h2>Quick actions</h2>
-    <div class="cards-grid">
-      <app-card [hoverable]="true">
-        <h3>🚀 Quick Start</h3>
-        <p>Explore the sidebar to navigate to different sections of your dashboard.</p>
+    @if (auth.isClient()) {
+      <app-card>
+        <h3>💼 For Clients</h3>
+        <p>Post jobs, browse freelancers, and manage your projects from here.</p>
       </app-card>
+    }
 
-      @if (auth.isClient()) {
-        <app-card [hoverable]="true">
-          <h3>💼 For Clients</h3>
-          <p>Post jobs, browse freelancers, and manage your projects from here.</p>
-          <a routerLink="/dashboard/post-job" class="card-link">Post a job</a>
-        </app-card>
-      }
-
-      @if (auth.isFreelancer()) {
-        <app-card [hoverable]="true">
-          <h3>🎨 For Freelancers</h3>
-          <p>Manage your offers, applications, and portfolio.</p>
-          <a routerLink="/dashboard/my-offers" class="card-link">My offers</a>
-          <a routerLink="/dashboard/browse-offers" class="card-link">Browse offers</a>
-        </app-card>
-      }
-
-      <app-card [hoverable]="true">
-        <h3>📋 My Contracts</h3>
-        <p>View and manage your contracts.</p>
-        <a routerLink="/dashboard/my-contracts" class="card-link">View contracts</a>
+    @if (auth.isFreelancer()) {
+      <app-card>
+        <h3>🎨 For Freelancers</h3>
+        <p>Browse jobs, manage applications, and build your portfolio.</p>
       </app-card>
-    </div>
-  </section>
+    }
+
+    <app-card>
+      <h3>🎯 Coming Soon</h3>
+      <p>Full dashboard features are being developed. This is a placeholder to show the structure.</p>
+    </app-card>
+  </div>
 </div>
+
+
+<section *ngIf="userRole === 'FREELANCER'" class="recommendations">
+
+  <h2>🔥 Recommended For You</h2>
+
+  <div *ngIf="isLoadingRecommendations">
+    Loading recommendations...
+  </div>
+
+  <div *ngIf="!isLoadingRecommendations && recommendedProjects.length === 0">
+    No recommendations available.
+  </div>
+
+  <div class="recommended-card"
+       *ngFor="let project of recommendedProjects">
+
+    <h3>{{ project.title }}</h3>
+
+    <p>{{ project.description }}</p>
+
+    <p>
+      <strong>Skills:</strong>
+      {{ project.skillsRequiered }}
+    </p>
+
+    <a [routerLink]="['/dashboard/browse-jobs/', project.id, 'show']">
+      View Project
+    </a>
+  </div>
+
+</section>

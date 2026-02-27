@@ -2,6 +2,7 @@ package tn.esprit.project.Controllers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import tn.esprit.project.Entities.Enums.ApplicationStatus;
 import tn.esprit.project.Entities.ProjectApplication;
 import tn.esprit.project.Services.IProjectApplicationService;
 
@@ -22,6 +23,14 @@ public class ProjectApplicationController {
     @PutMapping
     public ProjectApplication updateApplication(@RequestBody ProjectApplication application) {
         return projectApplicationService.updateProjectApplication(application);
+    }
+
+    @PutMapping("/{id}/status")
+    public ProjectApplication updateStatus(
+            @PathVariable Long id,
+            @RequestParam ApplicationStatus status) {
+
+        return projectApplicationService.updateStatus(id, status);
     }
 
     @DeleteMapping("/{id}")

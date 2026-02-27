@@ -107,22 +107,29 @@ export class ShowProject implements OnInit {
   }
 
   // Accept or reject an application
-  changeApplicationStatus(application: ProjectApplication, status: 'ACCEPTED' | 'REJECTED'): void {
+  changeApplicationStatus(
+    application: ProjectApplication,
+    status: 'ACCEPTED' | 'REJECTED'
+  ): void {
+
     if (!application.id) return;
-    
-    this.applicationService.updateApplication({ id: application.id, status })
-    .subscribe({
-      next: (updated) => {
-        if (updated) {
-          // Update locally so the UI reflects the change immediately
-          application.status = status;
-          this.cdr.detectChanges();
+
+    this.applicationService
+      .updateStatus(application.id, status)
+      .subscribe({
+        next: (updated) => {
+          if (updated) {
+            // Update UI immediately
+            application.status = updated.status;
+            application.respondedAt = updated.respondedAt;
+
+            this.cdr.detectChanges();
+          }
+        },
+        error: () => {
+          console.error('Failed to update application status');
         }
-      },
-      error: () => {
-        console.error('Failed to update application status');
-      }
-    });
+      });
   }
 
   getSkills(): string[] {

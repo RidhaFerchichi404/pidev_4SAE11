@@ -56,6 +56,21 @@ export class ProjectApplicationService {
     );
   }
 
+  updateStatus(
+    id: number,
+    status: string
+  ): Observable<ProjectApplication | null> {
+
+    return this.http.put<ProjectApplication>(
+      `${APPLICATIONS_API}/${id}/status`,
+      null, // no body
+      { params: { status } }
+    ).pipe(
+      timeout(REQUEST_TIMEOUT_MS),
+      catchError(() => of(null))
+    );
+  }
+
   deleteApplication(id: number): Observable<boolean> {
     return this.http.delete(`${APPLICATIONS_API}/${id}`, { observe: 'response' }).pipe(
       map((res) => res.status >= 200 && res.status < 300),

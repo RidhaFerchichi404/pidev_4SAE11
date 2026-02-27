@@ -11,7 +11,7 @@ import { AuthService } from '../../../core/services/auth.service';
   templateUrl: './list-application.html',
   styleUrl: './list-application.scss',
 })
-export class ListApplication implements OnInit {
+export class ListApplication implements OnInit{
   applications: ProjectApplication[] = [];
 
   isLoading = false;
@@ -21,7 +21,7 @@ export class ListApplication implements OnInit {
   deleting = false;
 
   constructor(
-    private applicationService: ProjectApplicationService,
+    private applicationService: ProjectApplicationService, 
     private userService: UserService,
     private authService: AuthService,
     private cdr: ChangeDetectorRef
@@ -53,18 +53,21 @@ export class ListApplication implements OnInit {
           return;
         }
 
-        this.applicationService.getApplicationsByFreelance(user.id).subscribe({
-          next: (data) => {
-            this.applications = data || [];
-            this.isLoading = false;
-            this.cdr.detectChanges();
-          },
-          error: () => {
-            this.errorMessage = 'Failed to load applications.';
-            this.isLoading = false;
-            this.cdr.detectChanges();
-          },
-        });
+        this.applicationService
+          .getApplicationsByFreelance(user.id)
+          .subscribe({
+            next: (data) => {
+              this.applications = data || [];
+              console.log(data);
+              this.isLoading = false;
+              this.cdr.detectChanges();
+            },
+            error: () => {
+              this.errorMessage = 'Failed to load applications.';
+              this.isLoading = false;
+              this.cdr.detectChanges();
+            },
+          });
       },
       error: () => {
         this.errorMessage = 'Failed to load user profile.';
@@ -89,18 +92,20 @@ export class ListApplication implements OnInit {
 
     this.applicationService.deleteApplication(this.applicationToDelete.id).subscribe({
       next: (success) => {
-        if (success) {
-          this.applications = this.applications.filter(
-            (app) => app.id !== this.applicationToDelete?.id,
-          );
-        }
         this.deleting = false;
         this.closeDeleteModal();
+
+        if (success) {
+          // 👇 RELOAD FROM BACKEND (same approach as ListProjects)
+          this.loadApplications();
+        }
+
         this.cdr.detectChanges();
       },
       error: () => {
         this.deleting = false;
         this.closeDeleteModal();
+        this.errorMessage = 'Failed to delete application.';
         this.cdr.detectChanges();
       },
     });

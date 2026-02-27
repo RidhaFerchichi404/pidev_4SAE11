@@ -1,299 +1,291 @@
-@import '../../../../styles/variables';
+@use '../../../../styles/variables' as *;
 
-// ════════════════════════════════════════════════════════════════
-// SHOW PROJECT — Detail view
-// ════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════
+// PROJECT DETAILS PAGE
+// ═══════════════════════════════════════
 
 .project-details {
   padding: $spacing-3xl $spacing-lg;
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
   font-family: $font-family;
+
   display: flex;
   flex-direction: column;
+  gap: $spacing-xl;
+}
 
-  @include breakpoint(md) {
-    padding: $spacing-3xl $spacing-2xl;
+/* ============================= */
+/* Loading & Error               */
+/* ============================= */
+
+.loading,
+.error {
+  padding: $spacing-lg;
+  border-radius: $radius-lg;
+  text-align: center;
+  font-weight: $font-weight-medium;
+}
+
+.loading {
+  background: $info-50;
+  color: $info-600;
+}
+
+.error {
+  background: $error-50;
+  color: $error-700;
+}
+
+/* ============================= */
+/* Project Card                  */
+/* ============================= */
+
+.project-card {
+  background: $white;
+  border-radius: $radius-xl;
+  border: 1px solid $neutral-200;
+  padding: $spacing-2xl;
+  box-shadow: $shadow-sm;
+  transition: $transition-base;
+
+  &:hover {
+    box-shadow: 0 8px 28px rgba($primary-500, 0.08);
+    transform: translateY(-2px);
+  }
+}
+
+/* ============================= */
+/* Header                        */
+/* ============================= */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-lg;
+
+  h1 {
+    font-size: $font-size-2xl;
+    font-weight: $font-weight-bold;
+    margin: 0;
+    color: $neutral-900;
   }
 
-  // ── Loading / Error ──────────────────────────────────────────
-  .loading {
-    padding: $spacing-xl;
-    border-radius: $radius-xl;
-    background: $info-50;
-    color: $info-600;
-    font-size: $font-size-sm;
-    font-weight: $font-weight-medium;
-    text-align: center;
-  }
-
-  .error {
-    padding: $spacing-xl;
-    border-radius: $radius-xl;
-    background: $error-50;
-    color: $error-700;
-    font-size: $font-size-sm;
-    font-weight: $font-weight-medium;
-    text-align: center;
-  }
-
-  // ── Project Card ─────────────────────────────────────────────
-  .project-card {
-    width: 100%;
-    background: $white;
-    border-radius: $radius-xl;
-    border: 1.5px solid $neutral-200;
-    padding: $spacing-xl;
-    transition: $transition-base;
-
-    &:hover {
-      border-color: $primary-500;
-      box-shadow: 0 6px 24px rgba($primary-500, 0.08);
-    }
-  }
-
-  // ── Header ──────────────────────────────────────────────────
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: $spacing-md;
-    margin-bottom: $spacing-lg;
-
-    h1 {
-      font-size: $font-size-2xl;
-      font-weight: $font-weight-extrabold;
-      color: $neutral-900;
-      margin: 0;
-      flex: 1;
-    }
-
-    .status {
-      display: inline-flex;
-      align-items: center;
-      padding: 3px $spacing-sm;
-      border-radius: $radius-full;
-      font-size: 11px;
-      font-weight: $font-weight-bold;
-      letter-spacing: 0.4px;
-      text-transform: uppercase;
-      white-space: nowrap;
-
-      &.open     { background: $info-50;     color: $info-600; }
-      &.progress { background: $warning-100; color: $warning-700; }
-      &.done     { background: $success-50;  color: $success-700; }
-      &.cancel   { background: $error-50;    color: $error-700; }
-    }
-  }
-
-  // ── Info rows ────────────────────────────────────────────────
-  p {
-    margin: $spacing-sm 0;
-    font-size: $font-size-sm;
-    color: $neutral-600;
-
-    strong {
-      color: $neutral-900;
-      font-weight: $font-weight-semibold;
-      margin-right: $spacing-xs;
-    }
-  }
-
-/* Responsive */
-@media (max-width: 768px) {
-  .project-details {
-    padding: 20px;
-  }
-
-  .skills-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $spacing-xs;
-  }
-
-  .skill {
-    background: $gradient-soft;
-    color: $primary-500;
-    padding: 3px $spacing-sm;
+  .status {
+    padding: 4px 12px;
     border-radius: $radius-full;
-    font-size: $font-size-xs;
-    font-weight: $font-weight-semibold;
-    border: 1px solid rgba($primary-500, 0.15);
-    transition: $transition-fast;
-
-    &:hover { transform: scale(1.05); }
+    font-size: 11px;
+    font-weight: $font-weight-bold;
+    text-transform: uppercase;
   }
 
-  .no-skills {
-    color: $neutral-400;
-    font-style: italic;
-    font-size: $font-size-sm;
-  }
+  .open     { background: $info-50;     color: $info-600; }
+  .progress { background: $warning-100; color: $warning-700; }
+  .done     { background: $success-50;  color: $success-700; }
+  .cancel   { background: $error-50;    color: $error-700; }
+}
 
-  // ── Actions ──────────────────────────────────────────────────
-  .actions {
-    margin-top: $spacing-xl;
-    padding-top: $spacing-lg;
-    border-top: 1.5px solid $neutral-100;
-    display: flex;
-    flex-wrap: wrap;
-    gap: $spacing-sm;
+/* ============================= */
+/* Project Info                  */
+/* ============================= */
 
-    .btn-back {
-      display: inline-flex;
-      align-items: center;
-      padding: $spacing-sm $spacing-lg;
-      border-radius: $radius-full;
-      background: transparent;
-      color: $neutral-600;
-      border: 1.5px solid $neutral-300;
-      font-size: $font-size-sm;
-      font-weight: $font-weight-semibold;
-      text-decoration: none;
-      cursor: pointer;
-      transition: $transition-fast;
+.project-card p {
+  margin: 8px 0;
+  color: $neutral-600;
 
-      &:hover { background: $neutral-100; border-color: $neutral-400; }
-    }
-
-    .btn-edit {
-      display: inline-flex;
-      align-items: center;
-      padding: $spacing-sm $spacing-lg;
-      border-radius: $radius-full;
-      @include button-gradient;
-      color: $white;
-      font-size: $font-size-sm;
-      font-weight: $font-weight-semibold;
-      text-decoration: none;
-      border: none;
-      box-shadow: 0 2px 8px rgba($primary-500, 0.35);
-      transition: $transition-base;
-
-      &:hover { transform: translateY(-1px); box-shadow: $shadow-primary; }
-    }
-
-    .btn-review {
-      display: inline-flex;
-      align-items: center;
-      padding: $spacing-sm $spacing-lg;
-      border-radius: $radius-full;
-      background: $success-50;
-      color: $success-700;
-      border: 1.5px solid rgba($success-500, 0.25);
-      font-size: $font-size-sm;
-      font-weight: $font-weight-semibold;
-      cursor: pointer;
-      transition: $transition-base;
-
-      &:hover { background: $success-500; color: $white; border-color: $success-500; transform: translateY(-1px); }
-    }
+  strong {
+    color: $neutral-900;
   }
 }
 
-@media (max-width: $breakpoint-sm) {
-  .project-details {
-    padding: $spacing-xl $spacing-md;
+.description p {
+  margin-top: 6px;
+  line-height: 1.6;
+}
 
-    .header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
+/* ============================= */
+/* Skills                        */
+/* ============================= */
 
-    .actions {
-      flex-direction: column;
+.skills {
+  margin-top: $spacing-md;
+}
 
-      .btn-back,
-      .btn-edit,
-      .btn-review { justify-content: center; }
-    }
+.skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.skill {
+  color: $primary-600;
+  padding: 4px 12px;
+  border-radius: $radius-full;
+  font-size: 12px;
+  font-weight: $font-weight-semibold;
+  border: 1px solid rgba($primary-500, 0.2);
+  transition: $transition-fast;
+
+  &:hover {
+    transform: scale(1.05);
   }
 }
 
+.no-skills {
+  color: $neutral-400;
+  font-style: italic;
+}
 
+/* ============================= */
+/* Actions                       */
+/* ============================= */
+
+.actions {
+  margin-top: $spacing-xl;
+  padding-top: $spacing-lg;
+  border-top: 1px solid $neutral-200;
+
+  display: flex;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+}
+
+.btn-back,
+.btn-edit {
+  padding: 10px 18px;
+  border-radius: $radius-full;
+  font-size: 14px;
+  font-weight: $font-weight-semibold;
+  text-decoration: none;
+  cursor: pointer;
+  transition: $transition-base;
+}
+
+.btn-back {
+  background: transparent;
+  border: 1px solid $neutral-300;
+  color: $neutral-600;
+
+  &:hover {
+    background: $neutral-100;
+  }
+}
+
+.btn-edit {
+  @include button-gradient;
+  color: $white;
+  border: none;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-primary;
+  }
+}
+
+/* ============================= */
+/* Applications Section          */
+/* ============================= */
 
 .applications-section {
-  margin-top: 3rem;
-  border-top: 2px solid #e2e8f0;
-  padding-top: 2rem;
+  margin-top: $spacing-3xl;
+  padding-top: $spacing-xl;
+  border-top: 2px solid $neutral-200;
 
   h2 {
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
-    color: #1e293b;
+    font-size: $font-size-xl;
+    margin-bottom: $spacing-lg;
+    color: $neutral-900;
+  }
+}
+
+.application-card {
+  background: $white;
+  border: 1px solid $neutral-200;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+  box-shadow: $shadow-sm;
+  transition: $transition-base;
+
+  &:hover {
+    box-shadow: 0 6px 20px rgba($primary-500, 0.06);
   }
 
-  .application-card {
-    border: 1px solid #cbd5e1;
-    border-radius: 12px;
-    padding: 1rem 1.5rem;
-    margin-bottom: 1.2rem;
-    background: #f9fafb;
-
-    p {
-      margin: 0.4rem 0;
-    }
-
-    .application-actions {
-      display: flex;
-      gap: 1rem;
-      margin-top: 0.8rem;
-
-      button {
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        font-weight: 500;
-        cursor: pointer;
-        border: none;
-        transition: all 0.2s ease;
-      }
-
-      .btn-accept {
-        background: #10b981;
-        color: white;
-      }
-
-      .btn-accept:hover:not(:disabled) {
-        background: #059669;
-      }
-
-      .btn-reject {
-        background: #ef4444;
-        color: white;
-      }
-
-      .btn-reject:hover:not(:disabled) {
-        background: #b91c1c;
-      }
-
-      button:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
-    }
-
-    span.pending {
-      color: #facc15;
-      font-weight: 600;
-    }
-    span.accepted {
-      color: #10b981;
-      font-weight: 600;
-    }
-    span.rejected {
-      color: #ef4444;
-      font-weight: 600;
-    }
-  }
+  p {
+    margin: 6px 0;
   }
 
-  .loading {
-    color: #1e40af;
-    font-weight: 500;
+  .pending   { color: #facc15; font-weight: 600; }
+  .accepted  { color: $success-600; font-weight: 600; }
+  .rejected  { color: $error-600; font-weight: 600; }
+}
+
+/* ============================= */
+/* Application Actions           */
+/* ============================= */
+
+.application-actions {
+  margin-top: $spacing-md;
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.btn-accept,
+.btn-reject {
+  padding: 6px 14px;
+  border-radius: $radius-md;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: $transition-fast;
+}
+
+.btn-accept {
+  background: $success-500;
+  color: white;
+
+  &:hover:not(:disabled) {
+    background: $success-600;
+  }
+}
+
+.btn-reject {
+  background: $error-500;
+  color: white;
+
+  &:hover:not(:disabled) {
+    background: $error-600;
+  }
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================= */
+/* Responsive                    */
+/* ============================= */
+
+@media (max-width: 768px) {
+  .project-details {
+    padding: $spacing-xl $spacing-md;
   }
 
-  .no-applications {
-    color: #475569;
-    font-style: italic;
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $spacing-sm;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .application-actions {
+    flex-direction: column;
   }
 }

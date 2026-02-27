@@ -2,6 +2,7 @@ package tn.esprit.project.Services;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import tn.esprit.project.Entities.Enums.ApplicationStatus;
 import tn.esprit.project.Entities.ProjectApplication;
 import tn.esprit.project.Repository.ProjectApplicationRepository;
 
@@ -24,10 +25,35 @@ public class IProjectApplicationServicelmp implements IProjectApplicationService
                 .findById(projectApplication.getId())
                 .orElseThrow(() -> new RuntimeException("Application not found"));
 
+        // Update editable fields
+        if (projectApplication.getProposedPrice() != null) {
+            existing.setProposedPrice(projectApplication.getProposedPrice());
+        }
+
+        if (projectApplication.getProposedDuration() != null) {
+            existing.setProposedDuration(projectApplication.getProposedDuration());
+        }
+
+        if (projectApplication.getCoverLetter() != null) {
+            existing.setCoverLetter(projectApplication.getCoverLetter());
+        }
+
         if (projectApplication.getStatus() != null) {
             existing.setStatus(projectApplication.getStatus());
-            existing.setRespondedAt(LocalDateTime.now()); // 👈 system date here
         }
+
+        return projectApplicationRepository.save(existing);
+    }
+
+    @Override
+    public ProjectApplication updateStatus(Long id, ApplicationStatus status) {
+
+        ProjectApplication existing = projectApplicationRepository
+                .findById(id)
+                .orElseThrow(() -> new RuntimeException("Application not found"));
+
+        existing.setStatus(status);
+        existing.setRespondedAt(LocalDateTime.now());
 
         return projectApplicationRepository.save(existing);
     }

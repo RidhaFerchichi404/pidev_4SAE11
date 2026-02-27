@@ -99,7 +99,6 @@ export class ProjectManagement implements OnInit {
     const v = this.addForm.getRawValue();
     const payload: Partial<Project> = {
       clientId: v.clientId != null ? Number(v.clientId) : undefined,
-      freelancerId: v.freelancerId != null && v.freelancerId !== '' ? Number(v.freelancerId) : undefined,
       title: v.title.trim(),
       description: v.description.trim(),
       budget: v.budget != null && v.budget !== '' ? Number(v.budget) : undefined,
@@ -130,7 +129,6 @@ export class ProjectManagement implements OnInit {
     this.projectToDelete = null;
     this.editForm.patchValue({
       clientId: project.clientId ?? null,
-      freelancerId: project.freelancerId ?? null,
       title: project.title,
       description: project.description,
       budget: project.budget ?? null,
@@ -150,7 +148,6 @@ export class ProjectManagement implements OnInit {
     const payload: Partial<Project> = {
       id: this.editingProject.id,
       clientId: v.clientId != null ? Number(v.clientId) : undefined,
-      freelancerId: v.freelancerId != null && v.freelancerId !== '' ? Number(v.freelancerId) : undefined,
       title: v.title.trim(),
       description: v.description.trim(),
       budget: v.budget != null && v.budget !== '' ? Number(v.budget) : undefined,

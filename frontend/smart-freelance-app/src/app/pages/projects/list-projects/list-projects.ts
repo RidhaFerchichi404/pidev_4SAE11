@@ -190,19 +190,26 @@ export class ListProjects implements OnInit, OnDestroy {
 
 
           // ADMIN Stat
-          const statusCounts = { OPEN: 0, IN_PROGRESS: 0, COMPLETED: 0, CANCELLED: 0 };
-          this.projects.forEach(p => {
-            if (statusCounts[p.status as keyof typeof statusCounts] !== undefined) {
-              statusCounts[p.status as keyof typeof statusCounts]++;
-            }
-          });
+          // 🔥 Get statistics from backend
+          this.projectService.getProjectStatistics().subscribe(stats => {
 
-          this.statusChartData.datasets[0].data = [
-            statusCounts.OPEN,
-            statusCounts.IN_PROGRESS,
-            statusCounts.COMPLETED,
-            statusCounts.CANCELLED,
-          ];
+            if (!stats) return;
+
+            this.statusChartData = {
+              ...this.statusChartData,
+              datasets: [{
+                ...this.statusChartData.datasets[0],
+                data: [
+                  stats.openProjects ?? 0,
+                  stats.inProgressProjects ?? 0,
+                  stats.completedProjects ?? 0,
+                  stats.cancelledProjects ?? 0,
+                ]
+              }]
+            };
+
+            this.cdr.detectChanges();
+          });
         }
 
         this.isLoading = false;
