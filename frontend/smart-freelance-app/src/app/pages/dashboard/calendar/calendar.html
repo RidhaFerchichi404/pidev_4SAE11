@@ -1,0 +1,106 @@
+<div class="calendar-page">
+  <header class="calendar-header">
+    <h1>Calendar</h1>
+    <p class="subtitle">Project deadlines, progress reminders, and milestones from your planning.</p>
+  </header>
+
+  <div class="calendar-toolbar">
+    <div class="toolbar-nav">
+      <button type="button" class="btn-nav" (click)="goPrevMonth()" aria-label="Previous month">‹</button>
+      <h2 class="month-title">{{ monthTitle }}</h2>
+      <button type="button" class="btn-nav" (click)="goNextMonth()" aria-label="Next month">›</button>
+    </div>
+    <button type="button" class="btn-today" (click)="goToToday()">Today</button>
+  </div>
+
+  @if (loading) {
+    <p class="loading-msg">Loading calendar events…</p>
+  }
+
+  <div class="calendar-layout">
+    <div class="calendar-grid-wrap">
+      <table class="calendar-grid" role="grid" aria-label="Calendar">
+        <thead>
+          <tr>
+            @for (label of weekdayLabels; track label) {
+              <th scope="col" class="calendar-weekday">{{ label }}</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (week of calendarDays; track week[0].date.toISOString()) {
+            <tr>
+              @for (day of week; track day.date.toISOString()) {
+                <td
+                  class="calendar-cell"
+                  [class.calendar-cell--other-month]="!day.isCurrentMonth"
+                  [class.calendar-cell--today]="day.isToday"
+                  [class.calendar-cell--selected]="selectedDay && selectedDay.getTime() === day.date.getTime()"
+                  (click)="selectDay(day)"
+                >
+                  <span class="calendar-cell-num">{{ day.dayOfMonth }}</span>
+                  <div class="calendar-cell-events">
+                    @for (ev of day.events.slice(0, 3); track ev.id) {
+                      <span class="calendar-cell-event" [title]="ev.summary">{{ ev.summary }}</span>
+                    }
+                    @if (day.events.length > 3) {
+                      <span class="calendar-cell-more">+{{ day.events.length - 3 }} more</span>
+                    }
+                  </div>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <aside class="calendar-sidebar">
+      @if (selectedDay) {
+        <section class="sidebar-section">
+          <h3 class="sidebar-title">{{ selectedDayLabel }}</h3>
+          @if (getSelectedDayEvents().length === 0) {
+            <p class="sidebar-empty">No events this day.</p>
+          } @else {
+            <ul class="sidebar-event-list">
+              @for (ev of getSelectedDayEvents(); track ev.id) {
+                <li class="sidebar-event-item">
+                  <span class="sidebar-event-summary">{{ ev.summary }}</span>
+                  <span class="sidebar-event-time">{{ formatTime(ev.start) }}</span>
+                  @if (ev.description) {
+                    <p class="sidebar-event-desc">{{ ev.description }}</p>
+                  }
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      } @else {
+        <section class="sidebar-section">
+          <h3 class="sidebar-title">Upcoming (this month)</h3>
+          @if (events.length === 0) {
+            <p class="sidebar-empty">No upcoming events. Add progress updates with due dates or open a project to sync deadlines.</p>
+          } @else {
+            <ul class="sidebar-event-list sidebar-event-list--upcoming">
+              @for (ev of events.slice(0, 10); track ev.id) {
+                <li class="sidebar-event-item">
+                  <span class="sidebar-event-summary">{{ ev.summary }}</span>
+                  <span class="sidebar-event-time">{{ formatDate(ev.start) }}</span>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      }
+    </aside>
+  </div>
+
+  <section class="calendar-legend">
+    <h3 class="legend-title">Legend</h3>
+    <ul class="legend-list">
+      <li><span class="legend-dot legend-dot--deadline"></span> Project deadline</li>
+      <li><span class="legend-dot legend-dot--reminder"></span> Next progress due</li>
+      <li><span class="legend-dot legend-dot--milestone"></span> Milestone (100%)</li>
+    </ul>
+  </section>
+</div>

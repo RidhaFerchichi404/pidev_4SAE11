@@ -125,6 +125,32 @@
     }
   }
 
+  .calendar-events-strip {
+    margin-top: $spacing-md;
+    padding: $spacing-md;
+    border-radius: $radius-lg;
+    border: 1px solid $neutral-200;
+    background: $neutral-50;
+  }
+  .calendar-events-title {
+    margin: 0 0 $spacing-sm;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: $neutral-700;
+  }
+  .calendar-events-list {
+    margin: 0;
+    padding-left: $spacing-lg;
+    list-style: disc;
+  }
+  .calendar-event-item {
+    font-size: $font-size-sm;
+    color: $neutral-600;
+    margin-bottom: $spacing-xs;
+    .calendar-event-summary { font-weight: $font-weight-medium; color: $neutral-800; }
+    .calendar-event-time { margin-left: $spacing-sm; color: $neutral-500; }
+  }
+
   // ── Project Header (when project is selected) ──────────────────
   .project-header {
     margin-bottom: $spacing-lg;
@@ -441,7 +467,12 @@
   .update-meta {
     font-size: $font-size-xs;
     color: $neutral-400;
-    margin: $spacing-xs 0 $spacing-sm;
+    margin: $spacing-xs 0 $spacing-xs;
+  }
+  .update-next-due {
+    font-size: $font-size-xs;
+    color: $primary-600;
+    margin: 0 0 $spacing-sm;
   }
 
   .update-actions {

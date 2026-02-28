@@ -13,4 +13,7 @@ public interface ProjectClient {
 
     @GetMapping("/{id}")
     ProjectDto getProjectById(@PathVariable("id") Long id);
+
+    @GetMapping("/list")
+    java.util.List<ProjectDto> getProjects();
 }

@@ -55,6 +55,14 @@ public class ProgressUpdate {
     @Schema(description = "Last update timestamp", accessMode = Schema.AccessMode.READ_ONLY)
     private LocalDateTime updatedAt;
 
+    @Column(nullable = true)
+    @Schema(description = "Optional: next progress update due date (for reminders / Google Calendar)", example = "2025-03-15T14:00:00")
+    private LocalDateTime nextUpdateDue;
+
+    @Column(nullable = true, length = 512)
+    @Schema(description = "Google Calendar event ID for the 'next update due' reminder (used to update/delete when nextUpdateDue changes)", accessMode = Schema.AccessMode.READ_ONLY)
+    private String nextDueCalendarEventId;
+
     @OneToMany(mappedBy = "progressUpdate", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     @Schema(accessMode = Schema.AccessMode.READ_ONLY)

@@ -602,7 +602,7 @@ export class PlanningManagement implements OnInit, OnDestroy {
     if (!this.adding) this.addModalOpen = false;
   }
 
-  buildRequest(v: { projectId: number | null; freelancerId: number | null; title: string; description: string; progressPercentage: number }): ProgressUpdateRequest {
+  buildRequest(v: { projectId: number | null; freelancerId: number | null; title: string; description: string; progressPercentage: number; nextUpdateDue?: string | null }): ProgressUpdateRequest {
     return {
       projectId: Number(v.projectId),
       contractId: null,
@@ -610,6 +610,7 @@ export class PlanningManagement implements OnInit, OnDestroy {
       title: v.title.trim(),
       description: v.description?.trim() || null,
       progressPercentage: Number(v.progressPercentage),
+      nextUpdateDue: v.nextUpdateDue ?? null,
     };
   }
 

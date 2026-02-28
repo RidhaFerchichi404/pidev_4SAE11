@@ -43,6 +43,19 @@
               <p class="due-text due-text--ok">All your projects have recent progress updates.</p>
             }
           </div>
+          @if (calendarEvents.length > 0) {
+            <div class="calendar-events-strip">
+              <h4 class="calendar-events-title">Upcoming reminders (next 60 days)</h4>
+              <ul class="calendar-events-list">
+                @for (ev of calendarEvents; track ev.id) {
+                  <li class="calendar-event-item">
+                    <span class="calendar-event-summary">{{ ev.summary }}</span>
+                    <span class="calendar-event-time">{{ ev.start ? formatDate(ev.start) : '' }}</span>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
         }
       </app-card>
     </section>
@@ -99,6 +112,9 @@
                   <p class="update-desc">{{ u.description }}</p>
                 }
                 <p class="update-meta">Updated {{ formatDate(u.updatedAt) }}</p>
+                @if (u.nextUpdateDue) {
+                  <p class="update-next-due">Next due: {{ formatDate(u.nextUpdateDue) }}</p>
+                }
                 <div class="update-actions">
                   <button type="button" class="btn-edit" (click)="openEdit(u)">Edit</button>
                   <button type="button" class="btn-delete" (click)="confirmDelete(u)">Delete</button>
@@ -208,6 +224,11 @@
             @if (getProgressError()) {
               <span class="field-error">{{ getProgressError() }}</span>
             }
+          </div>
+          <div class="field">
+            <label for="nextUpdateDue">Next update due (optional)</label>
+            <input id="nextUpdateDue" type="datetime-local" formControlName="nextUpdateDue" />
+            <span class="field-hint">Reminder will be added to Google Calendar when enabled.</span>
           </div>
           <div class="modal-actions">
             <button type="button" class="btn-secondary" (click)="closeModal()" [disabled]="saving">Cancel</button>

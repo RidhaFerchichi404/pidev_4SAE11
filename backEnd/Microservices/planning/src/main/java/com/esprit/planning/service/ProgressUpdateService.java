@@ -5,10 +5,12 @@ import com.esprit.planning.dto.*;
 import com.esprit.planning.dto.ProgressUpdateRequest;
 import com.esprit.planning.dto.ProgressUpdateValidationResponse;
 import com.esprit.planning.entity.ProgressUpdate;
+import com.esprit.planning.entity.ProjectDeadlineSync;
 import com.esprit.planning.exception.ProgressCannotDecreaseException;
 import com.esprit.planning.repository.ProgressCommentRepository;
 import com.esprit.planning.repository.ProgressUpdateRepository;
 import com.esprit.planning.repository.ProgressUpdateSpecification;
+import com.esprit.planning.repository.ProjectDeadlineSyncRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -32,6 +35,8 @@ public class ProgressUpdateService {
     private final ProgressCommentRepository progressCommentRepository;
     private final PlanningNotificationService planningNotificationService;
     private final ProjectClient projectClient;
+    private final GoogleCalendarService googleCalendarService;
+    private final ProjectDeadlineSyncRepository projectDeadlineSyncRepository;
 
     @Transactional(readOnly = true)
     public List<ProgressUpdate> findAll() {
@@ -113,6 +118,16 @@ public class ProgressUpdateService {
         ProgressUpdate saved = progressUpdateRepository.save(progressUpdate);
         notifyClientAboutProgress(saved.getProjectId(), saved.getFreelancerId(), "New progress update", saved.getTitle(),
             PlanningNotificationService.TYPE_PROGRESS_UPDATE, saved.getId(), saved.getProgressPercentage());
+        syncNextDueCalendarEvent(saved);
+        if (saved.getProgressPercentage() != null && saved.getProgressPercentage() == 100) {
+            googleCalendarService.createEventAsync(null,
+                "Milestone: 100% – " + saved.getTitle(),
+                saved.getCreatedAt(), saved.getCreatedAt().plusHours(1),
+                "Progress update #" + saved.getId() + " reached 100%.");
+            notifyFreelancerCalendar(saved.getFreelancerId(), "Milestone reached", "100% completed: " + saved.getTitle(),
+                PlanningNotificationService.TYPE_CALENDAR_MILESTONE, saved.getProjectId(), saved.getId());
+        }
+        ensureProjectDeadlineInCalendar(saved.getProjectId(), saved.getFreelancerId());
         return saved;
     }
 
@@ -123,15 +138,27 @@ public class ProgressUpdateService {
         if (updated.getProgressPercentage() < minAllowed) {
             throw new ProgressCannotDecreaseException(minAllowed, updated.getProgressPercentage());
         }
+        LocalDateTime previousNextDue = existing.getNextUpdateDue();
+        String previousEventId = existing.getNextDueCalendarEventId();
         existing.setProjectId(updated.getProjectId());
         existing.setContractId(updated.getContractId());
         existing.setFreelancerId(updated.getFreelancerId());
         existing.setTitle(updated.getTitle());
         existing.setDescription(updated.getDescription());
         existing.setProgressPercentage(updated.getProgressPercentage());
+        existing.setNextUpdateDue(updated.getNextUpdateDue());
         ProgressUpdate saved = progressUpdateRepository.save(existing);
         notifyClientAboutProgress(saved.getProjectId(), saved.getFreelancerId(), "Progress update edited", saved.getTitle(),
             PlanningNotificationService.TYPE_PROGRESS_UPDATE, saved.getId(), saved.getProgressPercentage());
+        syncNextDueCalendarEventOnUpdate(saved, previousNextDue, previousEventId);
+        if (saved.getProgressPercentage() != null && saved.getProgressPercentage() == 100) {
+            googleCalendarService.createEventAsync(null,
+                "Milestone: 100% – " + saved.getTitle(),
+                saved.getUpdatedAt(), saved.getUpdatedAt().plusHours(1),
+                "Progress update #" + saved.getId() + " reached 100%.");
+            notifyFreelancerCalendar(saved.getFreelancerId(), "Milestone reached", "100% completed: " + saved.getTitle(),
+                PlanningNotificationService.TYPE_CALENDAR_MILESTONE, saved.getProjectId(), saved.getId());
+        }
         return saved;
     }
 
@@ -141,9 +168,99 @@ public class ProgressUpdateService {
         Long projectId = existing.getProjectId();
         Long freelancerId = existing.getFreelancerId();
         String title = existing.getTitle();
+        String calendarEventId = existing.getNextDueCalendarEventId();
         progressUpdateRepository.deleteById(id);
+        if (calendarEventId != null && !calendarEventId.isBlank()) {
+            googleCalendarService.deleteEventAsync(null, calendarEventId);
+        }
         notifyClientAboutProgress(projectId, freelancerId, "Progress update removed", title,
             PlanningNotificationService.TYPE_PROGRESS_UPDATE, id, null);
+    }
+
+    /** Creates the "next progress update due" calendar event after create. */
+    private void syncNextDueCalendarEvent(ProgressUpdate saved) {
+        LocalDateTime nextDue = saved.getNextUpdateDue();
+        if (nextDue == null) return;
+        String title = "Next progress update due – " + saved.getTitle();
+        java.util.Optional<String> eventId = googleCalendarService.createEvent(null, title,
+                nextDue, nextDue.plus(1, ChronoUnit.HOURS),
+                "Progress update #" + saved.getId() + " – Project " + saved.getProjectId());
+        eventId.ifPresent(id -> {
+            saved.setNextDueCalendarEventId(id);
+            progressUpdateRepository.save(saved);
+            notifyFreelancerCalendar(saved.getFreelancerId(), "Calendar reminder", "Next progress update due: " + saved.getTitle(),
+                PlanningNotificationService.TYPE_CALENDAR_REMINDER, saved.getProjectId(), saved.getId());
+        });
+    }
+
+    /** Updates or deletes the "next progress update due" calendar event after update. */
+    private void syncNextDueCalendarEventOnUpdate(ProgressUpdate saved, LocalDateTime previousNextDue, String previousEventId) {
+        if (previousEventId != null && !previousEventId.isBlank()
+                && (previousNextDue == null || !previousNextDue.equals(saved.getNextUpdateDue()))) {
+            googleCalendarService.deleteEventAsync(null, previousEventId);
+            saved.setNextDueCalendarEventId(null);
+        }
+        if (saved.getNextUpdateDue() != null) {
+            String title = "Next progress update due – " + saved.getTitle();
+            java.util.Optional<String> eventId = googleCalendarService.createEvent(null, title,
+                    saved.getNextUpdateDue(), saved.getNextUpdateDue().plus(1, ChronoUnit.HOURS),
+                    "Progress update #" + saved.getId() + " – Project " + saved.getProjectId());
+            eventId.ifPresent(id -> {
+                saved.setNextDueCalendarEventId(id);
+                progressUpdateRepository.save(saved);
+                notifyFreelancerCalendar(saved.getFreelancerId(), "Calendar reminder", "Next progress update due: " + saved.getTitle(),
+                    PlanningNotificationService.TYPE_CALENDAR_REMINDER, saved.getProjectId(), saved.getId());
+            });
+        } else {
+            saved.setNextDueCalendarEventId(null);
+        }
+    }
+
+    /**
+     * Notify the freelancer about a calendar-related event (reminder, milestone, deadline added).
+     */
+    private void notifyFreelancerCalendar(Long freelancerId, String title, String body, String type, Long projectId, Long progressUpdateId) {
+        if (freelancerId == null) return;
+        java.util.Map<String, String> data = new java.util.HashMap<>();
+        if (projectId != null) data.put("projectId", String.valueOf(projectId));
+        if (progressUpdateId != null) data.put("progressUpdateId", String.valueOf(progressUpdateId));
+        planningNotificationService.notifyUser(String.valueOf(freelancerId), title, body, type, data);
+    }
+
+    /**
+     * Public entry point: ensure project deadline is in the calendar for the given freelancer (e.g. when they open the project).
+     * Idempotent: no duplicate events created.
+     */
+    @Transactional
+    public void ensureProjectDeadlineInCalendarForUser(Long projectId, Long freelancerId) {
+        ensureProjectDeadlineInCalendar(projectId, freelancerId);
+    }
+
+    /**
+     * If the project has a deadline and it is not yet in the calendar, add it and notify the freelancer.
+     */
+    private void ensureProjectDeadlineInCalendar(Long projectId, Long freelancerId) {
+        if (projectId == null || freelancerId == null) return;
+        if (projectDeadlineSyncRepository.findByProjectId(projectId).isPresent()) return;
+        try {
+            var project = projectClient.getProjectById(projectId);
+            if (project == null || project.getDeadline() == null) return;
+            String title = "Project deadline – " + (project.getTitle() != null ? project.getTitle() : "Project #" + projectId);
+            LocalDateTime deadline = project.getDeadline();
+            Optional<String> eventId = googleCalendarService.createEvent(null, title,
+                    deadline, deadline.plus(1, ChronoUnit.HOURS),
+                    "Project #" + projectId + " deadline.");
+            eventId.ifPresent(id -> {
+                projectDeadlineSyncRepository.save(ProjectDeadlineSync.builder()
+                        .projectId(projectId)
+                        .calendarEventId(id)
+                        .syncedAt(LocalDateTime.now())
+                        .build());
+                notifyFreelancerCalendar(freelancerId, "Project deadline in calendar",
+                        "Deadline for \"" + title + "\" has been added to your calendar.",
+                        PlanningNotificationService.TYPE_CALENDAR_DEADLINE, projectId, null);
+            });
+        } catch (Exception ignored) { /* project service may be down */ }
     }
 
     /**

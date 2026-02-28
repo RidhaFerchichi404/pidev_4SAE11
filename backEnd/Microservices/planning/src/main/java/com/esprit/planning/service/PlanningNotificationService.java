@@ -21,6 +21,12 @@ public class PlanningNotificationService {
 
     public static final String TYPE_PROGRESS_UPDATE = "PROGRESS_UPDATE";
     public static final String TYPE_PROGRESS_COMMENT = "PROGRESS_COMMENT";
+    /** Calendar: project deadline added to calendar */
+    public static final String TYPE_CALENDAR_DEADLINE = "CALENDAR_DEADLINE";
+    /** Calendar: next progress update due reminder */
+    public static final String TYPE_CALENDAR_REMINDER = "CALENDAR_REMINDER";
+    /** Calendar: milestone (e.g. 100%) reached */
+    public static final String TYPE_CALENDAR_MILESTONE = "CALENDAR_MILESTONE";
 
     /**
      * Notify a user. Catches and logs any exception so Planning is not affected if Notification is down.

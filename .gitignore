@@ -15,6 +15,11 @@ backEnd/Microservices/Offer/src/main/resources/application-local.properties
 **/serviceAccountKey*.json
 **/firebase-credentials*.json
 
+# Google Cloud / Calendar API credentials (never commit)
+*google*credentials*.json
+googleproject-*.json
+client_secret_*.json
+
 # Keystores / TLS (if used later)
 *.jks
 *.p12

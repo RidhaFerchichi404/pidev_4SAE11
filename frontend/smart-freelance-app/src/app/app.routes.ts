@@ -18,11 +18,11 @@ export const routes: Routes = [
   { path: 'login', loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent) },
   { path: 'signup', loadComponent: () => import('./pages/signup/signup.component').then(m => m.SignupComponent) },
 
-  // Dashboard routes (protected, CLIENT/FREELANCER only)
+  // Dashboard routes (protected; CLIENT, FREELANCER, and ADMIN for calendar/overview)
   {
     path: 'dashboard',
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['CLIENT', 'FREELANCER'] },
+    data: { roles: ['CLIENT', 'FREELANCER', 'ADMIN'] },
     loadComponent: () => import('./layouts/dashboard-layout/dashboard-layout').then(m => m.DashboardLayout),
     children: [
       { path: '', loadComponent: () => import('./pages/dashboard/dashboard-home/dashboard-home').then(m => m.DashboardHome) },
@@ -71,6 +71,7 @@ export const routes: Routes = [
         ]
       },
       { path: 'progress-updates', loadComponent: () => import('./pages/dashboard/progress-updates/progress-updates').then(m => m.ProgressUpdates) },
+      { path: 'calendar', loadComponent: () => import('./pages/dashboard/calendar/calendar').then(m => m.Calendar), title: 'Calendar' },
       { path: 'track-progress', loadComponent: () => import('./pages/dashboard/track-progress/track-progress').then(m => m.TrackProgress) },
       {
         path: 'my-offers',

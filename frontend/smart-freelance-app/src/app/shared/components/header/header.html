@@ -75,6 +75,10 @@
                   <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 14l4-4 3 3 5-7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
                   My Progress
                 </a>
+                <a routerLink="/dashboard/calendar" class="dropdown-link" role="menuitem" (click)="closeDropdown()">
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="3" y="4" width="14" height="14" rx="1" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M3 8h14M7 2v4M13 2v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                  Calendar
+                </a>
                 <a routerLink="/dashboard/my-portfolio" class="dropdown-link" role="menuitem" (click)="closeDropdown()">
                   <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2" y="5" width="16" height="12" rx="1" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M2 8h16" stroke="currentColor" stroke-width="1.4"/><circle cx="7" cy="12" r="2" stroke="currentColor" stroke-width="1.3"/></svg>
                   My Portfolio
@@ -143,6 +147,10 @@
                 <a routerLink="/dashboard/track-progress" class="dropdown-link" role="menuitem" (click)="closeDropdown()">
                   <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 14l4-4 3 3 5-7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
                   Track Progress
+                </a>
+                <a routerLink="/dashboard/calendar" class="dropdown-link" role="menuitem" (click)="closeDropdown()">
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="3" y="4" width="14" height="14" rx="1" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M3 8h14M7 2v4M13 2v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                  Calendar
                 </a>
               </div>
             }
@@ -411,6 +419,7 @@
           <div class="mobile-section">
             <span class="mobile-section-label">Growth</span>
             <a routerLink="/dashboard/progress-updates" routerLinkActive="active" class="mobile-nav-item" (click)="dashboardMobileOpen.set(false)">My Progress</a>
+            <a routerLink="/dashboard/calendar"        routerLinkActive="active" class="mobile-nav-item" (click)="dashboardMobileOpen.set(false)">Calendar</a>
             <a routerLink="/dashboard/my-portfolio"     routerLinkActive="active" class="mobile-nav-item" (click)="dashboardMobileOpen.set(false)">My Portfolio</a>
           </div>
         }
@@ -427,6 +436,7 @@
             <a routerLink="/dashboard/my-contracts"         routerLinkActive="active" class="mobile-nav-item" (click)="dashboardMobileOpen.set(false)">My Contracts</a>
             <a routerLink="/dashboard/my-offer-applications" routerLinkActive="active" class="mobile-nav-item" (click)="dashboardMobileOpen.set(false)">My Applications</a>
             <a routerLink="/dashboard/track-progress"       routerLinkActive="active" class="mobile-nav-item" (click)="dashboardMobileOpen.set(false)">Track Progress</a>
+            <a routerLink="/dashboard/calendar"            routerLinkActive="active" class="mobile-nav-item" (click)="dashboardMobileOpen.set(false)">Calendar</a>
           </div>
         }
 

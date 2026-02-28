@@ -13,6 +13,7 @@ import {
   FreelancerProgressStatsDto,
   PageResponse,
   StalledProjectDto,
+  CalendarEventDto,
 } from '../../../core/services/planning.service';
 import { Card } from '../../../shared/components/card/card';
 import { forkJoin, Subject, Subscription } from 'rxjs';
@@ -65,6 +66,10 @@ export class ProgressUpdates implements OnInit, OnDestroy {
   dueOrOverdueProjects: StalledProjectDto[] = [];
   dueLoading = false;
 
+  /** Upcoming calendar events (Google Calendar integration). */
+  calendarEvents: CalendarEventDto[] = [];
+  calendarEventsLoading = false;
+
   /** Pagination for updates list (when project selected) */
   page = 0;
   size = PAGE_SIZE;
@@ -87,6 +92,7 @@ export class ProgressUpdates implements OnInit, OnDestroy {
       title: ['', [Validators.required, Validators.maxLength(TITLE_MAX)]],
       description: ['', [Validators.maxLength(DESCRIPTION_MAX)]],
       progressPercentage: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
+      nextUpdateDue: [null as string | null],
     });
     this.filterForm = this.fb.group({ search: [''] });
     this.projectFilterForm = this.fb.group({ search: [''] });
@@ -118,6 +124,7 @@ export class ProgressUpdates implements OnInit, OnDestroy {
       if (this.currentUser) {
         this.loadProjects();
         this.loadFreelancerStats();
+        this.loadCalendarEvents();
         this.searchSub = this.searchTrigger$.pipe(debounceTime(SEARCH_DEBOUNCE_MS)).subscribe(() => {
           this.page = 0;
           this.loadUpdatesForProject();
@@ -145,6 +152,27 @@ export class ProgressUpdates implements OnInit, OnDestroy {
       },
       error: () => {
         this.statsLoading = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  loadCalendarEvents(): void {
+    this.calendarEventsLoading = true;
+    const now = new Date();
+    const timeMin = now.toISOString();
+    const timeMax = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000).toISOString();
+    const userId = this.currentUser?.id ?? this.auth.getUserId();
+    const role = this.auth.getUserRole();
+    this.planning.getCalendarEvents({ timeMin, timeMax, userId: userId ?? undefined, role: role ?? undefined }).subscribe({
+      next: (events) => {
+        this.calendarEvents = events ?? [];
+        this.calendarEventsLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.calendarEvents = [];
+        this.calendarEventsLoading = false;
         this.cdr.detectChanges();
       },
     });
@@ -248,6 +276,10 @@ export class ProgressUpdates implements OnInit, OnDestroy {
     this.filterForm.patchValue({ search: '' });
     this.page = 0;
     this.loadUpdatesForProject();
+    // Sync project deadline to calendar so freelancer sees it; they get a notification when first synced
+    if (this.currentUser?.id != null && project?.id != null) {
+      this.planning.syncProjectDeadlineToCalendar(project.id, this.currentUser.id).subscribe();
+    }
   }
 
   backToProjects(): void {
@@ -311,7 +343,7 @@ export class ProgressUpdates implements OnInit, OnDestroy {
     this.editing = null;
     this.errorMessage = '';
     this.minProgressHint = this.updates.length ? Math.max(...this.updates.map((x) => x.progressPercentage)) : 0;
-    this.form.reset({ title: '', description: '', progressPercentage: this.minProgressHint });
+    this.form.reset({ title: '', description: '', progressPercentage: this.minProgressHint, nextUpdateDue: null });
     this.form.get('progressPercentage')?.setValidators([
       Validators.required,
       Validators.min(this.minProgressHint),
@@ -327,10 +359,12 @@ export class ProgressUpdates implements OnInit, OnDestroy {
       this.updates.filter((x) => x.id !== u.id).length > 0
         ? Math.max(...this.updates.filter((x) => x.id !== u.id).map((x) => x.progressPercentage))
         : 0;
+    const nextDue = u.nextUpdateDue ? this.toDatetimeLocal(u.nextUpdateDue) : null;
     this.form.patchValue({
       title: u.title,
       description: u.description ?? '',
       progressPercentage: u.progressPercentage,
+      nextUpdateDue: nextDue,
     });
     this.form.get('progressPercentage')?.setValidators([
       Validators.required,
@@ -350,6 +384,8 @@ export class ProgressUpdates implements OnInit, OnDestroy {
     const projectId = this.selectedProject?.id;
     if (!this.currentUser || !this.selectedProject || projectId == null || this.form.invalid) return;
     const v = this.form.value;
+    const nextDueRaw = v.nextUpdateDue as string | null | undefined;
+    const nextUpdateDue = nextDueRaw && String(nextDueRaw).trim() ? this.toIsoDateTime(nextDueRaw) : null;
     const request: ProgressUpdateRequest = {
       projectId,
       contractId: null,
@@ -357,6 +393,7 @@ export class ProgressUpdates implements OnInit, OnDestroy {
       title: (v.title as string).trim(),
       description: (v.description as string)?.trim() || null,
       progressPercentage: Number(v.progressPercentage),
+      nextUpdateDue,
     };
     this.saving = true;
     if (this.editing) {
@@ -441,6 +478,27 @@ export class ProgressUpdates implements OnInit, OnDestroy {
     if (!s) return '—';
     const d = new Date(s);
     return isNaN(d.getTime()) ? s : d.toLocaleString();
+  }
+
+  /** Convert ISO date-time to datetime-local value (YYYY-MM-DDTHH:mm). */
+  toDatetimeLocal(iso: string): string {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const h = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    return `${y}-${m}-${day}T${h}:${min}`;
+  }
+
+  /** Convert datetime-local or partial string to ISO for backend. */
+  toIsoDateTime(local: string): string {
+    if (!local || !String(local).trim()) return '';
+    const s = String(local).trim();
+    if (s.length <= 16) return s + (s.length === 16 ? ':00' : '');
+    return s;
   }
 
   getTitleError(): string {

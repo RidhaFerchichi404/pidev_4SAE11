@@ -16,6 +16,9 @@ export interface ProgressUpdate {
   progressPercentage: number;
   createdAt: string;
   updatedAt: string;
+  /** Optional next progress update due (synced to Google Calendar when enabled). */
+  nextUpdateDue?: string | null;
+  nextDueCalendarEventId?: string | null;
   comments?: ProgressComment[];
 }
 
@@ -36,6 +39,8 @@ export interface ProgressUpdateRequest {
   title: string;
   description?: string | null;
   progressPercentage: number;
+  /** Optional next progress update due (synced to Google Calendar when enabled). ISO date-time. */
+  nextUpdateDue?: string | null;
 }
 
 /** Request body for create/update comment. */
@@ -130,6 +135,15 @@ export interface ProgressUpdateValidationResponse {
   minAllowed: number | null;
   provided: number | null;
   errors: string[];
+}
+
+/** Calendar event from Google Calendar (GET /api/calendar/events). */
+export interface CalendarEventDto {
+  id: string;
+  summary: string;
+  start: string | null;
+  end: string | null;
+  description: string | null;
 }
 
 /** Time-bounded project report (GET /progress-updates/stats/report). */
@@ -362,6 +376,32 @@ export class PlanningService {
           })
         )
       );
+  }
+
+  /** List calendar events, optionally scoped to the current user (userId + role). */
+  getCalendarEvents(params?: {
+    timeMin?: string;
+    timeMax?: string;
+    calendarId?: string;
+    userId?: number | null;
+    role?: string | null;
+  }): Observable<CalendarEventDto[]> {
+    const q = new URLSearchParams();
+    if (params?.timeMin) q.set('timeMin', params.timeMin);
+    if (params?.timeMax) q.set('timeMax', params.timeMax);
+    if (params?.calendarId) q.set('calendarId', params.calendarId);
+    if (params?.userId != null) q.set('userId', String(params.userId));
+    if (params?.role) q.set('role', params.role);
+    const url = q.toString() ? `${PLANNING_API}/calendar/events?${q.toString()}` : `${PLANNING_API}/calendar/events`;
+    return this.http.get<CalendarEventDto[]>(url).pipe(catchError(() => of([])));
+  }
+
+  /** Ensure project deadline is in the calendar for the freelancer; notifies when first synced. */
+  syncProjectDeadlineToCalendar(projectId: number, freelancerId: number): Observable<void> {
+    return this.http.post<void>(
+      `${PLANNING_API}/calendar/sync-project-deadline?projectId=${projectId}&freelancerId=${freelancerId}`,
+      {}
+    ).pipe(catchError(() => of(undefined)));
   }
 
   // ---------- Progress comments (Client CRUD) ----------

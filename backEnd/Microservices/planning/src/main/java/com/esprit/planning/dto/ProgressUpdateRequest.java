@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,4 +30,7 @@ public class ProgressUpdateRequest {
 
     @Schema(description = "Progress percentage (0-100)", example = "75", requiredMode = Schema.RequiredMode.REQUIRED, minimum = "0", maximum = "100")
     private Integer progressPercentage;
+
+    @Schema(description = "Optional: next progress update due date (synced to Google Calendar when enabled)", example = "2025-03-15T14:00:00")
+    private LocalDateTime nextUpdateDue;
 }

@@ -322,6 +322,7 @@ public class ProgressUpdateController {
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .progressPercentage(request.getProgressPercentage())
+                .nextUpdateDue(request.getNextUpdateDue())
                 .build();
         return ResponseEntity.status(HttpStatus.CREATED).body(progressUpdateService.create(entity));
     }
@@ -342,6 +343,7 @@ public class ProgressUpdateController {
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .progressPercentage(request.getProgressPercentage())
+                .nextUpdateDue(request.getNextUpdateDue())
                 .build();
         return ResponseEntity.ok(progressUpdateService.update(id, entity));
     }

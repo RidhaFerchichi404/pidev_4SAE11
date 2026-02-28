@@ -1,0 +1,326 @@
+@import '../../../../styles/variables';
+
+.calendar-page {
+  max-width: 1200px;
+  padding: $spacing-3xl $spacing-lg;
+  margin: 0 auto;
+  font-family: $font-family;
+
+  @include breakpoint(md) {
+    padding: $spacing-3xl $spacing-2xl;
+  }
+}
+
+.calendar-header {
+  margin-bottom: $spacing-xl;
+
+  h1 {
+    margin: 0 0 $spacing-xs;
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-extrabold;
+    background: $gradient-primary;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    font-size: $font-size-sm;
+    color: $neutral-500;
+    margin: 0;
+  }
+}
+
+.calendar-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+.toolbar-nav {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.btn-nav {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $neutral-600;
+  background: $neutral-100;
+  border: 1px solid $neutral-200;
+  border-radius: $radius-lg;
+  cursor: pointer;
+  transition: $transition-fast;
+
+  &:hover {
+    background: $neutral-200;
+    color: $primary-600;
+  }
+}
+
+.month-title {
+  margin: 0;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $neutral-800;
+  min-width: 180px;
+  text-align: center;
+}
+
+.btn-today {
+  padding: $spacing-sm $spacing-md;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $primary-600;
+  background: $gradient-soft;
+  border: 1px solid rgba($primary-500, 0.3);
+  border-radius: $radius-full;
+  cursor: pointer;
+  transition: $transition-fast;
+
+  &:hover {
+    background: rgba($primary-500, 0.15);
+  }
+}
+
+.loading-msg {
+  margin: 0 0 $spacing-lg;
+  font-size: $font-size-sm;
+  color: $neutral-500;
+}
+
+.calendar-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-xl;
+
+  @include breakpoint(lg) {
+    grid-template-columns: 1fr 280px;
+  }
+}
+
+.calendar-grid-wrap {
+  overflow-x: auto;
+  border: 1px solid $neutral-200;
+  border-radius: $radius-xl;
+  background: $white;
+  box-shadow: $shadow-sm;
+}
+
+.calendar-grid {
+  width: 100%;
+  min-width: 320px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.calendar-weekday {
+  padding: $spacing-sm $spacing-xs;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $neutral-500;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid $neutral-200;
+  background: $neutral-50;
+}
+
+.calendar-cell {
+  vertical-align: top;
+  padding: $spacing-xs;
+  min-height: 90px;
+  height: 90px;
+  border: 1px solid $neutral-100;
+  cursor: pointer;
+  transition: background $transition-fast;
+
+  &:hover {
+    background: $neutral-50;
+  }
+
+  &--other-month {
+    background: $neutral-50;
+
+    .calendar-cell-num {
+      color: $neutral-400;
+    }
+  }
+
+  &--today {
+    background: rgba($primary-500, 0.08);
+
+    .calendar-cell-num {
+      color: $primary-600;
+      font-weight: $font-weight-bold;
+    }
+  }
+
+  &--selected {
+    background: $gradient-soft;
+    outline: 2px solid $primary-500;
+    outline-offset: -2px;
+  }
+}
+
+.calendar-cell-num {
+  display: block;
+  font-size: $font-size-sm;
+  color: $neutral-700;
+  margin-bottom: $spacing-xs;
+}
+
+.calendar-cell-events {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 60px;
+  overflow: hidden;
+}
+
+.calendar-cell-event {
+  display: block;
+  font-size: 10px;
+  line-height: 1.2;
+  color: $neutral-700;
+  background: $primary-100;
+  padding: 2px 4px;
+  border-radius: $radius-sm;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.calendar-cell-more {
+  font-size: 10px;
+  color: $neutral-500;
+  font-weight: $font-weight-medium;
+}
+
+.calendar-sidebar {
+  background: $white;
+  border: 1px solid $neutral-200;
+  border-radius: $radius-xl;
+  padding: $spacing-lg;
+  box-shadow: $shadow-sm;
+  height: fit-content;
+}
+
+.sidebar-section {
+  margin: 0;
+}
+
+.sidebar-title {
+  margin: 0 0 $spacing-md;
+  font-size: $font-size-base;
+  font-weight: $font-weight-bold;
+  color: $neutral-800;
+  padding-bottom: $spacing-sm;
+  border-bottom: 1px solid $neutral-200;
+}
+
+.sidebar-empty {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $neutral-500;
+}
+
+.sidebar-event-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sidebar-event-list--upcoming {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.sidebar-event-item {
+  padding: $spacing-sm 0;
+  border-bottom: 1px solid $neutral-100;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.sidebar-event-summary {
+  display: block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $neutral-800;
+}
+
+.sidebar-event-time {
+  display: block;
+  font-size: $font-size-xs;
+  color: $neutral-500;
+  margin-top: 2px;
+}
+
+.sidebar-event-desc {
+  margin: $spacing-xs 0 0;
+  font-size: $font-size-xs;
+  color: $neutral-600;
+  line-height: $line-height-relaxed;
+}
+
+.calendar-legend {
+  margin-top: $spacing-xl;
+  padding: $spacing-md $spacing-lg;
+  background: $neutral-50;
+  border-radius: $radius-lg;
+  border: 1px solid $neutral-200;
+}
+
+.legend-title {
+  margin: 0 0 $spacing-sm;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $neutral-700;
+}
+
+.legend-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-md $spacing-xl;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    font-size: $font-size-sm;
+    color: $neutral-600;
+  }
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: $radius-full;
+
+  &--deadline {
+    background: $primary-500;
+  }
+
+  &--reminder {
+    background: $info-500;
+  }
+
+  &--milestone {
+    background: $success-500;
+  }
+}

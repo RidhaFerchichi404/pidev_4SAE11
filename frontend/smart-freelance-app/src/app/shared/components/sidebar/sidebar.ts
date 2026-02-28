@@ -30,6 +30,7 @@ export class Sidebar {
         { label: 'Offers', route: '/admin/offers', icon: '💼' },
         { label: 'Projects', route: '/admin/projects', icon: '🚀' },
         { label: 'Planning', route: '/admin/planning', icon: '📅' },
+        { label: 'Calendar', route: '/dashboard/calendar', icon: '📆' },
         { label: 'Evaluations', route: '/admin/evaluations', icon: '📝' },
         { label: 'Reviews', route: '/admin/reviews', icon: '⭐' },
         { label: 'Settings', route: '/admin/settings', icon: '⚙️' },

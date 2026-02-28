@@ -54,4 +54,11 @@ public interface ProgressUpdateRepository extends JpaRepository<ProgressUpdate, 
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to,
             Pageable pageable);
+
+    /** Progress updates with a next-update-due date in the given range (for calendar view when Google Calendar is disabled). */
+    List<ProgressUpdate> findByNextUpdateDueBetween(LocalDateTime start, LocalDateTime end);
+
+    /** Distinct project IDs for which the given user has progress updates as freelancer (for calendar filtering). */
+    @Query("SELECT DISTINCT p.projectId FROM ProgressUpdate p WHERE p.freelancerId = :freelancerId")
+    List<Long> findDistinctProjectIdsByFreelancerId(@Param("freelancerId") Long freelancerId);
 }
