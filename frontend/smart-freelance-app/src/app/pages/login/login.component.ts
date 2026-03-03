@@ -24,6 +24,7 @@ export class LoginComponent {
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
+      staySignedIn: [true],
     });
   }
 
@@ -51,9 +52,9 @@ export class LoginComponent {
       this.form.markAllAsTouched();
       return;
     }
-    const { email, password } = this.form.getRawValue();
+    const { email, password, staySignedIn } = this.form.getRawValue();
     this.loading = true;
-    this.auth.login(email, password).subscribe({
+    this.auth.login(email, password, !!staySignedIn).subscribe({
       next: (res) => {
         this.loading = false;
         if (res && 'access_token' in res && res.access_token) {

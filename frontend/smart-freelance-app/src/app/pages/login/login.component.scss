@@ -118,6 +118,33 @@
       font-size: var(--text-sm);
       color: var(--error);
     }
+
+    .forgot-link {
+      display: inline-block;
+      margin-top: var(--spacing-sm);
+      font-size: var(--text-sm);
+      color: var(--secondary);
+      text-decoration: none;
+      &:hover { text-decoration: underline; }
+    }
+  }
+
+  .checkbox-field {
+    margin-bottom: var(--spacing-md);
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--text-primary);
+
+      input[type="checkbox"] {
+        width: auto;
+        margin: 0;
+      }
+    }
   }
 
   .btn-primary {

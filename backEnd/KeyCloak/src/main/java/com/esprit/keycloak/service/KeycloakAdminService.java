@@ -146,6 +146,36 @@ public class KeycloakAdminService {
     }
 
     /**
+     * Send a "forgot password" email to the user. Keycloak sends an email with a link
+     * to reset the password. Requires SMTP to be configured in the Keycloak realm.
+     *
+     * @param email User's email (must exist in Keycloak)
+     * @throws IllegalArgumentException if email is blank or user not found
+     */
+    public void sendForgotPasswordEmail(String email) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email is required.");
+        }
+        String realm = keycloakProperties.getRealm();
+        String search = email.trim();
+        try (Keycloak keycloak = createAdminKeycloak()) {
+            List<UserRepresentation> found = keycloak.realm(realm).users().search(search, true);
+            if (found.isEmpty()) {
+                found = keycloak.realm(realm).users().search(search, false);
+            }
+            for (UserRepresentation u : found) {
+                if (search.equalsIgnoreCase(u.getEmail()) || search.equalsIgnoreCase(u.getUsername())) {
+                    UserResource userResource = keycloak.realm(realm).users().get(u.getId());
+                    userResource.executeActionsEmail(List.of("UPDATE_PASSWORD"));
+                    log.info("Sent forgot password email to: {}", email);
+                    return;
+                }
+            }
+            throw new IllegalArgumentException("No user found with this email address.");
+        }
+    }
+
+    /**
      * Delete a user from Keycloak by email (username).
      * No-op if user does not exist.
      */

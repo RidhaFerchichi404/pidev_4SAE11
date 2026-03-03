@@ -1,5 +1,6 @@
 package com.esprit.keycloak.controller;
 
+import com.esprit.keycloak.dto.ForgotPasswordRequest;
 import com.esprit.keycloak.dto.KeycloakUserUpdateRequest;
 import com.esprit.keycloak.dto.RegisterRequest;
 import com.esprit.keycloak.dto.TokenRequest;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,6 +35,7 @@ import java.util.stream.Stream;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Authentication", description = "Keycloak-based authentication for Smart Freelance platform")
 public class AuthController {
 
@@ -62,6 +65,28 @@ public class AuthController {
     @PostMapping(value = "/token", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public TokenResponse token(@Valid @RequestBody TokenRequest request) {
         return keycloakTokenService.getToken(request.getUsername(), request.getPassword());
+    }
+
+    @Operation(summary = "Forgot password", description = "Send a password reset email to the user. Requires SMTP to be configured in Keycloak.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "If the email exists, a reset link has been sent (for security, we always return success)"),
+        @ApiResponse(responseCode = "400", description = "Invalid or missing email")
+    })
+    @PostMapping(value = "/forgot-password", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Map<String, String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        String email = request.getEmail().trim();
+        java.util.concurrent.CompletableFuture.runAsync(() -> {
+            try {
+                keycloakAdminService.sendForgotPasswordEmail(email);
+            } catch (Exception e) {
+                // Log but don't fail - we already returned success (avoids email enumeration)
+                log.warn("Forgot password email failed for {}: {}", email, e.getMessage());
+            }
+        });
+        return Map.of(
+            "message", "If an account exists with this email, you will receive a password reset link shortly.",
+            "email", email
+        );
     }
 
     @Operation(summary = "Refresh token", description = "Exchange a refresh_token for a new access_token.")

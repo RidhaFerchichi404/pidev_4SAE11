@@ -17,6 +17,7 @@ export const routes: Routes = [
   // Auth pages (no layout)
   { path: 'login', loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent) },
   { path: 'signup', loadComponent: () => import('./pages/signup/signup.component').then(m => m.SignupComponent) },
+  { path: 'forgot-password', loadComponent: () => import('./pages/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent) },
 
   // Dashboard routes (protected; CLIENT and FREELANCER only — admin uses /admin/*)
   {

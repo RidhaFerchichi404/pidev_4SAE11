@@ -47,6 +47,14 @@
         @if (getPasswordError(); as msg) {
           <span id="password-error" class="field-error">{{ msg }}</span>
         }
+        <a routerLink="/forgot-password" class="forgot-link">Forgot password?</a>
+      </div>
+
+      <div class="field checkbox-field">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="staySignedIn" />
+          <span>Stay signed in</span>
+        </label>
       </div>
 
       <button type="submit" class="btn-primary" [disabled]="loading">

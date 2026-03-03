@@ -1,35 +1,181 @@
 <div class="admin-dashboard-page">
-  <h1>Admin Dashboard</h1>
-  <p class="subtitle">Manage your Freelancia platform</p>
+  <header class="page-header">
+    <div class="page-header__top">
+      <span class="page-badge">Admin</span>
+    </div>
+    <h1 class="page-title">Dashboard Overview</h1>
+    <p class="page-subtitle">Real-time statistics and insights across all platform microservices</p>
+  </header>
 
-  <div class="stats-grid">
-    <app-card>
-      <h3>📊 Total Users</h3>
-      <div class="stat-value">15,234</div>
-      <p class="stat-change">+12% this month</p>
-    </app-card>
+  @if (loading) {
+    <div class="loading-state">
+      <div class="loading-spinner" aria-hidden="true"></div>
+      <p>Loading dashboard data…</p>
+    </div>
+  } @else {
+    <!-- Stats KPI Cards -->
+    <section class="stats-section">
+      <h2 class="section-title">Key metrics</h2>
+      <div class="stats-grid">
+        <app-card class="stat-card stat-card--users">
+          <div class="stat-icon">👥</div>
+          <div class="stat-value">{{ users.length }}</div>
+          <div class="stat-label">Total Users</div>
+          <a routerLink="/admin/users" class="stat-link">Manage users →</a>
+        </app-card>
+        <app-card class="stat-card stat-card--projects">
+          <div class="stat-icon">📁</div>
+          <div class="stat-value">{{ projects.length }}</div>
+          <div class="stat-label">Projects</div>
+          <a routerLink="/admin/projects" class="stat-link">View projects →</a>
+        </app-card>
+        <app-card class="stat-card stat-card--offers">
+          <div class="stat-icon">💼</div>
+          <div class="stat-value">{{ offersTotal }}</div>
+          <div class="stat-label">Offers</div>
+          <a routerLink="/admin/offers" class="stat-link">Manage offers →</a>
+        </app-card>
+        <app-card class="stat-card stat-card--contracts">
+          <div class="stat-icon">📋</div>
+          <div class="stat-value">{{ contractsTotal }}</div>
+          <div class="stat-label">Contracts</div>
+          <a routerLink="/admin/contracts" class="stat-link">View contracts →</a>
+        </app-card>
+        <app-card class="stat-card stat-card--tasks">
+          <div class="stat-icon">✅</div>
+          <div class="stat-value">{{ taskStats?.totalTasks ?? 0 }}</div>
+          <div class="stat-label">Tasks</div>
+          <span class="stat-meta">{{ formatPercent(taskStats?.completionPercentage) }} completed</span>
+        </app-card>
+        <app-card class="stat-card stat-card--reviews">
+          <div class="stat-icon">⭐</div>
+          <div class="stat-value">{{ reviewStats?.totalCount ?? 0 }}</div>
+          <div class="stat-label">Reviews</div>
+          <span class="stat-meta">{{ (reviewStats?.averageRating ?? 0) | number:'1.1-1' }} ★ avg. rating</span>
+        </app-card>
+      </div>
+    </section>
 
-    <app-card>
-      <h3>💼 Active Offers</h3>
-      <div class="stat-value">1,456</div>
-      <p class="stat-change">+8% this month</p>
-    </app-card>
+    <!-- Charts Row -->
+    <section class="charts-section">
+      <div class="charts-grid">
+        <app-card class="chart-card">
+          <h3 class="chart-title">Users by role</h3>
+          <div class="chart-container chart-container--pie">
+            <canvas baseChart
+              [data]="userRolesChartData"
+              [type]="'pie'"
+              [options]="userRolesChartOptions">
+            </canvas>
+          </div>
+        </app-card>
+        <app-card class="chart-card">
+          <h3 class="chart-title">Task status distribution</h3>
+          <div class="chart-container chart-container--doughnut">
+            <canvas baseChart
+              [data]="taskStatusChartData"
+              [type]="'doughnut'"
+              [options]="taskStatusChartOptions">
+            </canvas>
+          </div>
+        </app-card>
+        <app-card class="chart-card chart-card--wide">
+          <h3 class="chart-title">Review ratings</h3>
+          <div class="chart-container chart-container--bar">
+            <canvas baseChart
+              [data]="reviewRatingsChartData"
+              [type]="'bar'"
+              [options]="reviewRatingsChartOptions">
+            </canvas>
+          </div>
+        </app-card>
+      </div>
+    </section>
 
-    <app-card>
-      <h3>🚀 Projects</h3>
-      <div class="stat-value">3,892</div>
-      <p class="stat-change">+15% this month</p>
-    </app-card>
+    <!-- Activity & Planning Stats -->
+    <section class="activity-section">
+      <div class="activity-grid">
+        <app-card class="activity-card">
+          <h3 class="activity-title">Planning overview</h3>
+          <div class="planning-stats">
+            <div class="planning-stat">
+              <span class="planning-stat-value">{{ planningStats?.totalUpdates ?? 0 }}</span>
+              <span class="planning-stat-label">Progress updates</span>
+            </div>
+            <div class="planning-stat">
+              <span class="planning-stat-value">{{ planningStats?.totalComments ?? 0 }}</span>
+              <span class="planning-stat-label">Comments</span>
+            </div>
+            <div class="planning-stat">
+              <span class="planning-stat-value">{{ formatPercent(planningStats?.averageProgressPercentage) }}</span>
+              <span class="planning-stat-label">Avg. progress</span>
+            </div>
+          </div>
+          <a routerLink="/admin/planning" class="section-link">Manage planning →</a>
+        </app-card>
+        <app-card class="activity-card">
+          <h3 class="activity-title">Top freelancers by activity</h3>
+          <div class="chart-container chart-container--activity">
+            <canvas baseChart
+              [data]="activityChartData"
+              [type]="'bar'"
+              [options]="activityChartOptions">
+            </canvas>
+          </div>
+          @if (topFreelancers.length === 0) {
+            <p class="empty-msg">No activity data yet</p>
+          }
+          <a routerLink="/admin/planning" class="section-link">View details →</a>
+        </app-card>
+      </div>
+    </section>
 
-    <app-card>
-      <h3>⭐ Reviews</h3>
-      <div class="stat-value">8,721</div>
-      <p class="stat-change">+5% this month</p>
-    </app-card>
-  </div>
+    <!-- Most Active Projects Table -->
+    <section class="table-section">
+      <app-card>
+        <h3 class="table-title">Most active projects</h3>
+        @if (mostActiveProjects.length === 0) {
+          <p class="empty-msg">No project activity data yet</p>
+        } @else {
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Updates</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of mostActiveProjects; track p.projectId) {
+                  <tr>
+                    <td>{{ getProjectTitle(p.projectId) }}</td>
+                    <td>{{ p.updateCount }}</td>
+                    <td>
+                      <a [routerLink]="['/admin/projects', p.projectId, 'show']" class="table-link">View</a>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </app-card>
+    </section>
 
-  <app-card>
-    <h3>🎯 Quick Note</h3>
-    <p>This is a placeholder admin dashboard. Use the sidebar to navigate to different admin sections. Full admin features are coming soon!</p>
-  </app-card>
+    <!-- Quick Links -->
+    <section class="quick-links-section">
+      <app-card>
+        <h3 class="quick-links-title">Quick actions</h3>
+        <div class="quick-links-grid">
+          <a routerLink="/admin/users" class="quick-link">Manage users</a>
+          <a routerLink="/admin/contracts" class="quick-link">View contracts</a>
+          <a routerLink="/admin/offers" class="quick-link">Manage offers</a>
+          <a routerLink="/admin/projects" class="quick-link">Browse projects</a>
+          <a routerLink="/admin/planning" class="quick-link">Planning & progress</a>
+          <a routerLink="/admin/tasks" class="quick-link">Task management</a>
+        </div>
+      </app-card>
+    </section>
+  }
 </div>
