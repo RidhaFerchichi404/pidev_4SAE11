@@ -68,7 +68,12 @@
             </div>
             <div class="col-md-6">
               <label for="category" class="form-label">Category (optional)</label>
-              <input id="category" type="text" class="form-control" formControlName="category" placeholder="e.g. Development" />
+              <select id="category" class="form-control" formControlName="category">
+                <option value="">All categories</option>
+                @for (cat of categories; track cat) {
+                  <option [value]="cat">{{ cat }}</option>
+                }
+              </select>
             </div>
           </div>
         </section>

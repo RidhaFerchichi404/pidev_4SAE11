@@ -110,6 +110,27 @@
             <version>2.2.0</version>
         </dependency>
 
+<<<<<<< HEAD
+=======
+        <!-- Spring Cloud Config Client -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-config</artifactId>
+        </dependency>
+
+        <!-- Email (JavaMailSender) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
+        <!-- Actuator (pour /actuator/refresh) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+>>>>>>> fc652c4 (le nouveau version)
         <!-- DevTools -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

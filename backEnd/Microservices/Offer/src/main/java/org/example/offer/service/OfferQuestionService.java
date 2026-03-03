@@ -2,6 +2,7 @@ package org.example.offer.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.offer.client.UserFeignClient;
 import org.example.offer.dto.request.AnswerQuestionRequest;
 import org.example.offer.dto.request.OfferQuestionRequest;
 import org.example.offer.dto.response.OfferQuestionResponse;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -28,6 +30,12 @@ public class OfferQuestionService {
 
     private final OfferQuestionRepository questionRepository;
     private final OfferRepository offerRepository;
+<<<<<<< HEAD
+=======
+    private final NotificationService notificationService;
+    private final EmailService emailService;
+    private final UserFeignClient userFeignClient;
+>>>>>>> fc652c4 (le nouveau version)
 
     /**
      * Liste des questions-réponses pour une offre (ordre anti-chronologique).
@@ -54,6 +62,40 @@ public class OfferQuestionService {
         q.setQuestionText(request.getQuestionText().trim());
         q = questionRepository.save(q);
         log.info("Question added for offer {} by client {}", offerId, clientId);
+<<<<<<< HEAD
+=======
+
+        // 1. Notification in-app pour le freelancer
+        try {
+            String title = "New question on your offer";
+            String msg = "A client asked: \"" + (q.getQuestionText().length() > 80 ? q.getQuestionText().substring(0, 80) + "…" : q.getQuestionText()) + "\"";
+            notificationService.createNotification(offer.getFreelancerId(), NotificationType.NEW_QUESTION, title, msg, offerId, q.getId());
+        } catch (Exception e) {
+            log.warn("Could not create notification for new question (offer={}, questionId={}): {}", offerId, q.getId(), e.getMessage());
+        }
+
+        // 2. Notifications externes au freelancer (asynchrone — ne bloque pas la reponse HTTP)
+        try {
+            log.info("[NOTIF] Fetching freelancer userId={} to send notifications", offer.getFreelancerId());
+            Map<String, Object> freelancer = userFeignClient.getUserById(offer.getFreelancerId());
+            log.info("[NOTIF] Freelancer data received: {}", freelancer);
+
+            if (freelancer != null && !freelancer.isEmpty()) {
+                String name = freelancer.containsKey("firstName")
+                        ? (String) freelancer.get("firstName")
+                        : (String) freelancer.getOrDefault("username", "Freelancer");
+
+                // Email via Mailtrap
+                String email = (String) freelancer.get("email");
+                emailService.sendNewQuestionEmail(email, name, offer.getTitle(), q.getQuestionText(), offerId);
+            } else {
+                log.warn("[NOTIF] Freelancer data is empty for userId={} (User service down or fallback triggered)", offer.getFreelancerId());
+            }
+        } catch (Exception e) {
+            log.error("[NOTIF] Error sending notifications (offer={}, questionId={}): {}", offerId, q.getId(), e.getMessage());
+        }
+
+>>>>>>> fc652c4 (le nouveau version)
         return toResponse(q);
     }
 

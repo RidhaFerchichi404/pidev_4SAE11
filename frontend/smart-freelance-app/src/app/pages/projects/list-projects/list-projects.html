@@ -124,7 +124,22 @@
             title="Apply to this project"
             *ngIf="userRole === 'FREELANCER'"
           >
+<<<<<<< HEAD
             Apply
+=======
+            Postuler
+          </a>
+
+          <button
+            (click)="openQrModal(project)"
+            class="btn btn--qr"
+            title="Show QR Code"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3 3h7v7H3zm1 1v5h5V4zm1 1h3v3H5zm8-2h7v7h-7zm1 1v5h5V4zm1 1h3v3h-3zM3 13h7v7H3zm1 1v5h5v-5zm1 1h3v3H5zm8 0h2v2h-2zm3 0h2v2h-2zm-3 3h2v2h-2zm3 0h2v2h-2zm-3 3h2v2h-2zm3-3h2v2h-2z"/>
+            </svg>
+            QR Code
+>>>>>>> fc652c4 (le nouveau version)
           </button>
         </div>
       </div>
@@ -158,6 +173,82 @@
   }
 </div>
 
+
+<!-- QR Code Modal -->
+@if (qrProject) {
+  <div class="qr-modal-overlay" (click)="closeQrModal()">
+    <div class="qr-modal" (click)="$event.stopPropagation()">
+
+      <button class="qr-modal-close" (click)="closeQrModal()" aria-label="Close">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+
+      <div class="qr-modal-header">
+        <div class="qr-modal-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 3h7v7H3zm1 1v5h5V4zm1 1h3v3H5zm8-2h7v7h-7zm1 1v5h5V4zm1 1h3v3h-3zM3 13h7v7H3zm1 1v5h5v-5zm1 1h3v3H5zm8 0h2v2h-2zm3 0h2v2h-2zm-3 3h2v2h-2zm3 0h2v2h-2zm-3 3h2v2h-2zm3-3h2v2h-2z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="qr-modal-title">{{ qrProject.title }}</h3>
+          <span class="qr-modal-category">{{ qrProject.category || 'No category' }}</span>
+        </div>
+      </div>
+
+      <div class="qr-code-wrapper">
+        <qrcode
+          [qrdata]="qrContent"
+          [width]="220"
+          [errorCorrectionLevel]="'M'"
+          [colorDark]="'#1a1a2e'"
+          [colorLight]="'#ffffff'"
+          [margin]="2"
+          elementType="img"
+          #qrCodeElement
+        ></qrcode>
+        <p class="qr-scan-hint">Scannez pour voir les détails du projet</p>
+      </div>
+
+      <div class="qr-project-details">
+        <div class="qr-detail-row" *ngIf="qrProject.status">
+          <span class="qr-detail-label">Status</span>
+          <span class="qr-detail-value status-badge"
+            [ngClass]="{
+              'status-open': qrProject.status === 'OPEN',
+              'status-in-progress': qrProject.status === 'IN_PROGRESS',
+              'status-completed': qrProject.status === 'COMPLETED',
+              'status-on-hold': qrProject.status === 'CANCELLED'
+            }">
+            {{ qrProject.status }}
+          </span>
+        </div>
+        <div class="qr-detail-row" *ngIf="qrProject.budget">
+          <span class="qr-detail-label">Budget</span>
+          <span class="qr-detail-value">${{ qrProject.budget }}</span>
+        </div>
+        <div class="qr-detail-row" *ngIf="qrProject.deadline">
+          <span class="qr-detail-label">Deadline</span>
+          <span class="qr-detail-value">{{ qrProject.deadline | date:'mediumDate' }}</span>
+        </div>
+        <div class="qr-detail-row" *ngIf="getSkills(qrProject).length > 0">
+          <span class="qr-detail-label">Skills</span>
+          <span class="qr-detail-value">{{ getSkills(qrProject).join(', ') }}</span>
+        </div>
+      </div>
+
+      <button class="btn-download-qr" (click)="downloadQr()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Download QR Code
+      </button>
+
+    </div>
+  </div>
+}
 
 <br>
 

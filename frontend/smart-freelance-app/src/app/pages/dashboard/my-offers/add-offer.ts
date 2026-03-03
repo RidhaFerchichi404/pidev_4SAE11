@@ -6,6 +6,11 @@ import { AuthService } from '../../../core/services/auth.service';
 import { UserService, User } from '../../../core/services/user.service';
 import { OfferService, OfferRequest } from '../../../core/services/offer.service';
 
+export const CATEGORIES = [
+  'Frontend', 'Backend', 'Full Stack', 'UI/UX',
+  'SEO', 'Content', 'Machine Learning', 'Cloud',
+];
+
 @Component({
   selector: 'app-add-offer',
   standalone: true,
@@ -16,6 +21,7 @@ import { OfferService, OfferRequest } from '../../../core/services/offer.service
 export class AddOffer implements OnInit {
   form: FormGroup;
   isSubmitting = false;
+  readonly categories = CATEGORIES;
   submitError: string | null = null;
   currentUser: User | null = null;
   minDate: string;

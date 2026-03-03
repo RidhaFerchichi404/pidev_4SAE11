@@ -16,6 +16,97 @@
     </div>
   </div>
 
+  <!-- ── Offer Quality Score (Fiverr-style) ──────────────────── -->
+  <section class="quality-score-section card">
+    <div class="qs-header" (click)="scoreExpanded = !scoreExpanded" style="cursor:pointer">
+      <div class="qs-header-left">
+        <span class="qs-icon">📊</span>
+        <div>
+          <h2 class="qs-title">Offer Quality Score</h2>
+          <p class="qs-subtitle">Optimisez votre offre comme sur Fiverr</p>
+        </div>
+      </div>
+      <div class="qs-header-right">
+        <span class="qs-level-badge" [style.background]="scoreLevel.color + '22'" [style.color]="scoreLevel.color">
+          {{ scoreLevel.emoji }} {{ scoreLevel.label }}
+        </span>
+        <svg class="qs-chevron" [class.qs-chevron--open]="scoreExpanded"
+             width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </div>
+    </div>
+
+    @if (scoreExpanded) {
+      <div class="qs-body">
+        <!-- Circular score gauge -->
+        <div class="qs-gauge-wrapper">
+          <svg class="qs-gauge" viewBox="0 0 120 120" width="140" height="140">
+            <circle cx="60" cy="60" r="52" fill="none" stroke="#f1f5f9" stroke-width="10"/>
+            <circle
+              cx="60" cy="60" r="52"
+              fill="none"
+              [attr.stroke]="scoreLevel.color"
+              stroke-width="10"
+              stroke-linecap="round"
+              stroke-dasharray="{{ 2 * 3.14159 * 52 }}"
+              [attr.stroke-dashoffset]="scoreDashoffset"
+              transform="rotate(-90 60 60)"
+              style="transition: stroke-dashoffset 0.8s ease"
+            />
+            <text x="60" y="55" text-anchor="middle" class="qs-gauge-number" [attr.fill]="scoreLevel.color">
+              {{ qualityScore }}
+            </text>
+            <text x="60" y="72" text-anchor="middle" class="qs-gauge-label" fill="#94a3b8">/100</text>
+          </svg>
+          <p class="qs-gauge-hint">Score de qualité</p>
+        </div>
+
+        <!-- Checklist -->
+        <div class="qs-checklist">
+          @for (check of scoreChecks; track check.label) {
+            <div class="qs-check-item" [class.qs-check-item--ok]="check.ok">
+              <div class="qs-check-icon">
+                @if (check.ok) {
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                } @else {
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                }
+              </div>
+              <div class="qs-check-content">
+                <div class="qs-check-header">
+                  <span class="qs-check-label">{{ check.label }}</span>
+                  <span class="qs-check-pts" [class.qs-check-pts--ok]="check.ok">+{{ check.pts }} pts</span>
+                </div>
+                @if (!check.ok) {
+                  <p class="qs-check-tip">💡 {{ check.tip }}</p>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Progress bar bottom -->
+      <div class="qs-progress-bar-wrap">
+        <div class="qs-progress-bar" [style.width.%]="qualityScore" [style.background]="scoreLevel.color"></div>
+      </div>
+      <p class="qs-footer-tip">
+        @if (qualityScore < 65) {
+          ⚡ Améliorez votre offre pour apparaître plus haut dans les résultats.
+        } @else if (qualityScore < 85) {
+          🚀 Vous êtes sur la bonne voie ! Quelques ajustements pour atteindre le top.
+        } @else {
+          🏆 Excellent ! Votre offre est parfaitement optimisée.
+        }
+      </p>
+    }
+  </section>
+
   <!-- Traduction multilingue (Google Translate – FR / EN / AR) -->
   <section class="translate-section card">
     <h2 class="translate-section__title">

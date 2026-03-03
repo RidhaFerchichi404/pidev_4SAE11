@@ -21,6 +21,19 @@
         </processorPath>
         <module name="review" />
       </profile>
+<<<<<<< HEAD
+=======
+      <profile name="Annotation profile for KeyCloak" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
+        </processorPath>
+        <module name="KeyCloak" />
+      </profile>
+>>>>>>> fc652c4 (le nouveau version)
       <profile name="Annotation profile for user" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
@@ -30,6 +43,7 @@
         </processorPath>
         <module name="user" />
         <module name="planning" />
+<<<<<<< HEAD
         <module name="KeyCloak" />
       </profile>
       <profile name="Annotation profile for Project" enabled="true">
@@ -40,6 +54,9 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
         </processorPath>
         <module name="Project" />
+=======
+        <module name="review" />
+>>>>>>> fc652c4 (le nouveau version)
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

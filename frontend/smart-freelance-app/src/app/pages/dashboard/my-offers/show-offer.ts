@@ -32,6 +32,121 @@ export class ShowOffer implements OnInit {
   answerTexts: Record<number, string> = {};
   answeringId: number | null = null;
 
+<<<<<<< HEAD
+=======
+  // ── Offer Quality Score ──────────────────────────────────────
+  scoreExpanded = true;
+
+  get qualityScore(): number {
+    const o = this.offer;
+    if (!o) return 0;
+    let score = 0;
+
+    // Title: ideal 20-80 chars (20 pts)
+    const titleLen = (o.title || '').trim().length;
+    if (titleLen >= 20 && titleLen <= 80) score += 20;
+    else if (titleLen >= 8) score += 12;
+    else if (titleLen >= 3) score += 5;
+
+    // Description: 200+ chars ideal (25 pts)
+    const descLen = (o.description || '').trim().length;
+    if (descLen >= 300) score += 25;
+    else if (descLen >= 150) score += 18;
+    else if (descLen >= 80) score += 10;
+    else if (descLen > 0) score += 5;
+
+    // Price set (15 pts)
+    if (o.price && o.price > 0) score += 15;
+
+    // Domain/Category (15 pts)
+    if ((o.domain || '').trim().length > 0) score += 15;
+
+    // Tags (10 pts)
+    const tags = (o.tags || '').split(',').map((t: string) => t.trim()).filter(Boolean);
+    if (tags.length >= 3) score += 10;
+    else if (tags.length >= 1) score += 5;
+
+    // Image (10 pts)
+    if ((o.imageUrl || '').trim().length > 0) score += 10;
+
+    // Packages: basic + standard + premium (5 pts)
+    if (o.basicPrice && o.standardPrice && o.premiumPrice) score += 5;
+
+    return Math.min(score, 100);
+  }
+
+  get scoreLevel(): { label: string; color: string; emoji: string } {
+    const s = this.qualityScore;
+    if (s >= 85) return { label: 'Top Rated', color: '#10b981', emoji: '🏆' };
+    if (s >= 65) return { label: 'Rising Talent', color: '#f59e0b', emoji: '⭐' };
+    if (s >= 40) return { label: 'Getting Started', color: '#3b82f6', emoji: '📈' };
+    return { label: 'Needs Work', color: '#ef4444', emoji: '🔧' };
+  }
+
+  get scoreDashoffset(): number {
+    const circumference = 2 * Math.PI * 52;
+    return circumference - (this.qualityScore / 100) * circumference;
+  }
+
+  get scoreChecks(): { label: string; tip: string; ok: boolean; pts: number }[] {
+    const o = this.offer;
+    if (!o) return [];
+    const titleLen = (o.title || '').trim().length;
+    const descLen = (o.description || '').trim().length;
+    const tags = (o.tags || '').split(',').map((t: string) => t.trim()).filter(Boolean);
+    return [
+      {
+        label: 'Titre optimisé',
+        tip: 'Idéalement entre 20 et 80 caractères, descriptif et accrocheur.',
+        ok: titleLen >= 20 && titleLen <= 80,
+        pts: 20,
+      },
+      {
+        label: 'Description complète',
+        tip: 'Minimum 200 caractères recommandés. Décrivez votre service en détail.',
+        ok: descLen >= 150,
+        pts: 25,
+      },
+      {
+        label: 'Prix défini',
+        tip: 'Ajoutez un prix de base pour attirer des clients.',
+        ok: !!(o.price && o.price > 0),
+        pts: 15,
+      },
+      {
+        label: 'Catégorie renseignée',
+        tip: 'Choisissez un domaine précis pour être mieux référencé.',
+        ok: (o.domain || '').trim().length > 0,
+        pts: 15,
+      },
+      {
+        label: 'Tags (≥ 3)',
+        tip: 'Ajoutez au moins 3 tags pour améliorer la visibilité.',
+        ok: tags.length >= 3,
+        pts: 10,
+      },
+      {
+        label: "Image de l'offre",
+        tip: 'Une image professionnelle augmente les clics de 40%.',
+        ok: (o.imageUrl || '').trim().length > 0,
+        pts: 10,
+      },
+      {
+        label: 'Packages (Basic/Standard/Premium)',
+        tip: 'Proposez 3 niveaux de service pour maximiser vos revenus.',
+        ok: !!(o.basicPrice && o.standardPrice && o.premiumPrice),
+        pts: 5,
+      },
+    ];
+  }
+
+  /** Modal rejet avec raison */
+  rejectModalOpen = false;
+  rejectApp: OfferApplication | null = null;
+  rejectReason = '';
+  rejectError: string | null = null;
+
+>>>>>>> fc652c4 (le nouveau version)
   constructor(
     private route: ActivatedRoute,
     private router: Router,

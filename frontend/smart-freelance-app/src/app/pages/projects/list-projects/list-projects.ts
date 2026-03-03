@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { ProjectService, Project } from '../../../core/services/project.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -10,6 +10,7 @@ import { catchError, map, filter } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { Chart, ChartData, ChartOptions, registerables } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
+import { QRCodeComponent } from 'angularx-qrcode';
 
 
 const AUTO_REFRESH_INTERVAL_MS = 60_000;
@@ -30,11 +31,16 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-list-projects',
   standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule, BaseChartDirective],
+  imports: [RouterLink, CommonModule, FormsModule, BaseChartDirective, QRCodeComponent],
   templateUrl: './list-projects.html',
   styleUrl: './list-projects.scss',
 })
 export class ListProjects implements OnInit, OnDestroy {
+
+  @ViewChild('qrCodeElement') qrCodeElement!: QRCodeComponent;
+
+  qrProject: Project | null = null;
+  qrContent = '';
 
   // Only for admin statistics
   statusChartData: ChartData<'doughnut', number[], string> = {
@@ -263,4 +269,53 @@ export class ListProjects implements OnInit, OnDestroy {
   onStatusChange(): void {
     this.applyFilters();
   }
+<<<<<<< HEAD
+=======
+
+  openQrModal(project: Project): void {
+    this.qrProject = project;
+    const skills = this.getSkills(project).join(', ') || 'N/A';
+    const deadline = project.deadline
+      ? new Date(project.deadline).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })
+      : 'N/A';
+    this.qrContent = [
+      `PROJECT: ${project.title}`,
+      `Category: ${project.category || 'N/A'}`,
+      `Status: ${project.status || 'N/A'}`,
+      `Budget: ${project.budget ? '$' + project.budget : 'N/A'}`,
+      `Deadline: ${deadline}`,
+      `Skills: ${skills}`,
+      `Description: ${project.description || 'N/A'}`,
+    ].join('\n');
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeQrModal(): void {
+    this.qrProject = null;
+    document.body.style.overflow = '';
+  }
+
+  downloadQr(): void {
+    const canvas = document.querySelector('.qr-modal canvas') as HTMLCanvasElement;
+    const img = document.querySelector('.qr-modal img') as HTMLImageElement;
+    const title = (this.qrProject?.title || 'project').replace(/\s+/g, '-').toLowerCase();
+
+    if (canvas) {
+      const link = document.createElement('a');
+      link.download = `qr-${title}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } else if (img) {
+      const link = document.createElement('a');
+      link.download = `qr-${title}.png`;
+      link.href = img.src;
+      link.click();
+    }
+  }
+
+  /** True si on est sur la page Browse Jobs (freelancers postulent aux projets). */
+  get isBrowseJobs(): boolean {
+    return this.router.url.includes('browse-jobs');
+  }
+>>>>>>> fc652c4 (le nouveau version)
 }

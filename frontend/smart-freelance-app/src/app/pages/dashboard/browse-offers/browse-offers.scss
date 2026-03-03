@@ -26,6 +26,23 @@
     font-size: $font-size-sm;
   }
 
+<<<<<<< HEAD
+=======
+  .client-hint {
+    margin: 0 0 $spacing-xl;
+    font-size: $font-size-sm;
+    color: $neutral-600;
+
+    a {
+      font-weight: $font-weight-semibold;
+      color: $primary-600;
+      text-decoration: none;
+      &:hover { text-decoration: underline; }
+    }
+  }
+
+
+>>>>>>> fc652c4 (le nouveau version)
   .recommended-section {
     margin-bottom: 2.5rem;
     padding: 1.5rem;
@@ -78,6 +95,276 @@
     border-radius: 6px;
   }
 
+<<<<<<< HEAD
+=======
+  // ── Search Panel ───────────────────────────────────────────────────
+  .search-panel {
+    margin-bottom: $spacing-xl;
+    margin-bottom: $spacing-xl;
+  }
+
+  .search-bar {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    flex-wrap: wrap;
+  }
+
+  .search-input-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 220px;
+
+    .search-icon {
+      position: absolute;
+      left: $spacing-md;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      color: $neutral-400;
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: $spacing-sm $spacing-3xl $spacing-sm 2.75rem;
+      font-size: $font-size-sm;
+      border: 1.5px solid $neutral-300;
+      border-radius: $radius-full;
+      background: $white;
+      color: $neutral-900;
+      outline: none;
+      transition: $transition-base;
+      box-sizing: border-box;
+
+      &:focus {
+        border-color: $primary-500;
+        box-shadow: 0 0 0 3px rgba($primary-500, 0.12);
+      }
+
+      &::placeholder { color: $neutral-400; }
+    }
+
+    .clear-btn {
+      position: absolute;
+      right: $spacing-md;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: $neutral-400;
+      font-size: 12px;
+      padding: 0;
+      line-height: 1;
+      &:hover { color: $neutral-700; }
+    }
+
+    /* Spinner AJAX visible pendant la recherche */
+    .search-spinner {
+      position: absolute;
+      right: $spacing-md;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      border: 2px solid $neutral-200;
+      border-top-color: $primary-500;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+  }
+
+  @keyframes spin {
+    to { transform: translateY(-50%) rotate(360deg); }
+  }
+
+  .sort-select {
+    padding: $spacing-sm $spacing-md;
+    font-size: $font-size-sm;
+    border: 1.5px solid $neutral-300;
+    border-radius: $radius-full;
+    background: $white;
+    color: $neutral-700;
+    cursor: pointer;
+    outline: none;
+    min-width: 160px;
+    transition: $transition-base;
+
+    &:focus { border-color: $primary-500; }
+  }
+
+  .btn-advanced--on { // renommé dans le template
+    background: rgba($primary-500, 0.08);
+    border-color: $primary-500;
+    color: $primary-600;
+  }
+
+  .btn-advanced {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-xs;
+    padding: $spacing-sm $spacing-md;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    border: 1.5px solid $neutral-300;
+    border-radius: $radius-full;
+    background: $white;
+    color: $neutral-600;
+    cursor: pointer;
+    transition: $transition-base;
+    position: relative;
+
+    &:hover { background: $neutral-100; border-color: $neutral-400; }
+
+    &--active {
+      background: rgba($primary-500, 0.08);
+      border-color: $primary-500;
+      color: $primary-600;
+    }
+
+    .active-dot {
+      width: 7px;
+      height: 7px;
+      background: $primary-500;
+      border-radius: 50%;
+      margin-left: 4px;
+      display: inline-block;
+    }
+  }
+
+  .btn-reset {
+    padding: $spacing-sm $spacing-md;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    border: 1.5px solid $error-300;
+    border-radius: $radius-full;
+    background: $white;
+    color: $error-600;
+    cursor: pointer;
+    transition: $transition-base;
+
+    &:hover { background: $error-50; }
+
+    &--centered {
+      display: block;
+      margin: $spacing-md auto 0;
+    }
+  }
+
+  .advanced-panel {
+    margin-top: $spacing-md;
+    padding: $spacing-lg;
+    background: $neutral-50;
+    border: 1.5px solid $neutral-200;
+    border-radius: $radius-xl;
+    animation: slideDown 0.15s ease-out;
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .adv-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: $spacing-md;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .filter-lbl {
+    font-size: 11px;
+    font-weight: $font-weight-semibold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $neutral-500;
+  }
+
+  .filter-ctl {
+    padding: $spacing-xs $spacing-sm;
+    font-size: $font-size-sm;
+    border: 1.5px solid $neutral-300;
+    border-radius: $radius-md;
+    background: $white;
+    color: $neutral-800;
+    outline: none;
+    transition: $transition-base;
+    width: 100%;
+    box-sizing: border-box;
+
+    &:focus { border-color: $primary-500; box-shadow: 0 0 0 3px rgba($primary-500, 0.1); }
+  }
+
+  /* Skeleton loading cards */
+  .skeleton-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: $spacing-lg;
+    margin-bottom: $spacing-lg;
+  }
+
+  .skeleton-card {
+    background: $white;
+    border: 1.5px solid $neutral-200;
+    border-radius: $radius-xl;
+    padding: $spacing-lg;
+  }
+
+  .sk {
+    background: linear-gradient(90deg, $neutral-100 25%, $neutral-200 50%, $neutral-100 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius: $radius-md;
+    margin-bottom: $spacing-sm;
+
+    &--title  { height: 22px; width: 70%; }
+    &--badge  { height: 18px; width: 35%; border-radius: $radius-full; }
+    &--text   { height: 14px; width: 100%; }
+    &--short  { width: 60%; }
+    &--btn    { height: 36px; width: 45%; border-radius: $radius-full; margin-top: $spacing-md; }
+  }
+
+  @keyframes shimmer {
+    from { background-position: 200% 0; }
+    to   { background-position: -200% 0; }
+  }
+
+  /* Grid dimmed while refreshing */
+  .offers-grid--loading { opacity: 0.55; pointer-events: none; transition: opacity 0.2s; }
+
+  .count__tag {
+    font-size: $font-size-xs;
+    color: $primary-500;
+    font-weight: $font-weight-medium;
+    margin-left: 4px;
+  }
+
+  .offer-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: $spacing-sm;
+  }
+
+  .duration-type {
+    font-size: $font-size-xs;
+    color: $neutral-500;
+    margin-left: $spacing-xs;
+  }
+
+  .page-info {
+    font-size: $font-size-sm;
+    color: $neutral-400;
+  }
+
+>>>>>>> fc652c4 (le nouveau version)
   // ── Toolbar ────────────────────────────────────────────────────────
   .toolbar {
     display: flex;

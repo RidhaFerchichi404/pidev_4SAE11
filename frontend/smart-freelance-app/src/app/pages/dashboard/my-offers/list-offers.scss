@@ -26,7 +26,7 @@
 }
 
 .section-title {
-  margin: 0;
+  margin: 0 0 $spacing-xs;
   font-size: $font-size-3xl;
   font-weight: $font-weight-extrabold;
   background: $gradient-primary;
@@ -35,7 +35,534 @@
   background-clip: text;
 }
 
-// ——— Statistiques (en bas de page, données backend) ———
+.subtitle {
+  margin: 0;
+  color: $neutral-500;
+  font-size: $font-size-sm;
+}
+
+// ── Add Offer Button ───────────────────────────────────────────────
+.btn--add-offer {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-lg;
+  @include button-gradient;
+  border-radius: $radius-full;
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-sm;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba($primary-500, 0.35);
+  transition: $transition-base;
+
+  &:hover { transform: translateY(-1px); box-shadow: $shadow-primary; }
+}
+
+// ── Search Panel (same design as Browse Offers) ────────────────────
+.search-panel {
+  margin-bottom: $spacing-xl;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+}
+
+.search-input-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+
+  .search-icon {
+    position: absolute;
+    left: $spacing-md;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: $neutral-400;
+    pointer-events: none;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: $spacing-sm $spacing-3xl $spacing-sm 2.75rem;
+    font-size: $font-size-sm;
+    border: 1.5px solid $neutral-300;
+    border-radius: $radius-full;
+    background: $white;
+    color: $neutral-900;
+    outline: none;
+    transition: $transition-base;
+    box-sizing: border-box;
+
+    &:focus {
+      border-color: $primary-500;
+      box-shadow: 0 0 0 3px rgba($primary-500, 0.12);
+    }
+
+    &::placeholder { color: $neutral-400; }
+  }
+
+  .clear-btn {
+    position: absolute;
+    right: $spacing-md;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: $neutral-400;
+    font-size: 12px;
+    padding: 0;
+    line-height: 1;
+    &:hover { color: $neutral-700; }
+  }
+
+  .search-spinner {
+    position: absolute;
+    right: $spacing-md;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid $neutral-200;
+    border-top-color: $primary-500;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to { transform: translateY(-50%) rotate(360deg); }
+}
+
+.sort-select {
+  padding: $spacing-sm $spacing-md;
+  font-size: $font-size-sm;
+  border: 1.5px solid $neutral-300;
+  border-radius: $radius-full;
+  background: $white;
+  color: $neutral-700;
+  cursor: pointer;
+  outline: none;
+  min-width: 160px;
+  transition: $transition-base;
+
+  &:focus { border-color: $primary-500; }
+}
+
+.btn-advanced {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-md;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  border: 1.5px solid $neutral-300;
+  border-radius: $radius-full;
+  background: $white;
+  color: $neutral-600;
+  cursor: pointer;
+  transition: $transition-base;
+
+  &:hover { background: $neutral-100; border-color: $neutral-400; }
+
+  &--on {
+    background: rgba($primary-500, 0.08);
+    border-color: $primary-500;
+    color: $primary-600;
+  }
+
+  .active-dot {
+    width: 7px;
+    height: 7px;
+    background: $primary-500;
+    border-radius: 50%;
+    margin-left: 4px;
+    display: inline-block;
+  }
+}
+
+.btn-reset {
+  padding: $spacing-sm $spacing-md;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  border: 1.5px solid $error-300;
+  border-radius: $radius-full;
+  background: $white;
+  color: $error-600;
+  cursor: pointer;
+  transition: $transition-base;
+
+  &:hover { background: $error-50; }
+}
+
+.advanced-panel {
+  margin-top: $spacing-md;
+  padding: $spacing-lg;
+  background: $neutral-50;
+  border: 1.5px solid $neutral-200;
+  border-radius: $radius-xl;
+  animation: slideDown 0.15s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.adv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: $spacing-md;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-lbl {
+  font-size: 11px;
+  font-weight: $font-weight-semibold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $neutral-500;
+}
+
+.filter-ctl {
+  padding: $spacing-xs $spacing-sm;
+  font-size: $font-size-sm;
+  border: 1.5px solid $neutral-300;
+  border-radius: $radius-md;
+  background: $white;
+  color: $neutral-800;
+  outline: none;
+  transition: $transition-base;
+  width: 100%;
+  box-sizing: border-box;
+
+  &:focus { border-color: $primary-500; box-shadow: 0 0 0 3px rgba($primary-500, 0.1); }
+}
+
+// ── Toolbar ────────────────────────────────────────────────────────
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-lg;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+
+  .count {
+    font-weight: $font-weight-semibold;
+    color: $neutral-500;
+    font-size: $font-size-sm;
+  }
+
+  .count__tag {
+    font-size: $font-size-xs;
+    color: $primary-500;
+    font-weight: $font-weight-medium;
+    margin-left: 4px;
+  }
+
+  .btn-refresh {
+    padding: $spacing-xs $spacing-md;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $neutral-600;
+    background: transparent;
+    border: 1.5px solid $neutral-300;
+    border-radius: $radius-full;
+    cursor: pointer;
+    transition: $transition-base;
+
+    &:hover:not(:disabled) { background: $neutral-100; border-color: $neutral-400; }
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+  }
+}
+
+// ── Skeleton loading ───────────────────────────────────────────────
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: $spacing-lg;
+  margin-bottom: $spacing-lg;
+}
+
+.skeleton-card {
+  background: $white;
+  border: 1.5px solid $neutral-200;
+  border-radius: $radius-xl;
+  padding: $spacing-lg;
+}
+
+.sk {
+  background: linear-gradient(90deg, $neutral-100 25%, $neutral-200 50%, $neutral-100 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-sm;
+
+  &--title  { height: 22px; width: 70%; }
+  &--badge  { height: 18px; width: 35%; border-radius: $radius-full; }
+  &--text   { height: 14px; width: 100%; }
+  &--short  { width: 60%; }
+  &--btn    { height: 36px; width: 45%; border-radius: $radius-full; margin-top: $spacing-md; }
+}
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+// ── Loading / Error States ─────────────────────────────────────────
+.error-state {
+  padding: $spacing-xl;
+  text-align: center;
+
+  .error { color: $error-600; margin-bottom: $spacing-md; font-size: $font-size-sm; }
+}
+
+.btn--retry {
+  padding: $spacing-xs $spacing-md;
+  background: $neutral-600;
+  color: $white;
+  border: none;
+  border-radius: $radius-full;
+  cursor: pointer;
+  font-weight: $font-weight-medium;
+  font-size: $font-size-sm;
+  transition: $transition-base;
+
+  &:hover { background: $neutral-700; }
+}
+
+// ── Offers Grid ────────────────────────────────────────────────────
+.offers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: $spacing-lg;
+
+  &--loading { opacity: 0.55; pointer-events: none; transition: opacity 0.2s; }
+}
+
+// ── Offer Card ─────────────────────────────────────────────────────
+.offer-card {
+  background: $white;
+  border-radius: $radius-xl;
+  border: 1.5px solid $neutral-200;
+  transition: $transition-base;
+
+  &:hover {
+    border-color: $primary-500;
+    box-shadow: 0 6px 24px rgba($primary-500, 0.12);
+    transform: translateY(-2px);
+  }
+}
+
+.offer-content {
+  padding: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.offer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-xs;
+}
+
+.offer-title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  margin: 0;
+  color: $neutral-900;
+  line-height: $line-height-snug;
+  flex: 1;
+}
+
+// ── Status Badge ───────────────────────────────────────────────────
+.offer-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px $spacing-sm;
+  border-radius: $radius-full;
+  font-size: 11px;
+  font-weight: $font-weight-bold;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.status-draft       { background: $neutral-100;  color: $neutral-600; }
+.status-available   { background: $success-50;   color: $success-700; }
+.status-in-progress { background: $info-100;     color: $info-600; }
+.status-accepted    { background: $success-50;   color: $success-700; }
+.status-closed      { background: $error-50;     color: $error-700; }
+
+// ── Tags row (domain + category) ───────────────────────────────────
+.offer-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: $spacing-sm;
+}
+
+.offer-domain {
+  display: inline-block;
+  background: $gradient-soft;
+  color: $primary-500;
+  padding: 2px $spacing-sm;
+  border-radius: $radius-full;
+  font-size: 11px;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba($primary-500, 0.15);
+}
+
+.offer-category {
+  display: inline-block;
+  background: $neutral-100;
+  color: $neutral-600;
+  padding: 2px $spacing-sm;
+  border-radius: $radius-full;
+  font-size: 11px;
+  font-weight: $font-weight-medium;
+}
+
+.offer-desc {
+  color: $neutral-600;
+  line-height: $line-height-relaxed;
+  font-size: $font-size-sm;
+  margin-bottom: $spacing-sm;
+  flex: 1;
+}
+
+.offer-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-sm;
+  font-size: $font-size-sm;
+  color: $neutral-500;
+  margin-bottom: $spacing-xs;
+
+  .price        { font-weight: $font-weight-semibold; color: $neutral-800; }
+  .duration-type { font-size: $font-size-xs; color: $neutral-500; }
+  .applications  { font-size: $font-size-xs; color: $primary-500; font-weight: $font-weight-medium; }
+}
+
+// ── Card Actions ───────────────────────────────────────────────────
+.offer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1px solid $neutral-100;
+  justify-content: flex-end;
+
+  .btn {
+    padding: $spacing-xs $spacing-md;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    border-radius: $radius-full;
+    border: none;
+    cursor: pointer;
+    transition: $transition-base;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    min-width: 70px;
+    justify-content: center;
+
+    &:hover { transform: translateY(-1px); }
+  }
+
+  .btn--info    { background: $info-100;   color: $info-600;    &:hover { background: $info-500;    color: $white; } }
+  .btn--update  { background: $success-50; color: $success-700; &:hover { background: $success-500; color: $white; } }
+  .btn--publish { @include button-gradient; box-shadow: 0 2px 8px rgba($primary-500, 0.3); }
+  .btn--delete  { background: $error-50;   color: $error-700;   &:hover { background: $error-500;   color: $white; } }
+}
+
+// ── Empty State ────────────────────────────────────────────────────
+.empty-state {
+  text-align: center;
+  padding: $spacing-3xl $spacing-xl;
+  background: $neutral-50;
+  border-radius: $radius-xl;
+  border: 2px dashed $neutral-300;
+
+  .empty-icon { font-size: 52px; display: block; margin-bottom: $spacing-md; }
+  p           { color: $neutral-500; font-size: $font-size-base; margin: 0 0 $spacing-lg; }
+
+  .empty-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+
+  .btn--add-offer { display: inline-flex; margin-top: 0; }
+}
+
+// ── Pagination ─────────────────────────────────────────────────────
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  margin-top: $spacing-xl;
+
+  button {
+    padding: $spacing-xs $spacing-md;
+    border-radius: $radius-full;
+    cursor: pointer;
+    border: 1.5px solid $neutral-300;
+    background: $white;
+    font-weight: $font-weight-medium;
+    font-size: $font-size-sm;
+    color: $neutral-600;
+    transition: $transition-base;
+
+    &:hover:not(:disabled) { background: $neutral-100; border-color: $neutral-400; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  .page-btn {
+    min-width: 36px;
+    text-align: center;
+
+    &--active {
+      background: $primary-500;
+      border-color: $primary-500;
+      color: $white;
+      font-weight: $font-weight-bold;
+
+      &:hover:not(:disabled) { background: $primary-600; border-color: $primary-600; }
+    }
+  }
+
+  .page-info {
+    font-size: $font-size-sm;
+    color: $neutral-500;
+    font-weight: $font-weight-medium;
+  }
+}
+
+// ── Statistics Section ─────────────────────────────────────────────
 .stats-section {
   margin-top: 3rem;
   margin-bottom: 2.5rem;
@@ -98,18 +625,13 @@
 }
 
 @media (min-width: 640px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (min-width: 960px) {
-  .stats-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  .stats-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
-// Cartes KPI
 .stat-card {
   background: #fff;
   padding: 1.35rem;
@@ -118,10 +640,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
 
-  &:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-    border-color: #cbd5e1;
-  }
+  &:hover { box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06); border-color: #cbd5e1; }
 }
 
 .stat-card__header {
@@ -138,17 +657,9 @@
   border-radius: 10px;
   flex-shrink: 0;
 
-  &--status {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  }
-
-  &--rate {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  }
-
-  &--chart {
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-  }
+  &--status { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+  &--rate   { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+  &--chart  { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
 }
 
 .stat-card__title {
@@ -184,7 +695,6 @@
   line-height: 1.4;
 }
 
-// Badges par statut (couleurs sémantiques)
 .status-badges {
   display: flex;
   flex-wrap: wrap;
@@ -198,42 +708,16 @@
   border-radius: 8px;
   letter-spacing: 0.02em;
 
-  &--draft {
-    background: #f1f5f9;
-    color: #475569;
-  }
-
-  &--available {
-    background: #dcfce7;
-    color: #166534;
-  }
-
-  &--in-progress {
-    background: #dbeafe;
-    color: #1e40af;
-  }
-
-  &--accepted {
-    background: #dcfce7;
-    color: #166534;
-  }
-
-  &--completed {
-    background: #d1fae5;
-    color: #065f46;
-  }
-
+  &--draft       { background: #f1f5f9; color: #475569; }
+  &--available   { background: #dcfce7; color: #166534; }
+  &--in-progress { background: #dbeafe; color: #1e40af; }
+  &--accepted    { background: #dcfce7; color: #166534; }
+  &--completed   { background: #d1fae5; color: #065f46; }
   &--expired,
-  &--closed {
-    background: #fee2e2;
-    color: #991b1b;
-  }
+  &--closed      { background: #fee2e2; color: #991b1b; }
 }
 
-// Carte taux d'acceptation
-.stat-card--rate .rate-value {
-  color: #059669;
-}
+.stat-card--rate .rate-value { color: #059669; }
 
 .rate-bar {
   height: 8px;
@@ -241,7 +725,6 @@
   border-radius: 999px;
   overflow: hidden;
   margin-bottom: 0.6rem;
-  max-width: 100%;
 }
 
 .rate-bar__fill {
@@ -253,13 +736,8 @@
   transition: width 0.4s ease;
 }
 
-// Sélecteur d'année
 .year-select {
   margin-left: auto;
-
-  &__label {
-    display: none;
-  }
 
   &__input {
     padding: 0.4rem 0.6rem;
@@ -273,17 +751,10 @@
   }
 }
 
-// Graphique évolution mensuelle
-.stat-card--evolution .stat-card__header {
-  margin-bottom: 1rem;
-}
+.stat-card--evolution .stat-card__header { margin-bottom: 1rem; }
 
 .chart {
-  &--bars {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
+  &--bars { display: flex; flex-direction: column; gap: 0.5rem; }
 
   &__bars {
     display: flex;
@@ -328,6 +799,7 @@
     text-align: center;
   }
 
+<<<<<<< HEAD
   &__value {
     color: #334155;
     font-weight: 600;
@@ -659,6 +1131,9 @@
   }
 
   .btn--add-offer { display: inline-flex; margin-top: $spacing-md; }
+=======
+  &__value { color: #334155; font-weight: 600; }
+>>>>>>> fc652c4 (le nouveau version)
 }
 
 // ── Confirm Modals ─────────────────────────────────────────────────
