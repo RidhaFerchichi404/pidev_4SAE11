@@ -11,6 +11,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -101,12 +102,10 @@ class TaskCommentServiceTest {
     @Test
     void findAll_returnsPaginated() {
         TaskComment c = comment(1L, 1L);
-        org.springframework.data.domain.Page<TaskComment> page =
-                new PageImpl<>(List.of(c), PageRequest.of(0, 20), 1);
-        when(taskCommentRepository.findAll(any())).thenReturn(page);
+        Page<TaskComment> page = new PageImpl<>(List.of(c), PageRequest.of(0, 20), 1);
+        when(taskCommentRepository.findAll(any(Pageable.class))).thenReturn(page);
 
-        org.springframework.data.domain.Page<TaskComment> result =
-                taskCommentService.findAll(PageRequest.of(0, 20));
+        Page<TaskComment> result = taskCommentService.findAll(PageRequest.of(0, 20));
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getMessage()).isEqualTo("Test");
