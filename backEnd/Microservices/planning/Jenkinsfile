@@ -1,5 +1,6 @@
 // CI/CD pipeline for the Planning microservice (monorepo: pidev_4SAE11).
 // Script Path in Jenkins: backEnd/Microservices/planning/Jenkinsfile
+// Credentials: GithubCredentials (SCM), DockerHubCrendentials (push), SonarQube (server with SonarQube Token).
 // Prometheus: set PROMETHEUS_PUSHGATEWAY_URL (e.g. http://192.168.1.13:9091) to push build metrics.
 pipeline {
     agent any
@@ -68,7 +69,7 @@ pipeline {
             }
             steps {
                 script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'DockerHubCredentials') {
+                    docker.withRegistry('https://registry.hub.docker.com', 'DockerHubCrendentials') {
                         def image = docker.image("${DOCKER_IMAGE}:${DOCKER_TAG}")
                         image.push()
                         image.push('latest')
