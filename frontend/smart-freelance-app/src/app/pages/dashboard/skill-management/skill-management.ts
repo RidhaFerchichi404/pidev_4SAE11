@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subscription, TimeoutError } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
-import { PortfolioService, Skill, EvaluationTest, EvaluationResult } from '../../../core/services/portfolio.service';
+import { PortfolioService, Skill, EvaluationTest, EvaluationResult, Domain, DOMAIN_LABELS } from '../../../core/services/portfolio.service';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -16,8 +16,14 @@ import { FormsModule } from '@angular/forms';
 export class SkillManagement implements OnInit, OnDestroy {
   skills: Skill[] = [];
   showAddModal = false;
+  showDomainDropdown = false;
   newSkillName = '';
-  newSkillDomain = '';
+
+  // Domain checkbox state — pre-seeded from the local DOMAIN_LABELS map so
+  // checkboxes render immediately; the backend call in ngOnInit keeps it in sync.
+  availableDomains: Domain[] = Object.keys(DOMAIN_LABELS) as Domain[];
+  selectedDomains = new Set<Domain>();
+  readonly domainLabels = DOMAIN_LABELS;
 
   // Test State
   showTestModal = false;
@@ -56,11 +62,8 @@ export class SkillManagement implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadSkills();
 
-    // Subscribe to skills updates from other components
     this.skillsSubscription = this.portfolioService.skillsUpdated$.subscribe(() => {
-      setTimeout(() => {
-        this.loadSkills();
-      }, 0);
+      setTimeout(() => this.loadSkills(), 0);
     });
   }
 
@@ -70,10 +73,8 @@ export class SkillManagement implements OnInit, OnDestroy {
 
   loadSkills() {
     const userId = this.auth.getUserId() || 1;
-    console.log('Loading skills for userId:', userId);
     this.portfolioService.getUserSkills(userId).subscribe({
       next: (skills) => {
-        console.log('Skills loaded:', skills);
         this.skills = skills;
         this.cdr.detectChanges();
       },
@@ -85,13 +86,28 @@ export class SkillManagement implements OnInit, OnDestroy {
     });
   }
 
+  // ── Domain checkbox helpers ─────────────────────────────────
+
+  toggleDomain(domain: Domain) {
+    if (this.selectedDomains.has(domain)) {
+      this.selectedDomains.delete(domain);
+    } else {
+      this.selectedDomains.add(domain);
+    }
+    if (this.skillFormErrors['domains']) this.skillFormErrors['domains'] = '';
+  }
+
+  isDomainSelected(domain: Domain): boolean {
+    return this.selectedDomains.has(domain);
+  }
+
+  // ── Grouping ────────────────────────────────────────────────
+
   get groupedSkills(): { [domain: string]: Skill[] } {
     return this.skills.reduce((acc, skill) => {
-      const domain = skill.domain || 'Other';
-      if (!acc[domain]) {
-        acc[domain] = [];
-      }
-      acc[domain].push(skill);
+      const primary = (skill.domains && skill.domains.length > 0) ? skill.domains[0] : 'OTHER';
+      if (!acc[primary]) acc[primary] = [];
+      acc[primary].push(skill);
       return acc;
     }, {} as { [domain: string]: Skill[] });
   }
@@ -104,18 +120,24 @@ export class SkillManagement implements OnInit, OnDestroy {
     return this.groupedSkills[domain] || [];
   }
 
+  // ── Add Modal ───────────────────────────────────────────────
+
+  getSelectedDomainsArray(): Domain[] {
+    return [...this.selectedDomains];
+  }
+
   openAddModal() {
     this.errorMessage = null;
     this.newSkillName = '';
-    this.newSkillDomain = '';
+    this.selectedDomains = new Set();
     this.skillFormErrors = {};
+    this.showDomainDropdown = false;
     this.showAddModal = true;
   }
 
   private validateSkillForm(): boolean {
     this.skillFormErrors = {};
     const name = this.newSkillName.trim();
-    const domain = this.newSkillDomain.trim();
 
     if (!name) {
       this.skillFormErrors['name'] = 'Skill name is required.';
@@ -127,12 +149,8 @@ export class SkillManagement implements OnInit, OnDestroy {
       this.skillFormErrors['name'] = 'Only letters, numbers, spaces and . + # - / ( ) are allowed.';
     }
 
-    if (!domain) {
-      this.skillFormErrors['domain'] = 'Domain is required.';
-    } else if (domain.length < 2) {
-      this.skillFormErrors['domain'] = 'Domain must be at least 2 characters.';
-    } else if (domain.length > 30) {
-      this.skillFormErrors['domain'] = 'Domain must be 30 characters or less.';
+    if (this.selectedDomains.size === 0) {
+      this.skillFormErrors['domains'] = 'Please select at least one domain.';
     }
 
     return Object.keys(this.skillFormErrors).length === 0;
@@ -142,48 +160,43 @@ export class SkillManagement implements OnInit, OnDestroy {
     if (!this.validateSkillForm()) return;
 
     const skillExists = this.skills.some(
-      skill => skill.name.toLowerCase() === this.newSkillName.trim().toLowerCase()
+      s => s.name.toLowerCase() === this.newSkillName.trim().toLowerCase()
     );
-
     if (skillExists) {
       this.skillFormErrors['name'] = `"${this.newSkillName.trim()}" is already in your profile.`;
       return;
     }
 
     const userId = this.auth.getUserId() || 1;
-    console.log('Creating skill with userId:', userId);
-    const skill = {
-      name: this.newSkillName,
-      domain: this.newSkillDomain,
+    const skill: Skill = {
+      name: this.newSkillName.trim(),
+      domains: [...this.selectedDomains],
       description: 'Added via Dashboard',
-      userId: userId
+      userId
     };
-    console.log('Skill to create:', skill);
+
     this.portfolioService.createSkill(skill).subscribe({
-      next: (createdSkill) => {
-        console.log('Skill created successfully:', createdSkill);
+      next: () => {
         this.portfolioService.notifySkillsUpdated();
         this.showAddModal = false;
         this.newSkillName = '';
-        this.newSkillDomain = '';
+        this.selectedDomains = new Set();
         this.errorMessage = null;
         this.router.navigate(['/dashboard/my-portfolio']);
       },
       error: (err) => {
         console.error('Error adding skill:', err);
-        if (err.error && err.error.message && err.error.message.includes('Duplicate entry')) {
-          this.errorMessage = `The skill "${this.newSkillName}" already exists in your profile. Please add a different skill.`;
-        } else if (err.error && err.error.message) {
-          this.errorMessage = err.error.message;
-        } else if (err.message) {
-          this.errorMessage = err.message;
+        if (err.error?.message?.includes('Duplicate entry')) {
+          this.errorMessage = `The skill "${this.newSkillName}" already exists in your profile.`;
         } else {
-          this.errorMessage = 'Failed to add skill. Please try again.';
+          this.errorMessage = err.error?.message || err.message || 'Failed to add skill. Please try again.';
         }
         setTimeout(() => this.errorMessage = null, 5000);
       }
     });
   }
+
+  // ── Delete ──────────────────────────────────────────────────
 
   confirmDelete(id: number) {
     this.skillToDeleteId = id;
@@ -212,8 +225,9 @@ export class SkillManagement implements OnInit, OnDestroy {
     }
   }
 
+  // ── Verify / Test ───────────────────────────────────────────
+
   verifySkill(skillId: number) {
-    // Show modal with loading spinner immediately
     this.isGeneratingTest = true;
     this.showTestModal = true;
     this.currentTest = null;
@@ -221,11 +235,9 @@ export class SkillManagement implements OnInit, OnDestroy {
     this.testAnswers = [];
     this.resetQuestionState();
     this.errorMessage = null;
-    console.log('Generating test for skill ID:', skillId);
 
     this.portfolioService.generateTest(skillId).subscribe({
       next: (test) => {
-        console.log('Test generated successfully:', test);
         this.isGeneratingTest = false;
         this.currentTest = test;
         this.currentQuestionIndex = 0;
@@ -237,19 +249,18 @@ export class SkillManagement implements OnInit, OnDestroy {
         console.error('Error generating test:', err);
 
         if (err instanceof TimeoutError) {
-          this.errorMessage = 'Request timed out after 2 minutes. The AI service may be taking too long to respond. Please try again.';
+          this.errorMessage = 'Request timed out after 2 minutes. Please try again.';
         } else if (err.status === 0) {
-          this.errorMessage = 'Cannot connect to the Portfolio service. Please ensure the service is running on port 8086.';
+          this.errorMessage = 'Cannot connect to the Portfolio service (port 8086).';
         } else if (err.status === 404) {
-          this.errorMessage = 'Skill not found. Please try refreshing the page.';
+          this.errorMessage = 'Skill not found. Please refresh the page.';
         } else if (err.status === 500) {
-          this.errorMessage = 'AI service error. Please check that the API_KEY environment variable is set correctly.';
-        } else if (err.status === 504 || err.statusText === 'Gateway Timeout') {
-          this.errorMessage = 'Gateway timeout. The AI service may be taking too long to respond.';
+          this.errorMessage = 'AI service error. Check the API_KEY environment variable.';
+        } else if (err.status === 504) {
+          this.errorMessage = 'Gateway timeout. The AI service is taking too long.';
         } else {
           this.errorMessage = err.error?.message || 'Failed to generate test. Please try again later.';
         }
-
         setTimeout(() => this.errorMessage = null, 10000);
       }
     });
@@ -263,16 +274,11 @@ export class SkillManagement implements OnInit, OnDestroy {
 
   submitAnswer() {
     if (!this.selectedOption || !this.currentTest) return;
-
-    const currentQuestion = this.currentTest.questions[this.currentQuestionIndex];
+    const q = this.currentTest.questions[this.currentQuestionIndex];
     this.selectedOption = this.selectedOption.substring(0, 8);
-    this.isAnswerCorrect = this.selectedOption === currentQuestion.correctOption;
+    this.isAnswerCorrect = this.selectedOption === q.correctOption;
     this.isAnswerSubmitted = true;
-
-    this.testAnswers.push({
-      questionIndex: this.currentQuestionIndex,
-      selectedOption: this.selectedOption
-    });
+    this.testAnswers.push({ questionIndex: this.currentQuestionIndex, selectedOption: this.selectedOption });
   }
 
   nextQuestion() {
@@ -294,7 +300,6 @@ export class SkillManagement implements OnInit, OnDestroy {
     }).subscribe({
       next: (result) => {
         this.testResult = result;
-        // Reload skills so verified/score updates appear
         this.loadSkills();
       },
       error: (err) => {
@@ -311,14 +316,14 @@ export class SkillManagement implements OnInit, OnDestroy {
     this.testResult = null;
   }
 
-  // ── History ────────────────────────────────
+  // ── History ─────────────────────────────────────────────────
+
   openHistoryModal() {
     this.showHistoryModal = true;
     this.isLoadingHistory = true;
     const userId = this.auth.getUserId() || 1;
     this.portfolioService.getUserEvaluations(userId).subscribe({
       next: (evaluations) => {
-        // Sort newest first
         this.evaluationHistory = evaluations.sort((a, b) =>
           new Date(b.evaluatedAt || '').getTime() - new Date(a.evaluatedAt || '').getTime()
         );
@@ -339,7 +344,6 @@ export class SkillManagement implements OnInit, OnDestroy {
     this.evaluationHistory = [];
   }
 
-  /** Close the test result modal and immediately open the history modal */
   goToHistory() {
     this.closeTestModal();
     this.openHistoryModal();
@@ -347,13 +351,10 @@ export class SkillManagement implements OnInit, OnDestroy {
 
   formatDate(dateStr?: string): string {
     if (!dateStr) return '—';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
-  /** Returns 1-6 deterministically from the skill name for color theming */
   getSkillColor(name: string): number {
-    const code = name ? name.charCodeAt(0) : 0;
-    return (code % 6) + 1;
+    return ((name ? name.charCodeAt(0) : 0) % 6) + 1;
   }
 }

@@ -5,10 +5,11 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
 import { Button } from '../button/button';
+import { LiveSearch } from '../live-search/live-search.component';
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule, RouterLink, RouterLinkActive, Button],
+  imports: [CommonModule, RouterLink, RouterLinkActive, Button, LiveSearch],
   templateUrl: './header.html',
   styleUrl: './header.scss',
   standalone: true,

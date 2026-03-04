@@ -8,7 +8,9 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.esprit.portfolio.dto.ExperienceDomainStatDto;
 import com.esprit.portfolio.dto.ExperienceRequest;
+import com.esprit.portfolio.entity.Domain;
 import com.esprit.portfolio.entity.Experience;
 import com.esprit.portfolio.entity.Skill;
 import com.esprit.portfolio.repository.ExperienceRepository;
@@ -40,16 +42,13 @@ public class ExperienceService {
 
     @Transactional
     public Experience createExperience(ExperienceRequest request) {
-        // Create experience first so we have an ID? No, save experience last.
-        // But if we want to set 'experienceId' on skill for tracking origin, we might need it.
-        // However, 'resolveAndLinkSkills' needs to return skills to be set on experience.
-        
         List<Skill> skills = resolveAndLinkSkills(request.getUserId(), request.getSkillNames());
 
         Experience experience = Experience.builder()
                 .userId(request.getUserId())
                 .title(request.getTitle())
                 .type(request.getType())
+                .domain(request.getDomain())   // may be null — domain is optional on Experience
                 .description(request.getDescription())
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
@@ -66,11 +65,12 @@ public class ExperienceService {
         return experienceRepository.findById(id).map(experience -> {
             experience.setTitle(request.getTitle());
             experience.setType(request.getType());
+            if (request.getDomain() != null) experience.setDomain(request.getDomain());
             experience.setDescription(request.getDescription());
             experience.setStartDate(request.getStartDate());
             experience.setEndDate(request.getEndDate());
             experience.setCompanyOrClientName(request.getCompanyOrClientName());
-            
+
             if (request.getKeyTasks() != null) {
                 experience.setKeyTasks(request.getKeyTasks());
             }
@@ -78,7 +78,7 @@ public class ExperienceService {
                 List<Skill> skills = resolveAndLinkSkills(experience.getUserId(), request.getSkillNames());
                 experience.setSkills(skills);
             }
-            
+
             return experienceRepository.save(experience);
         }).orElseThrow(() -> new RuntimeException("Experience not found with id " + id));
     }
@@ -88,28 +88,37 @@ public class ExperienceService {
         experienceRepository.deleteById(id);
     }
 
+    // ------------------------------------------------------------------ //
+    //  Admin statistics
+    // ------------------------------------------------------------------ //
+
+    @Transactional(readOnly = true)
+    public List<ExperienceDomainStatDto> getExperienceStatsByDomain() {
+        return experienceRepository.countExperiencesGroupedByDomain();
+    }
+
+    // ------------------------------------------------------------------ //
+    //  Private helpers
+    // ------------------------------------------------------------------ //
+
     private List<Skill> resolveAndLinkSkills(Long userId, List<String> skillNames) {
         List<Skill> skills = new ArrayList<>();
         if (skillNames == null) return skills;
 
         for (String name : skillNames) {
             Optional<Skill> existingSkill = skillRepository.findByNameAndUserId(name, userId);
-            
+
             if (existingSkill.isPresent()) {
                 skills.add(existingSkill.get());
             } else {
-                // Create new skill for this user
+                // Auto-create skill with a neutral default domain
                 Skill newSkill = Skill.builder()
                         .name(name)
                         .userId(userId)
-                        .domain("Experience") // Default domain
+                        .domains(new java.util.ArrayList<>(List.of(Domain.OTHER))) // default — freelancer can update via checkboxes
                         .description("Added via Experience")
                         .createdAt(LocalDateTime.now())
                         .updatedAt(LocalDateTime.now())
-                        // We don't set experienceId here because we don't have it yet, 
-                        // and it's ManyToMany so the link is in the join table.
-                        // If we strictly needed to track which experience created it, we'd need to save experience first.
-                        // For now, let's keep it simple.
                         .build();
                 skills.add(skillRepository.save(newSkill));
             }

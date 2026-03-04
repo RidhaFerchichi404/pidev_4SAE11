@@ -1,0 +1,125 @@
+@import '../../../../styles/freelancia.tokens';
+
+:host {
+  display: block;
+}
+
+// ── Feed wrapper ─────────────────────────────────────────────────────────────
+.projects-feed {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: $fb-s3 $fb-s2 $fb-s5;
+  background: $fb-bg;
+  min-height: 100vh;
+}
+
+// ── Card list (stacked column) ───────────────────────────────────────────────
+.feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: $fb-s2;
+}
+
+.feed-card-host {
+  display: block;
+}
+
+// ── Empty state ──────────────────────────────────────────────────────────────
+.feed-empty {
+  text-align: center;
+  padding: $fb-s5 $fb-s3;
+  background: $fb-card;
+  border-radius: $fb-r-card;
+  box-shadow: $fb-shadow-card;
+
+  .empty-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: $fb-s2;
+  }
+
+  h3 {
+    margin: 0 0 8px;
+    font-size: 20px;
+    color: $fb-text;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: $fb-text-2;
+  }
+}
+
+// ── IO sentinel ──────────────────────────────────────────────────────────────
+.sentinel {
+  height: 1px;
+  width: 100%;
+}
+
+// ── Loading spinner ──────────────────────────────────────────────────────────
+.feed-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: $fb-s3;
+  color: $fb-text-2;
+  font-size: 14px;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid $fb-border;
+  border-top-color: $fb-primary;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// ── End-of-feed ──────────────────────────────────────────────────────────────
+.feed-end {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: $fb-s3;
+  color: $fb-text-2;
+  font-size: 14px;
+
+  p { margin: 0; }
+}
+
+.end-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: $fb-success-lt;
+  color: $fb-success;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+// ── Responsive ───────────────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .projects-feed {
+    max-width: 500px;
+    padding: $fb-s2 $fb-s1 $fb-s5;
+  }
+}
+
+@media (max-width: 480px) {
+  .projects-feed {
+    max-width: 100%;
+    padding: $fb-s1 $fb-s1 $fb-s5;
+  }
+}

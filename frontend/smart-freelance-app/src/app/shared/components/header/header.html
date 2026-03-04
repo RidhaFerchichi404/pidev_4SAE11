@@ -156,25 +156,9 @@
       </nav>
     }
 
-    <!-- ── Dashboard: Search bar (desktop + tablet) ── -->
+    <!-- ── Dashboard: Live search (desktop + tablet) ── -->
     @if (variant === 'dashboard' && auth.isLoggedIn()) {
-      <form class="search-form" (submit)="handleSearch($event, searchInput.value)" role="search">
-        <div class="search-wrapper">
-          <svg class="search-icon-left" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-            <circle cx="9" cy="9" r="5" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M15 15l-3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
-          <input
-            #searchInput
-            type="search"
-            class="search-input"
-            [placeholder]="auth.isFreelancer() ? 'Search jobs, freelancers…' : 'Search freelancers, offers…'"
-            aria-label="Search" />
-          <button type="submit" class="search-submit-btn" aria-label="Submit search">
-            Search
-          </button>
-        </div>
-      </form>
+      <app-live-search class="header-search"></app-live-search>
     }
 
     <!-- ── Public: Center nav links ── -->
@@ -305,22 +289,9 @@
     <div class="mobile-drawer" [class.open]="dashboardMobileOpen()" aria-label="Mobile navigation">
 
       <!-- Mobile search -->
-      <form class="mobile-search-form"
-            (submit)="handleSearch($event, mobileSearchInput.value); dashboardMobileOpen.set(false)"
-            role="search">
-        <div class="search-wrapper">
-          <svg class="search-icon-left" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-            <circle cx="9" cy="9" r="5" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M15 15l-3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
-          <input
-            #mobileSearchInput
-            type="search"
-            class="search-input"
-            [placeholder]="auth.isFreelancer() ? 'Search jobs, freelancers…' : 'Search freelancers, offers…'"
-            aria-label="Search" />
-        </div>
-      </form>
+      <div class="mobile-search-wrapper">
+        <app-live-search></app-live-search>
+      </div>
 
       <!-- Mobile nav sections -->
       <div class="mobile-nav-body">

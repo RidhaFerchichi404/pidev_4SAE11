@@ -42,11 +42,17 @@
             {{ skill.name.charAt(0) | uppercase }}
           </div>
 
-          <!-- Name + domain chip + verified chip -->
+          <!-- Name + domain chips + verified chip -->
           <div class="card-body">
             <h4 class="skill-name">{{ skill.name }}</h4>
             <div class="skill-tags">
-              <span class="domain-chip">{{ skill.domain }}</span>
+              <span class="domain-chip" *ngFor="let d of (skill.domains || []).slice(0, 2)">
+                {{ domainLabels[d] || d }}
+              </span>
+              <span class="domain-chip domain-chip--more"
+                    *ngIf="(skill.domains || []).length > 2">
+                +{{ (skill.domains || []).length - 2 }}
+              </span>
               <span class="verified-chip" *ngIf="skill.verified">
                 <svg width="9" height="9" viewBox="0 0 12 12" fill="none">
                   <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" stroke-width="2.2"
@@ -132,25 +138,72 @@
             placeholder="e.g. Java, React, Python"
             [class.input-invalid]="skillFormErrors['name']"
             (ngModelChange)="skillFormErrors['name'] = ''"
-            (keyup.enter)="newSkillDomain ? addSkill() : null"
+            (keyup.enter)="selectedDomains.size > 0 ? addSkill() : null"
             maxlength="50"
           />
           <span class="field-err-msg" *ngIf="skillFormErrors['name']">{{ skillFormErrors['name'] }}</span>
           <span class="field-hint" *ngIf="!skillFormErrors['name']">Letters, numbers, spaces and . + # - / ( ) — max 50 chars</span>
         </div>
         <div class="form-group">
-          <label for="skillDomain">Domain <span class="req">*</span></label>
-          <input
-            id="skillDomain"
-            [(ngModel)]="newSkillDomain"
-            placeholder="e.g. Backend, Frontend, DevOps"
-            [class.input-invalid]="skillFormErrors['domain']"
-            (ngModelChange)="skillFormErrors['domain'] = ''"
-            (keyup.enter)="newSkillName ? addSkill() : null"
-            maxlength="30"
-          />
-          <span class="field-err-msg" *ngIf="skillFormErrors['domain']">{{ skillFormErrors['domain'] }}</span>
-          <span class="field-hint" *ngIf="!skillFormErrors['domain']">e.g. Backend, Frontend, DevOps — max 30 chars</span>
+          <label>Domain <span class="req">*</span></label>
+          <div class="domain-select-wrapper">
+
+            <!-- Backdrop: click outside closes the dropdown -->
+            <div *ngIf="showDomainDropdown"
+                 class="dropdown-backdrop"
+                 (click)="showDomainDropdown = false"></div>
+
+            <!-- Trigger button -->
+            <button
+              type="button"
+              class="domain-select-trigger"
+              [class.trigger-invalid]="skillFormErrors['domains']"
+              [class.trigger-open]="showDomainDropdown"
+              (click)="showDomainDropdown = !showDomainDropdown; $event.stopPropagation()"
+            >
+              <span class="trigger-placeholder" *ngIf="selectedDomains.size === 0">
+                Select one or more domains…
+              </span>
+              <div class="trigger-chips" *ngIf="selectedDomains.size > 0">
+                <span class="trigger-chip" *ngFor="let d of getSelectedDomainsArray().slice(0, 2)">
+                  {{ domainLabels[d] }}
+                </span>
+                <span class="trigger-chip trigger-chip--more" *ngIf="selectedDomains.size > 2">
+                  +{{ selectedDomains.size - 2 }}
+                </span>
+              </div>
+              <svg class="trigger-chevron" [class.open]="showDomainDropdown"
+                   width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.75"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+
+            <!-- Dropdown panel -->
+            <div class="domain-select-panel" *ngIf="showDomainDropdown"
+                 (click)="$event.stopPropagation()">
+              <label
+                *ngFor="let d of availableDomains"
+                class="dropdown-option"
+                [class.is-selected]="isDomainSelected(d)"
+              >
+                <input
+                  type="checkbox"
+                  [checked]="isDomainSelected(d)"
+                  (change)="toggleDomain(d)"
+                />
+                <span>{{ domainLabels[d] }}</span>
+                <svg *ngIf="isDomainSelected(d)" class="option-check"
+                     width="14" height="14" viewBox="0 0 16 16" fill="none">
+                  <path d="M3 8l3.5 3.5L13 5" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </label>
+            </div>
+
+          </div>
+          <span class="field-err-msg" *ngIf="skillFormErrors['domains']">{{ skillFormErrors['domains'] }}</span>
+          <span class="field-hint" *ngIf="!skillFormErrors['domains']">Select one or more domains that apply to this skill</span>
         </div>
       </div>
       <div class="modal-actions">

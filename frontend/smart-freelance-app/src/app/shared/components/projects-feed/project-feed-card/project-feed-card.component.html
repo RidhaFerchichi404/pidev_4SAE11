@@ -1,0 +1,93 @@
+<article
+  class="feed-card"
+  [style.animation-delay]="animDelay()"
+  (click)="onCardClick()"
+  (keydown.enter)="onCardClick()"
+  tabindex="0"
+  role="article"
+  [attr.aria-label]="'Project: ' + project().title">
+
+  <!-- ── Row 1: Client info ──────────────────────────────────────────────── -->
+  <div class="card-header">
+    <div class="client-info">
+      <img
+        class="client-avatar"
+        [src]="project().client.avatar"
+        [alt]="project().client.name"
+        (error)="onAvatarError($event)" />
+      <div class="client-meta">
+        <span class="client-name">{{ project().client.name }}</span>
+        <div class="star-row" [attr.aria-label]="'Rating ' + rating() + ' out of 5'">
+          @for (star of stars; track star) {
+            <span class="star" [class.star--filled]="star <= ratingFloor()">★</span>
+          }
+          <span class="rating-val">{{ rating() | number:'1.1-1' }}</span>
+        </div>
+      </div>
+    </div>
+    <span class="posted-ago">{{ project().postedAgo }}</span>
+  </div>
+
+  <!-- ── Row 2: Title + Budget ───────────────────────────────────────────── -->
+  <div class="title-row">
+    <h3 class="project-title">{{ project().title }}</h3>
+    <span class="project-budget">${{ project().budget | number }}</span>
+  </div>
+
+  <!-- ── Row 3: Description (3-line clamp) ──────────────────────────────── -->
+  <p class="project-desc">{{ project().description }}</p>
+
+  <!-- ── Row 4: Skills pills ────────────────────────────────────────────── -->
+  <div class="skills-row">
+    @for (skill of visibleSkills(); track skill) {
+      <span class="skill-pill">{{ skill }}</span>
+    }
+    @if (extraSkills() > 0) {
+      <span class="skill-pill skill-pill--more">+{{ extraSkills() }}</span>
+    }
+  </div>
+
+  <!-- ── Row 5: Action buttons ──────────────────────────────────────────── -->
+  <div class="card-actions" role="group" aria-label="Project actions">
+
+    <button
+      class="btn btn--apply"
+      type="button"
+      (click)="onApply($event)"
+      aria-label="Apply to this project">
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M2 8h10M8 4l4 4-4 4"
+              stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Apply Now
+    </button>
+
+    <button
+      class="btn btn--save"
+      [class.btn--saved]="isSaved()"
+      type="button"
+      (click)="onSave($event)"
+      [attr.aria-label]="isSaved() ? 'Remove from saved' : 'Save project'">
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M3 2h10a1 1 0 011 1v11l-5-3-5 3V3a1 1 0 011-1z"
+              [attr.fill]="isSaved() ? 'currentColor' : 'none'"
+              stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>
+      {{ isSaved() ? 'Saved' : 'Save' }}
+    </button>
+
+    <button
+      class="btn btn--message"
+      type="button"
+      (click)="onMessage($event)"
+      aria-label="Message the client">
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M2 3h12a1 1 0 011 1v7a1 1 0 01-1 1H5l-3 3V4a1 1 0 011-1z"
+              stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>
+      Message
+    </button>
+
+  </div>
+</article>

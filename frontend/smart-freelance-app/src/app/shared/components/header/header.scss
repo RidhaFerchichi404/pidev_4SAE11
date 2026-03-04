@@ -200,73 +200,19 @@
 }
 
 // ═══════════════════════════════════════════════════════════
-//  Search bar
+//  Live search (replaces old static search form)
 // ═══════════════════════════════════════════════════════════
 
-.search-form {
+.header-search {
   flex: 1;
-  max-width: 360px;
-  min-width: 160px;
+  max-width: 380px;
+  min-width: 140px;
+  display: block;
 }
 
-.search-wrapper {
-  display: flex;
-  align-items: center;
-  height: 40px;
-  background: $neutral-100;
-  border: 1.5px solid transparent;
-  border-radius: $radius-full;
-  overflow: hidden;
-  transition: border-color $transition-fast, background $transition-fast, box-shadow $transition-fast;
-
-  &:focus-within {
-    border-color: $primary-500;
-    background: #ffffff;
-    box-shadow: 0 0 0 3px rgba($primary-500, 0.12);
-  }
-}
-
-.search-icon-left {
-  width: 16px;
-  height: 16px;
-  color: $neutral-400;
-  margin-left: 12px;
-  flex-shrink: 0;
-  pointer-events: none;
-}
-
-.search-input {
-  flex: 1;
-  min-width: 0;
-  background: transparent;
-  border: none;
-  outline: none;
-  padding: 0 10px;
-  font-size: $font-size-sm;
-  color: $neutral-900;
-  font-family: $font-family;
-
-  &::placeholder { color: $neutral-400; }
-  &::-webkit-search-cancel-button { display: none; }
-}
-
-.search-submit-btn {
-  flex-shrink: 0;
-  background: $gradient-primary;
-  color: #ffffff;
-  border: none;
-  padding: 0 $spacing-md;
-  height: 100%;
-  font-size: 12px;
-  font-weight: $font-weight-semibold;
-  font-family: $font-family;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: opacity $transition-fast;
-  letter-spacing: 0.01em;
-
-  &:hover { opacity: 0.88; }
-  &:focus-visible { outline: 2px solid $primary-500; outline-offset: -2px; }
+// Mobile search wrapper inside drawer
+.mobile-search-wrapper {
+  padding: $spacing-md $spacing-md 10px;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -644,8 +590,8 @@
   .mobile-hamburger { display: flex; }
   .mobile-drawer  { display: flex; }
 
-  .search-form {
-    max-width: 260px;
+  .header-search {
+    max-width: 240px;
   }
 
   .cta-btn.desktop-cta {
@@ -666,7 +612,7 @@
     gap: $spacing-xs;
   }
 
-  .search-form        { display: none; }
+  .header-search      { display: none; }
   .cta-btn.desktop-cta { display: none; }
   .mobile-menu-toggle  { display: flex; }
   .user-name           { display: none !important; }

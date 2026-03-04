@@ -1,14 +1,71 @@
-<aside class="sidebar">
-  <nav class="sidebar-nav">
-    @for (item of navItems; track item.route) {
-      <a
-        [routerLink]="item.route"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' || item.route === '/admin' }"
-        class="sidebar-link">
-        <span class="sidebar-icon">{{ item.icon }}</span>
-        <span class="sidebar-label">{{ item.label }}</span>
-      </a>
+<aside class="sidebar"
+       [class.sidebar--admin]="variant === 'admin'"
+       [class.is-expanded]="isExpanded">
+
+  <!-- ── Top bar: toggle + brand ─────────────────────────── -->
+  <div class="sidebar-topbar">
+    <button class="toggle-btn" (click)="toggle()" [title]="isExpanded ? 'Close menu' : 'Open menu'">
+      @if (isExpanded) {
+        <!-- X icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      } @else {
+        <!-- Hamburger icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      }
+    </button>
+
+    @if (isExpanded) {
+      <span class="brand-label">{{ variant === 'admin' ? 'Admin Panel' : 'Dashboard' }}</span>
     }
-  </nav>
+  </div>
+
+  <!-- ── Admin: grouped sections ──────────────────────────── -->
+  @if (variant === 'admin') {
+    <nav class="sidebar-nav">
+      @for (section of adminNavSections; track section.title) {
+        <div class="nav-section">
+          @if (isExpanded) {
+            <span class="nav-section-title">{{ section.title }}</span>
+          }
+          @for (item of section.items; track item.route) {
+            <a [routerLink]="item.route"
+               routerLinkActive="active"
+               [routerLinkActiveOptions]="{ exact: item.route === '/admin' }"
+               class="sidebar-link"
+               [attr.title]="!isExpanded ? item.label : null">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path [attr.d]="iconPaths[item.icon]"/>
+              </svg>
+              @if (isExpanded) {
+                <span class="sidebar-label">{{ item.label }}</span>
+              }
+            </a>
+          }
+        </div>
+      }
+    </nav>
+
+  } @else {
+    <!-- ── Dashboard: flat list ──────────────────────────── -->
+    <nav class="sidebar-nav">
+      @for (item of navItems; track item.route) {
+        <a [routerLink]="item.route"
+           routerLinkActive="active"
+           [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+           class="sidebar-link">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path [attr.d]="iconPaths[item.icon]"/>
+          </svg>
+          <span class="sidebar-label">{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+  }
+
 </aside>

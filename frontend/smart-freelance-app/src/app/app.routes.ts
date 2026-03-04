@@ -127,6 +127,8 @@ export const routes: Routes = [
       { path: 'projects', loadComponent: () => import('./pages/admin/project-management/project-management').then(m => m.ProjectManagement) },
       { path: 'planning', loadComponent: () => import('./pages/admin/planning-management/planning-management').then(m => m.PlanningManagement) },
       { path: 'evaluations', loadComponent: () => import('./pages/admin/admin-dashboard/admin-dashboard').then(m => m.AdminDashboard) },
+      { path: 'skill-stats', loadComponent: () => import('./pages/admin/skill-stats/skill-stats').then(m => m.SkillStats) },
+      { path: 'skills', loadComponent: () => import('./pages/admin/skill-management/skill-management').then(m => m.AdminSkillManagement) },
       { path: 'reviews', loadComponent: () => import('./pages/admin/review-management/review-management').then(m => m.ReviewManagement) },
       { path: 'settings', loadComponent: () => import('./pages/admin/admin-dashboard/admin-dashboard').then(m => m.AdminDashboard) },
     ]

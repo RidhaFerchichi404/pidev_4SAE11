@@ -1,103 +1,261 @@
 <!-- ═══════════════════════════════════════════════════════════════
      PROFILE PAGE  –  adapts for FREELANCER and CLIENT
+     Premium Upwork-inspired redesign
      ═══════════════════════════════════════════════════════════════ -->
 <div class="profile-page">
 
-  <!-- Loading skeleton -->
+  <!-- ── Loading skeleton ──────────────────────────────────────── -->
   @if (isLoading) {
     <div class="loading-shell">
-      <div class="skeleton cover-skeleton"></div>
-      <div class="skeleton avatar-skeleton"></div>
-      <div class="skeleton name-skeleton"></div>
-      <div class="skeleton text-skeleton"></div>
+      <!-- Skeleton mirrors the new compact header (no tall banner) -->
+      <div class="ph-skeleton-header">
+        <div class="ph-sk-stripe skeleton"></div>
+        <div class="ph-sk-body">
+          <div class="skeleton ph-sk-avatar"></div>
+          <div class="ph-sk-text">
+            <div class="skeleton ph-sk-name"></div>
+            <div class="skeleton ph-sk-sub"></div>
+            <div class="skeleton ph-sk-tags"></div>
+          </div>
+          <div class="ph-sk-actions">
+            <div class="skeleton ph-sk-btn"></div>
+            <div class="skeleton ph-sk-btn"></div>
+          </div>
+        </div>
+      </div>
     </div>
   }
 
   @if (!isLoading) {
 
-    <!-- ── HERO COVER ──────────────────────────────────────────── -->
-    <div class="profile-hero">
-      <div class="cover-band">
-        <div class="cover-pattern"></div>
-      </div>
+    <!-- ═══════════════════════════════════════════════════════════
+         PROFILE HEADER — clean white card, no banner
+         ═══════════════════════════════════════════════════════════ -->
+    <div class="profile-header">
 
-      <div class="hero-content">
-        <!-- Avatar -->
-        <div class="avatar-ring">
-          <div class="avatar-circle">{{ initials }}</div>
-        </div>
+      <!-- 3 px brand gradient stripe at top edge -->
+      <div class="ph-stripe" aria-hidden="true"></div>
 
-        <!-- Identity -->
-        <div class="hero-info">
-          <div class="hero-name-row">
-            <h1 class="hero-name">{{ displayName }}</h1>
-            <span class="role-pill" [class.role-freelancer]="auth.isFreelancer()" [class.role-client]="auth.isClient()">
-              {{ role }}
-            </span>
+      <div class="ph-body">
+
+        <!-- LEFT: Avatar + Identity -->
+        <div class="ph-left">
+
+          <!-- Avatar with optional verified-skill dot -->
+          <div class="ph-avatar-wrap">
+            <div class="ph-avatar-ring">
+              <div class="ph-avatar-img">{{ initials }}</div>
+            </div>
+            @if (auth.isFreelancer() && verifiedSkills.length > 0) {
+              <div class="ph-avatar-dot" title="Has AI-verified skills" aria-label="Has AI-verified skills">
+                <svg width="9" height="9" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" fill="white"/>
+                </svg>
+              </div>
+            }
           </div>
-          <p class="hero-username">&#64;{{ username }}</p>
+
+          <!-- Name · role pill · @username · mobile chips -->
+          <div class="ph-identity">
+            <div class="ph-name-row">
+              <h1 class="ph-name">{{ displayName }}</h1>
+              <span class="ph-role-pill"
+                [class.ph-role--freelancer]="auth.isFreelancer()"
+                [class.ph-role--client]="auth.isClient()">
+                {{ role }}
+              </span>
+            </div>
+            <p class="ph-sub">&#64;{{ username }}</p>
+
+            <!-- Trust chips — visible only on mobile (≤ 767 px) -->
+            @if (auth.isFreelancer()) {
+              <div class="ph-chips ph-chips--mobile" role="list" aria-label="Quick profile stats">
+                @if (verifiedSkills.length > 0) {
+                  <span class="ph-chip ph-chip--v" role="listitem">
+                    <svg width="9" height="9" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" fill="currentColor"/>
+                    </svg>
+                    {{ verifiedSkills.length }} Verified
+                  </span>
+                }
+                @if (passRate > 0) {
+                  <span class="ph-chip ph-chip--p" role="listitem">{{ passRate }}% Pass</span>
+                }
+                @if (experiences.length > 0) {
+                  <span class="ph-chip ph-chip--e" role="listitem">{{ experiences.length }} Exp</span>
+                }
+              </div>
+            }
+          </div>
         </div>
 
-        <!-- Quick actions -->
-        <div class="hero-actions">
+        <!-- RIGHT: Trust chips (desktop) + action buttons -->
+        <div class="ph-right">
+
           @if (auth.isFreelancer()) {
-            <a routerLink="/dashboard/my-portfolio" class="btn-outline">Edit Portfolio</a>
+            <!-- Trust chips — visible only on desktop (≥ 768 px) -->
+            <div class="ph-chips ph-chips--desktop" role="list" aria-label="Quick profile stats">
+              @if (verifiedSkills.length > 0) {
+                <span class="ph-chip ph-chip--v" role="listitem">
+                  <svg width="9" height="9" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" fill="currentColor"/>
+                  </svg>
+                  {{ verifiedSkills.length }} Verified
+                </span>
+              }
+              @if (passRate > 0) {
+                <span class="ph-chip ph-chip--p" role="listitem">{{ passRate }}% Pass Rate</span>
+              }
+              @if (experiences.length > 0) {
+                <span class="ph-chip ph-chip--e" role="listitem">{{ experiences.length }} Exp</span>
+              }
+            </div>
           }
-          <a routerLink="/dashboard/settings" class="btn-ghost">Settings</a>
+
+          <div class="ph-actions">
+            @if (auth.isFreelancer()) {
+              <a routerLink="/dashboard/my-portfolio" class="btn-primary ph-btn" aria-label="Edit your portfolio">
+                <svg width="13" height="13" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" fill="currentColor"/>
+                </svg>
+                Edit Portfolio
+              </a>
+            }
+            <a routerLink="/dashboard/settings" class="btn-ghost ph-btn">
+              <svg width="13" height="13" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" fill="currentColor"/>
+              </svg>
+              Settings
+            </a>
+          </div>
+
         </div>
       </div>
     </div>
+    <!-- END HEADER -->
 
     <!-- ════════════════════ FREELANCER PROFILE ════════════════════ -->
     @if (auth.isFreelancer()) {
 
-      <!-- Stats strip -->
-      <div class="stats-strip">
-        <div class="stat-card">
-          <span class="stat-value">{{ skills.length }}</span>
-          <span class="stat-label">Skills</span>
+      <!-- Stats strip ─────────────────────────────────────────────── -->
+      <div class="stats-strip" role="list" aria-label="Profile statistics">
+
+        <div class="stat-card" role="listitem">
+          <div class="stat-icon-wrap stat-wrap-neutral" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <span class="stat-value">{{ skills.length }}</span>
+            <span class="stat-label">Total Skills</span>
+          </div>
         </div>
-        <div class="stat-card stat-accent">
-          <span class="stat-value">{{ verifiedSkills.length }}</span>
-          <span class="stat-label">Verified</span>
+
+        <div class="stat-card stat-card-accent" role="listitem">
+          <div class="stat-icon-wrap stat-wrap-primary" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <span class="stat-value">{{ verifiedSkills.length }}</span>
+            <span class="stat-label">Verified Skills</span>
+          </div>
         </div>
-        <div class="stat-card">
-          <span class="stat-value">{{ experiences.length }}</span>
-          <span class="stat-label">Experiences</span>
+
+        <div class="stat-card" role="listitem">
+          <div class="stat-icon-wrap stat-wrap-purple" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd" fill="currentColor"/>
+              <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <span class="stat-value">{{ experiences.length }}</span>
+            <span class="stat-label">Experiences</span>
+          </div>
         </div>
-        <div class="stat-card stat-score">
-          <span class="stat-value">{{ avgScore > 0 ? avgScore + '%' : '—' }}</span>
-          <span class="stat-label">Avg&nbsp;Score</span>
+
+        <div class="stat-card stat-card-score" role="listitem">
+          <div class="stat-icon-wrap stat-wrap-blue" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <span class="stat-value">{{ avgScore > 0 ? avgScore + '%' : '—' }}</span>
+            <span class="stat-label">Avg&nbsp;Score</span>
+          </div>
         </div>
-        <div class="stat-card">
-          <span class="stat-value">{{ evaluations.length }}</span>
-          <span class="stat-label">Tests Taken</span>
+
+        <div class="stat-card" role="listitem">
+          <div class="stat-icon-wrap stat-wrap-amber" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" fill="currentColor"/>
+              <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <span class="stat-value">{{ evaluations.length }}</span>
+            <span class="stat-label">Tests Taken</span>
+          </div>
         </div>
-        <div class="stat-card stat-pass">
-          <span class="stat-value">{{ passRate > 0 ? passRate + '%' : '—' }}</span>
-          <span class="stat-label">Pass Rate</span>
+
+        <div class="stat-card stat-card-pass" role="listitem">
+          <div class="stat-icon-wrap stat-wrap-green" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <span class="stat-value">{{ passRate > 0 ? passRate + '%' : '—' }}</span>
+            <span class="stat-label">Pass Rate</span>
+          </div>
         </div>
+
+      </div>
+      <!-- END STATS -->
+
+      <!-- Tab bar ─────────────────────────────────────────────────── -->
+      <div class="tab-bar" role="tablist" aria-label="Profile sections">
+        <button class="tab-btn" role="tab"
+          [class.active]="activeTab === 'skills'"
+          [attr.aria-selected]="activeTab === 'skills'"
+          (click)="setTab('skills')">
+          <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path fill-rule="evenodd" d="M7 2a1 1 0 00-.707 1.707L7 4.414v3.758A1 1 0 006.01 9.25l-1.788 2.386A1 1 0 005 12.25h10a1 1 0 00.788-1.614L13.99 8.99V4.414l.707-.707A1 1 0 0013 2H7zm2 11a1 1 0 112 0v1h1a1 1 0 110 2H9a1 1 0 110-2h1v-1z" clip-rule="evenodd" fill="currentColor"/>
+          </svg>
+          Skills
+          <span class="tab-badge" aria-label="{{ skills.length }} skills">{{ skills.length }}</span>
+        </button>
+        <button class="tab-btn" role="tab"
+          [class.active]="activeTab === 'experience'"
+          [attr.aria-selected]="activeTab === 'experience'"
+          (click)="setTab('experience')">
+          <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5z" clip-rule="evenodd" fill="currentColor"/>
+            <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z" fill="currentColor"/>
+          </svg>
+          Experience
+          <span class="tab-badge" aria-label="{{ experiences.length }} experiences">{{ experiences.length }}</span>
+        </button>
+        <button class="tab-btn" role="tab"
+          [class.active]="activeTab === 'evaluations'"
+          [attr.aria-selected]="activeTab === 'evaluations'"
+          (click)="setTab('evaluations')">
+          <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 00-1-1H6zm0 5a1 1 0 000 2h8a1 1 0 100-2H6zm0 4a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" fill="currentColor"/>
+          </svg>
+          Test History
+          <span class="tab-badge" aria-label="{{ evaluations.length }} tests">{{ evaluations.length }}</span>
+        </button>
       </div>
 
-      <!-- Tab bar -->
-      <div class="tab-bar">
-        <button class="tab-btn" [class.active]="activeTab === 'skills'" (click)="setTab('skills')">
-          <span class="tab-icon">🎯</span> Skills
-          <span class="tab-badge">{{ skills.length }}</span>
-        </button>
-        <button class="tab-btn" [class.active]="activeTab === 'experience'" (click)="setTab('experience')">
-          <span class="tab-icon">📁</span> Experience
-          <span class="tab-badge">{{ experiences.length }}</span>
-        </button>
-        <button class="tab-btn" [class.active]="activeTab === 'evaluations'" (click)="setTab('evaluations')">
-          <span class="tab-icon">📊</span> Test History
-          <span class="tab-badge">{{ evaluations.length }}</span>
-        </button>
-      </div>
-
-      <!-- ── TAB: SKILLS ────────────────────────────────────────── -->
+      <!-- ── TAB: SKILLS ─────────────────────────────────────────── -->
       @if (activeTab === 'skills') {
-        <div class="tab-panel">
+        <div class="tab-panel" role="tabpanel" aria-label="Skills">
+
           @if (skills.length === 0) {
             <div class="empty-state">
               <div class="empty-icon">🎯</div>
@@ -110,31 +268,62 @@
           @for (domain of skillDomains; track domain) {
             <div class="domain-section">
               <div class="domain-header">
-                <span class="domain-name">{{ domain }}</span>
-                <span class="domain-count">{{ getSkillsByDomain(domain).length }}</span>
+                <div class="domain-header-left">
+                  <span class="domain-emoji" aria-hidden="true">{{ getDomainIcon(domain) }}</span>
+                  <span class="domain-name">{{ domain }}</span>
+                </div>
+                <span class="domain-count-pill">{{ getSkillsByDomain(domain).length }}</span>
               </div>
-              <div class="skills-grid">
+
+              <!-- Rich skill cards grid -->
+              <div class="skill-cards-grid">
                 @for (skill of getSkillsByDomain(domain); track skill.id) {
-                  <div class="skill-chip" [attr.data-color]="getSkillColor(skill.name)">
-                    <div class="chip-dot"></div>
-                    <span class="chip-name">{{ skill.name }}</span>
-                    @if (skill.verified) {
-                      <span class="chip-verified" title="Verified">✓</span>
-                    }
+                  <article class="skill-card" [attr.data-color]="getSkillColor(skill.name)"
+                    [attr.aria-label]="skill.name + (skill.verified ? ', verified' : '')">
+
+                    <!-- Row 1: dot + name + verified badge -->
+                    <div class="sc-top">
+                      <div class="sc-dot" aria-hidden="true"></div>
+                      <span class="sc-name">{{ skill.name }}</span>
+                      @if (skill.verified) {
+                        <span class="sc-verified-badge" title="AI Verified" aria-label="AI Verified">
+                          <svg width="10" height="10" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" fill="currentColor"/>
+                          </svg>
+                          Verified
+                        </span>
+                      }
+                    </div>
+
+                    <!-- Row 2: level badge -->
+                    <div class="sc-meta">
+                      <span class="sc-level" [attr.data-level]="getSkillLevel(skill.score)">
+                        {{ getSkillLevel(skill.score) }}
+                      </span>
+                    </div>
+
+                    <!-- Row 3: score progress bar -->
                     @if (skill.score !== undefined && skill.score !== null) {
-                      <span class="chip-score">{{ skill.score }}%</span>
+                      <div class="sc-score-row" aria-label="Score: {{ skill.score }}%">
+                        <div class="sc-bar-track" role="progressbar"
+                          [attr.aria-valuenow]="skill.score"
+                          aria-valuemin="0" aria-valuemax="100">
+                          <div class="sc-bar-fill" [style.width.%]="skill.score"></div>
+                        </div>
+                        <span class="sc-score-val">{{ skill.score }}%</span>
+                      </div>
                     }
-                  </div>
+                  </article>
                 }
               </div>
             </div>
           }
 
-          <!-- Verified skills highlight bar -->
+          <!-- Verified skills banner -->
           @if (verifiedSkills.length > 0) {
             <div class="verified-bar">
               <div class="verified-bar-inner">
-                <span class="verified-bar-icon">✅</span>
+                <span class="verified-bar-icon" aria-hidden="true">✅</span>
                 <span class="verified-bar-text">
                   <strong>{{ verifiedSkills.length }}</strong> of {{ skills.length }} skills verified — you stand out!
                 </span>
@@ -147,7 +336,7 @@
 
       <!-- ── TAB: EXPERIENCE ────────────────────────────────────── -->
       @if (activeTab === 'experience') {
-        <div class="tab-panel">
+        <div class="tab-panel" role="tabpanel" aria-label="Experience">
           @if (experiences.length === 0) {
             <div class="empty-state">
               <div class="empty-icon">📁</div>
@@ -159,8 +348,10 @@
 
           <div class="timeline">
             @for (exp of experiences; track exp.id) {
-              <div class="timeline-item" [class.timeline-job]="exp.type === 'JOB'" [class.timeline-project]="exp.type === 'PROJECT'">
-                <div class="timeline-marker">
+              <div class="timeline-item"
+                [class.timeline-job]="exp.type === 'JOB'"
+                [class.timeline-project]="exp.type === 'PROJECT'">
+                <div class="timeline-marker" aria-hidden="true">
                   <span class="timeline-icon">{{ getExperienceIcon(exp.type) }}</span>
                 </div>
                 <div class="timeline-card">
@@ -176,11 +367,9 @@
                       </span>
                     </div>
                   </div>
-
                   @if (exp.description) {
                     <p class="timeline-desc">{{ exp.description }}</p>
                   }
-
                   @if (exp.keyTasks && exp.keyTasks.length > 0) {
                     <ul class="timeline-tasks">
                       @for (task of exp.keyTasks; track $index) {
@@ -188,7 +377,6 @@
                       }
                     </ul>
                   }
-
                   @if (exp.skills && exp.skills.length > 0) {
                     <div class="timeline-skill-tags">
                       @for (skill of exp.skills; track skill.id) {
@@ -205,7 +393,7 @@
 
       <!-- ── TAB: EVALUATIONS ───────────────────────────────────── -->
       @if (activeTab === 'evaluations') {
-        <div class="tab-panel">
+        <div class="tab-panel" role="tabpanel" aria-label="Test History">
           @if (evaluations.length === 0) {
             <div class="empty-state">
               <div class="empty-icon">📊</div>
@@ -216,50 +404,56 @@
           }
 
           @if (evaluations.length > 0) {
-            <!-- Score summary -->
             <div class="eval-summary">
               <div class="eval-score-ring">
-                <svg viewBox="0 0 80 80" class="ring-svg">
+                <svg viewBox="0 0 80 80" class="ring-svg" aria-hidden="true">
                   <circle cx="40" cy="40" r="34" class="ring-bg"/>
                   <circle cx="40" cy="40" r="34" class="ring-fill"
                     [style.stroke-dashoffset]="213.63 - (213.63 * avgScore / 100)"/>
                 </svg>
-                <div class="ring-label">
+                <div class="ring-label" aria-label="Average score: {{ avgScore }}%">
                   <span class="ring-value">{{ avgScore }}%</span>
                   <span class="ring-text">Avg Score</span>
                 </div>
               </div>
               <div class="eval-breakdown">
                 <div class="breakdown-row">
-                  <span class="dot dot-pass"></span>
+                  <span class="dot dot-pass" aria-hidden="true"></span>
                   <span>Passed: <strong>{{ passedCount }}</strong></span>
                 </div>
                 <div class="breakdown-row">
-                  <span class="dot dot-fail"></span>
+                  <span class="dot dot-fail" aria-hidden="true"></span>
                   <span>Failed: <strong>{{ failedCount }}</strong></span>
                 </div>
                 <div class="breakdown-row">
-                  <span class="dot dot-total"></span>
+                  <span class="dot dot-total" aria-hidden="true"></span>
                   <span>Total: <strong>{{ evaluations.length }}</strong></span>
                 </div>
               </div>
             </div>
 
-            <!-- Evaluation list -->
             <div class="eval-list">
               @for (ev of evaluations; track ev.id) {
-                <div class="eval-item" [class.eval-passed]="ev.passed" [class.eval-failed]="!ev.passed">
+                <div class="eval-item"
+                  [class.eval-passed]="ev.passed"
+                  [class.eval-failed]="!ev.passed">
                   <div class="eval-item-left">
-                    <span class="eval-badge" [class.badge-pass]="ev.passed" [class.badge-fail]="!ev.passed">
+                    <span class="eval-badge"
+                      [class.badge-pass]="ev.passed"
+                      [class.badge-fail]="!ev.passed"
+                      aria-hidden="true">
                       {{ ev.passed ? '✓' : '✗' }}
                     </span>
                     <div>
                       <p class="eval-skill-name">{{ ev.skill?.name || 'Skill Test' }}</p>
-                      <p class="eval-domain">{{ ev.skill?.domain || '' }}</p>
+                      <p class="eval-domain">{{ ev.skill?.domains?.[0] || '' }}</p>
                     </div>
                   </div>
                   <div class="eval-item-right">
-                    <div class="eval-score-pill" [class.pill-pass]="ev.passed" [class.pill-fail]="!ev.passed">
+                    <div class="eval-score-pill"
+                      [class.pill-pass]="ev.passed"
+                      [class.pill-fail]="!ev.passed"
+                      aria-label="Score: {{ ev.score }}%">
                       {{ ev.score }}%
                     </div>
                     <span class="eval-date">{{ formatFullDate(ev.evaluatedAt) }}</span>
@@ -277,24 +471,23 @@
     @if (auth.isClient()) {
       <div class="client-body">
 
-        <!-- Info cards -->
         <div class="client-cards">
           <div class="info-card">
-            <div class="info-card-icon">🏢</div>
+            <div class="info-card-icon" aria-hidden="true">🏢</div>
             <div class="info-card-body">
               <h3>Company / Name</h3>
               <p>{{ displayName }}</p>
             </div>
           </div>
           <div class="info-card">
-            <div class="info-card-icon">👤</div>
+            <div class="info-card-icon" aria-hidden="true">👤</div>
             <div class="info-card-body">
               <h3>Username</h3>
               <p>&#64;{{ username }}</p>
             </div>
           </div>
           <div class="info-card">
-            <div class="info-card-icon">🏷️</div>
+            <div class="info-card-icon" aria-hidden="true">🏷️</div>
             <div class="info-card-body">
               <h3>Role</h3>
               <p>{{ role }}</p>
@@ -302,34 +495,32 @@
           </div>
         </div>
 
-        <!-- Quick links for clients -->
         <div class="client-quicklinks">
           <h2 class="section-title">Quick Access</h2>
           <div class="quicklink-grid">
             <a routerLink="/dashboard/my-projects" class="quicklink-card">
-              <span class="ql-icon">📁</span>
+              <span class="ql-icon" aria-hidden="true">📁</span>
               <span class="ql-label">My Projects</span>
-              <span class="ql-arrow">→</span>
+              <span class="ql-arrow" aria-hidden="true">→</span>
             </a>
             <a routerLink="/dashboard/my-contracts" class="quicklink-card">
-              <span class="ql-icon">📋</span>
+              <span class="ql-icon" aria-hidden="true">📋</span>
               <span class="ql-label">My Contracts</span>
-              <span class="ql-arrow">→</span>
+              <span class="ql-arrow" aria-hidden="true">→</span>
             </a>
             <a routerLink="/dashboard/track-progress" class="quicklink-card">
-              <span class="ql-icon">📊</span>
+              <span class="ql-icon" aria-hidden="true">📊</span>
               <span class="ql-label">Track Progress</span>
-              <span class="ql-arrow">→</span>
+              <span class="ql-arrow" aria-hidden="true">→</span>
             </a>
             <a routerLink="/dashboard/browse-freelancers" class="quicklink-card">
-              <span class="ql-icon">🔍</span>
+              <span class="ql-icon" aria-hidden="true">🔍</span>
               <span class="ql-label">Browse Freelancers</span>
-              <span class="ql-arrow">→</span>
+              <span class="ql-arrow" aria-hidden="true">→</span>
             </a>
           </div>
         </div>
 
-        <!-- CTA card -->
         <div class="cta-card">
           <div class="cta-content">
             <h2>Ready to hire top talent?</h2>
@@ -339,7 +530,7 @@
               <a routerLink="/dashboard/post-job" class="btn-outline">Post a Job</a>
             </div>
           </div>
-          <div class="cta-illustration">🤝</div>
+          <div class="cta-illustration" aria-hidden="true">🤝</div>
         </div>
 
       </div>

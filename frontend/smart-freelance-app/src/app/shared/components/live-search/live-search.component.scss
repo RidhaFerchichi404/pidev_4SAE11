@@ -1,0 +1,124 @@
+@import '../../../../styles/freelancia.tokens';
+
+// ── Host ─────────────────────────────────────────────────────────────────────
+.live-search {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+}
+
+// ── Search bar ───────────────────────────────────────────────────────────────
+.search-bar {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  gap: 8px;
+  padding: 0 14px;
+  background: #F0F2F5;
+  border-radius: 20px;
+  border: 1.5px solid transparent;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+
+  &:focus-within,
+  &--open {
+    background: $fb-card;
+    border-color: $fb-primary-a24;
+    box-shadow: 0 0 0 3px $fb-primary-a06;
+  }
+}
+
+.search-icon {
+  width: 16px;
+  height: 16px;
+  color: $fb-text-2;
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: $fb-text;
+  outline: none;
+  min-width: 0;
+  font-family: inherit;
+
+  &::placeholder { color: $fb-text-2; }
+
+  // Remove native Safari/Chrome cancel button
+  &::-webkit-search-cancel-button { display: none; }
+}
+
+// ── Spinner ──────────────────────────────────────────────────────────────────
+.search-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2.5px solid $fb-border;
+  border-top-color: $fb-primary;
+  border-radius: 50%;
+  animation: spin 600ms linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ── Clear button ─────────────────────────────────────────────────────────────
+.clear-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: #BEC3C9;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 150ms ease;
+
+  svg {
+    width: 10px;
+    height: 10px;
+    color: #fff;
+  }
+
+  &:hover { background: #8D949E; }
+}
+
+// ── Dropdown ─────────────────────────────────────────────────────────────────
+.dropdown-wrapper {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 1500;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: dropIn 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes dropIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ── Responsive ───────────────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .live-search { max-width: 100%; }
+
+  .dropdown-wrapper {
+    position: fixed;
+    top: 56px;
+    left: 8px;
+    right: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-bar { height: 38px; }
+}

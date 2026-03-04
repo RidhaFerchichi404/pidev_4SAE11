@@ -1,0 +1,218 @@
+<div class="skill-management-page">
+  <h1>Skill Management</h1>
+  <p class="subtitle">Manage all freelancer skills across the platform</p>
+
+  @if (errorMessage) {
+    <div class="error-banner" role="alert">{{ errorMessage }}</div>
+  }
+
+  <div class="toolbar">
+    <span class="count">{{ filteredSkills.length }} skill(s)</span>
+    <div class="toolbar-actions">
+      <input class="search-input" type="text" placeholder="Search by name, domain or user ID…"
+             [(ngModel)]="searchText" />
+      <button type="button" class="btn-add" (click)="openAdd()">+ Add Skill</button>
+      <button type="button" class="btn-refresh" (click)="loadSkills()" [disabled]="loading">
+        {{ loading ? 'Loading…' : 'Refresh' }}
+      </button>
+    </div>
+  </div>
+
+  @if (loading && skills.length === 0) {
+    <p class="loading-msg">Loading skills…</p>
+  } @else if (filteredSkills.length === 0) {
+    <p class="empty-msg">No skills found.</p>
+  } @else {
+    <div class="table-wrap">
+      <table class="skills-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Domains</th>
+            <th>Users</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (skill of filteredSkills; track skill.id) {
+            <tr>
+              <td class="cell-id">{{ skill.id }}</td>
+              <td class="cell-name">{{ skill.name }}</td>
+              <td class="cell-domains">
+                @for (d of skill.domains; track d) {
+                  <span class="domain-chip">{{ domainLabels[d] ?? d }}</span>
+                }
+                @if (!skill.domains?.length) { <span>—</span> }
+              </td>
+              <td class="cell-count">
+                <span class="user-count-badge">{{ userCountBySkillName(skill.name) }}</span>
+              </td>
+              <td class="actions">
+                <button class="btn-action btn-edit" (click)="openEdit(skill)">Edit</button>
+                <button class="btn-action btn-delete" (click)="openDelete(skill)">Delete</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- ── Add Modal ───────────────────────────────────────────── -->
+@if (showAddModal) {
+  <div class="modal-overlay" (click)="closeAdd()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h3>Add Skill</h3>
+
+      <div class="field">
+        <label>Skill Name</label>
+        <input type="text" [(ngModel)]="addName" placeholder="e.g. Python"
+               [class.is-invalid]="addFormErrors['name']" />
+        @if (addFormErrors['name']) {
+          <span class="field-error">{{ addFormErrors['name'] }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label>User ID (Freelancer)</label>
+        <input type="number" [(ngModel)]="addUserId" placeholder="e.g. 3"
+               [class.is-invalid]="addFormErrors['userId']" />
+        @if (addFormErrors['userId']) {
+          <span class="field-error">{{ addFormErrors['userId'] }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label>Domains</label>
+        <div class="domain-select-wrapper">
+          @if (showAddDomainDropdown) {
+            <div class="dropdown-backdrop" (click)="showAddDomainDropdown = false"></div>
+          }
+          <button type="button" class="domain-select-trigger"
+                  [class.trigger-open]="showAddDomainDropdown"
+                  [class.is-invalid]="addFormErrors['domains']"
+                  (click)="showAddDomainDropdown = !showAddDomainDropdown; $event.stopPropagation()">
+            @if (addSelectedDomains.size === 0) {
+              <span class="trigger-placeholder">Select one or more domains…</span>
+            } @else {
+              <span class="trigger-label">{{ domainChipsLabel(addSelectedDomains) }}</span>
+            }
+            <svg class="trigger-chevron" [class.open]="showAddDomainDropdown" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+          @if (showAddDomainDropdown) {
+            <div class="domain-select-panel" (click)="$event.stopPropagation()">
+              @for (d of availableDomains; track d) {
+                <label class="dropdown-option" [class.is-selected]="addSelectedDomains.has(d)">
+                  <input type="checkbox" [checked]="addSelectedDomains.has(d)" (change)="toggleAddDomain(d)" />
+                  <span>{{ domainLabels[d] }}</span>
+                </label>
+              }
+            </div>
+          }
+        </div>
+        @if (addFormErrors['domains']) {
+          <span class="field-error">{{ addFormErrors['domains'] }}</span>
+        }
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="closeAdd()" [disabled]="saving">Cancel</button>
+        <button class="btn-primary" (click)="saveAdd()" [disabled]="saving">
+          {{ saving ? 'Saving…' : 'Add Skill' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ── Edit Modal ──────────────────────────────────────────── -->
+@if (showEditModal) {
+  <div class="modal-overlay" (click)="closeEdit()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h3>Edit Skill <span class="modal-id">#{{ editSkill?.id }}</span></h3>
+
+      <div class="field">
+        <label>Skill Name</label>
+        <input type="text" [(ngModel)]="editName"
+               [class.is-invalid]="editFormErrors['name']" />
+        @if (editFormErrors['name']) {
+          <span class="field-error">{{ editFormErrors['name'] }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label>User ID (Freelancer)</label>
+        <input type="number" [(ngModel)]="editUserId"
+               [class.is-invalid]="editFormErrors['userId']" />
+        @if (editFormErrors['userId']) {
+          <span class="field-error">{{ editFormErrors['userId'] }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label>Domains</label>
+        <div class="domain-select-wrapper">
+          @if (showEditDomainDropdown) {
+            <div class="dropdown-backdrop" (click)="showEditDomainDropdown = false"></div>
+          }
+          <button type="button" class="domain-select-trigger"
+                  [class.trigger-open]="showEditDomainDropdown"
+                  [class.is-invalid]="editFormErrors['domains']"
+                  (click)="showEditDomainDropdown = !showEditDomainDropdown; $event.stopPropagation()">
+            @if (editSelectedDomains.size === 0) {
+              <span class="trigger-placeholder">Select one or more domains…</span>
+            } @else {
+              <span class="trigger-label">{{ domainChipsLabel(editSelectedDomains) }}</span>
+            }
+            <svg class="trigger-chevron" [class.open]="showEditDomainDropdown" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+          @if (showEditDomainDropdown) {
+            <div class="domain-select-panel" (click)="$event.stopPropagation()">
+              @for (d of availableDomains; track d) {
+                <label class="dropdown-option" [class.is-selected]="editSelectedDomains.has(d)">
+                  <input type="checkbox" [checked]="editSelectedDomains.has(d)" (change)="toggleEditDomain(d)" />
+                  <span>{{ domainLabels[d] }}</span>
+                </label>
+              }
+            </div>
+          }
+        </div>
+        @if (editFormErrors['domains']) {
+          <span class="field-error">{{ editFormErrors['domains'] }}</span>
+        }
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="closeEdit()" [disabled]="updating">Cancel</button>
+        <button class="btn-primary" (click)="saveEdit()" [disabled]="updating">
+          {{ updating ? 'Saving…' : 'Save Changes' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ── Delete Confirm Modal ────────────────────────────────── -->
+@if (skillToDelete) {
+  <div class="modal-overlay" (click)="closeDelete()">
+    <div class="modal modal--confirm" (click)="$event.stopPropagation()">
+      <h3>Delete Skill</h3>
+      <p class="modal-message">
+        Are you sure you want to delete <strong>{{ skillToDelete.name }}</strong>?
+        This action cannot be undone.
+      </p>
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="closeDelete()" [disabled]="deleting">Cancel</button>
+        <button class="btn-danger" (click)="confirmDelete()" [disabled]="deleting">
+          {{ deleting ? 'Deleting…' : 'Delete' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

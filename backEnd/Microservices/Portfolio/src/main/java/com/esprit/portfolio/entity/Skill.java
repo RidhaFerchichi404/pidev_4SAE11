@@ -1,12 +1,20 @@
 package com.esprit.portfolio.entity;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -32,8 +40,17 @@ public class Skill {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
-    private String domain;
+    /**
+     * A skill can belong to one or more domains (e.g. a freelancer who does
+     * both VIDEO_MAKING and CONTENT_CREATION). Stored in the `skill_domains`
+     * join table so the parent `skills` table stays clean.
+     */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "skill_domains", joinColumns = @JoinColumn(name = "skill_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "domain", nullable = false, length = 50)
+    @Builder.Default
+    private List<Domain> domains = new ArrayList<>();
 
     @Column(columnDefinition = "TEXT")
     private String description;

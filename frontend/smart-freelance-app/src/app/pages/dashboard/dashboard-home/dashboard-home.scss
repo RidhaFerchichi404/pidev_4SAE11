@@ -1,32 +1,101 @@
-.dashboard-home-page {
-  max-width: 1200px;
+@import '../../../../styles/freelancia.tokens';
 
-  h1 {
-    font-size: var(--text-4xl);
-    margin-bottom: var(--spacing-sm);
+// ── Page wrapper ─────────────────────────────────────────────────────────────
+.dashboard-home {
+  min-height: 100vh;
+  background: $fb-bg;
+}
+
+// ── Initial-load skeleton feed ────────────────────────────────────────────────
+.feed-skeleton {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: $fb-s3 $fb-s2;
+  display: flex;
+  flex-direction: column;
+  gap: $fb-s2;
+}
+
+// ── Skeleton card shell ───────────────────────────────────────────────────────
+.skeleton-card {
+  background: $fb-card;
+  border-radius: $fb-r-card;
+  box-shadow: $fb-shadow-card;
+  padding: $fb-s3;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sk-header {
+  display: flex;
+  align-items: center;
+  gap: $fb-s1;
+}
+
+.sk-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: $fb-r-avatar;
+  background: #E4E6EB;
+  flex-shrink: 0;
+}
+
+.sk-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+// ── Shimmer ───────────────────────────────────────────────────────────────────
+@keyframes shimmer {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+.sk-line {
+  background: linear-gradient(90deg,
+    #F0F2F5 25%, #E4E6EB 50%, #F0F2F5 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 6px;
+  height: 14px;
+  width: 100%;
+
+  &--title { height: 20px; width: 80%; }
+  &--md    { width: 65%; }
+  &--sm    { width: 40%; }
+}
+
+.sk-pills {
+  display: flex;
+  gap: 6px;
+}
+
+.sk-pill {
+  background: linear-gradient(90deg,
+    #F0F2F5 25%, #E4E6EB 50%, #F0F2F5 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 12px;
+  height: 24px;
+  width: 64px;
+}
+
+// ── Responsive ───────────────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .feed-skeleton {
+    max-width: 500px;
+    padding: $fb-s2 $fb-s1;
   }
+}
 
-  .subtitle {
-    font-size: var(--text-lg);
-    color: var(--text-secondary);
-    margin-bottom: var(--spacing-2xl);
-  }
-
-  .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: var(--spacing-xl);
-
-    app-card {
-      h3 {
-        font-size: var(--text-xl);
-        margin-bottom: var(--spacing-md);
-      }
-
-      p {
-        color: var(--text-secondary);
-        line-height: 1.6;
-      }
-    }
+@media (max-width: 480px) {
+  .feed-skeleton {
+    max-width: 100%;
+    padding: $fb-s1;
   }
 }

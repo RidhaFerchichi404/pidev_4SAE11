@@ -1,0 +1,264 @@
+@import '../../../../../styles/freelancia.tokens';
+
+// ── Slide-up entrance animation ──────────────────────────────────────────────
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ── Card shell ───────────────────────────────────────────────────────────────
+.feed-card {
+  display: block;
+  background: $fb-card;
+  border-radius: $fb-r-card;
+  box-shadow: $fb-shadow-card;
+  padding: $fb-s3;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+
+  // Entrance animation — delay injected via [style.animation-delay]
+  animation: slideUp 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  animation-fill-mode: both;
+
+  // Hover lift
+  transition:
+    transform 220ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 220ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $fb-shadow-hover;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $fb-primary;
+    outline-offset: 3px;
+  }
+}
+
+// ── Row 1: Client ────────────────────────────────────────────────────────────
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $fb-s2;
+  margin-bottom: $fb-s2;
+}
+
+.client-info {
+  display: flex;
+  align-items: center;
+  gap: $fb-s1;
+  min-width: 0;
+}
+
+.client-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: $fb-r-avatar;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: $fb-primary-a06;
+}
+
+.client-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.client-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: $fb-text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.star-row {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.star {
+  font-size: 13px;
+  color: #D4D4D4;
+  line-height: 1;
+
+  &--filled { color: $fb-gold; }
+}
+
+.rating-val {
+  font-size: 12px;
+  font-weight: 600;
+  color: $fb-text-2;
+  margin-left: 4px;
+}
+
+.posted-ago {
+  font-size: 12px;
+  color: $fb-text-2;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+// ── Row 2: Title + Budget ────────────────────────────────────────────────────
+.title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $fb-s2;
+  margin-bottom: $fb-s1;
+}
+
+.project-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: $fb-text;
+  line-height: 1.25;
+  flex: 1;
+  min-width: 0;
+}
+
+.project-budget {
+  font-size: 18px;
+  font-weight: 700;
+  color: $fb-success;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+// ── Row 3: Description (3-line clamp) ────────────────────────────────────────
+.project-desc {
+  margin: 0 0 $fb-s2;
+  font-size: 14px;
+  line-height: 1.6;
+  color: $fb-text-2;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// ── Row 4: Skills ────────────────────────────────────────────────────────────
+.skills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: $fb-s2;
+}
+
+.skill-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  background: $fb-primary-a06;
+  color: $fb-primary;
+  border-radius: $fb-r-pill;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid $fb-primary-a12;
+  transition: background 180ms ease;
+
+  &:hover {
+    background: $fb-primary-a12;
+  }
+
+  &--more {
+    background: #F0F2F5;
+    color: $fb-text-2;
+    border-color: $fb-border;
+  }
+}
+
+// ── Row 5: Action buttons ────────────────────────────────────────────────────
+.card-actions {
+  display: flex;
+  gap: $fb-s1;
+  padding-top: $fb-s2;
+  border-top: 1px solid $fb-border;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: $fb-r-btn;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: all 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  &:active { transform: scale(0.97); }
+
+  // ── Apply Now ──────────────────────────────────────────────────────────────
+  &--apply {
+    background: $fb-primary;
+    color: #fff;
+    flex: 1;
+
+    &:hover {
+      background: $fb-primary-dk;
+      box-shadow: 0 4px 16px $fb-primary-a24;
+    }
+  }
+
+  // ── Save ───────────────────────────────────────────────────────────────────
+  &--save {
+    background: transparent;
+    color: $fb-primary;
+    border: 1.5px solid $fb-primary-a24;
+
+    &:hover {
+      background: $fb-primary-a06;
+      border-color: $fb-primary;
+    }
+
+    &.btn--saved {
+      background: $fb-primary-a06;
+      color: $fb-primary;
+      border-color: $fb-primary;
+    }
+  }
+
+  // ── Message ────────────────────────────────────────────────────────────────
+  &--message {
+    background: transparent;
+    color: $fb-text-2;
+    border: 1.5px solid $fb-border;
+
+    &:hover {
+      color: $fb-text;
+      border-color: #c0c4cc;
+      background: #f5f6f7;
+    }
+  }
+}
+
+// ── Responsive ───────────────────────────────────────────────────────────────
+@media (max-width: 480px) {
+  .feed-card { padding: $fb-s2; }
+
+  .title-row { flex-direction: column; gap: 4px; }
+
+  .card-actions {
+    flex-wrap: wrap;
+
+    .btn--apply { width: 100%; order: -1; }
+  }
+}

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.esprit.portfolio.dto.ExperienceDomainStatDto;
 import com.esprit.portfolio.dto.ExperienceRequest;
 import com.esprit.portfolio.entity.Experience;
 import com.esprit.portfolio.service.ExperienceService;
@@ -24,6 +25,15 @@ import lombok.RequiredArgsConstructor;
 public class ExperienceController {
 
     private final ExperienceService experienceService;
+
+    /**
+     * GET /api/experiences/stats/by-domain
+     * Admin dashboard: total experiences grouped by domain.
+     */
+    @GetMapping("/stats/by-domain")
+    public ResponseEntity<List<ExperienceDomainStatDto>> getExperienceStatsByDomain() {
+        return ResponseEntity.ok(experienceService.getExperienceStatsByDomain());
+    }
 
     @GetMapping
     public List<Experience> getAllExperiences() {

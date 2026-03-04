@@ -67,7 +67,8 @@ export class ProjectService {
   /** List all projects (backend: GET /projects/list). */
   getAllProjects(): Observable<Project[]> {
     return this.http.get<Project[]>(`${PROJECT_API}/list`).pipe(
-      timeout(REQUEST_TIMEOUT_MS)
+      timeout(REQUEST_TIMEOUT_MS),
+      catchError(() => of([]))
     );
   }
 

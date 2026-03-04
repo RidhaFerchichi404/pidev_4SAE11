@@ -1,0 +1,59 @@
+<div class="live-search" role="search">
+
+  <!-- ── Search bar ────────────────────────────────────────────────────────── -->
+  <div class="search-bar" [class.search-bar--open]="isOpen()">
+
+    <svg class="search-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <circle cx="9" cy="9" r="5.5" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M15 15l-3.5-3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+
+    <input
+      class="search-input"
+      type="search"
+      [formControl]="searchControl"
+      placeholder="Search projects, skills, categories…"
+      autocomplete="off"
+      autocorrect="off"
+      spellcheck="false"
+      aria-label="Search projects and categories"
+      aria-autocomplete="list"
+      [attr.aria-expanded]="isOpen()"
+      (focus)="onFocus()" />
+
+    <!-- Spinner while loading -->
+    @if (isLoading()) {
+      <div class="search-spinner" role="status" aria-label="Searching"></div>
+    }
+
+    <!-- Clear button when there is text -->
+    @if (query().length > 0 && !isLoading()) {
+      <button
+        class="clear-btn"
+        type="button"
+        aria-label="Clear search"
+        (click)="clearSearch()">
+        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4 4l8 8M12 4L4 12" stroke="currentColor" stroke-width="1.5"
+                stroke-linecap="round"/>
+        </svg>
+      </button>
+    }
+
+  </div>
+
+  <!-- ── Results dropdown ──────────────────────────────────────────────────── -->
+  @if (isOpen() && query().length > 0) {
+    <div class="dropdown-wrapper">
+      <app-search-results
+        [results]="results()"
+        [activeTab]="activeTab()"
+        [activeIndex]="activeIndex()"
+        [isLoading]="isLoading()"
+        [query]="query()"
+        (selectResult)="onSelectResult($event)"
+        (tabChange)="onTabChange($event)" />
+    </div>
+  }
+
+</div>

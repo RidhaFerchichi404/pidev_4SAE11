@@ -1,0 +1,39 @@
+<section class="projects-feed" aria-label="Project opportunities">
+
+  <div class="feed-list">
+    @for (project of projects(); track project.id; let i = $index) {
+      <app-project-feed-card
+        [project]="project"
+        [animDelay]="getAnimDelay(i)"
+        class="feed-card-host" />
+    } @empty {
+      @if (!isLoading()) {
+        <div class="feed-empty">
+          <span class="empty-icon" aria-hidden="true">🔍</span>
+          <h3>No open projects</h3>
+          <p>There are no available projects right now. Check back soon!</p>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Sentinel — IntersectionObserver target -->
+  <div #sentinel class="sentinel" aria-hidden="true"></div>
+
+  <!-- Loading indicator -->
+  @if (isLoading()) {
+    <div class="feed-loader" role="status" aria-live="polite">
+      <div class="spinner"></div>
+      <span>Loading more projects…</span>
+    </div>
+  }
+
+  <!-- End-of-feed message -->
+  @if (!hasMore() && !isLoading() && projects().length > 0) {
+    <div class="feed-end" role="status" aria-live="polite">
+      <span class="end-check" aria-hidden="true">✓</span>
+      <p>You've seen all available projects</p>
+    </div>
+  }
+
+</section>

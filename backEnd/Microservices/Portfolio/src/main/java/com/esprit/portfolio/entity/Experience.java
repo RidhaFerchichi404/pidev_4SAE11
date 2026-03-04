@@ -44,6 +44,10 @@ public class Experience {
     @Column(nullable = false)
     private ExperienceType type;
 
+    @Enumerated(EnumType.STRING)
+    @Column(length = 50)
+    private Domain domain;
+
     @Column(columnDefinition = "TEXT")
     private String description;
 

@@ -1,0 +1,115 @@
+<div class="search-dropdown" role="listbox" aria-label="Search results">
+
+  <!-- ── Tab bar ──────────────────────────────────────────────────────────── -->
+  <div class="result-tabs" role="tablist">
+    <button
+      role="tab"
+      class="tab-btn"
+      [class.tab-btn--active]="activeTab() === 'projects'"
+      [attr.aria-selected]="activeTab() === 'projects'"
+      type="button"
+      (click)="setTab('projects')">
+      Projects
+      @if (projectResults().length > 0) {
+        <span class="tab-count">{{ projectResults().length }}</span>
+      }
+    </button>
+    <button
+      role="tab"
+      class="tab-btn"
+      [class.tab-btn--active]="activeTab() === 'categories'"
+      [attr.aria-selected]="activeTab() === 'categories'"
+      type="button"
+      (click)="setTab('categories')">
+      Categories
+      @if (categoryResults().length > 0) {
+        <span class="tab-count">{{ categoryResults().length }}</span>
+      }
+    </button>
+  </div>
+
+  <!-- ── Loading skeletons ────────────────────────────────────────────────── -->
+  @if (isLoading()) {
+    <div class="results-loading" aria-label="Loading results" role="status">
+      <div class="shimmer-row">
+        <div class="shimmer shimmer--circle"></div>
+        <div class="shimmer-lines">
+          <div class="shimmer shimmer--line"></div>
+          <div class="shimmer shimmer--line shimmer--line-short"></div>
+        </div>
+      </div>
+      <div class="shimmer-row">
+        <div class="shimmer shimmer--circle"></div>
+        <div class="shimmer-lines">
+          <div class="shimmer shimmer--line shimmer--line-md"></div>
+          <div class="shimmer shimmer--line shimmer--line-short"></div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Results ──────────────────────────────────────────────────────────── -->
+  @if (!isLoading()) {
+    @if (activeList().length > 0) {
+      <ul class="results-list" role="listbox">
+        @for (result of activeList(); track result.id; let i = $index) {
+          <li
+            class="result-item"
+            [class.result-item--active]="isActive(i)"
+            role="option"
+            [attr.aria-selected]="isActive(i)"
+            (click)="onSelect(result)"
+            (mousedown)="$event.preventDefault()">
+
+            @if (result.type === 'project') {
+              <!-- ── Project result ────────────────────────────── -->
+              <div class="result-thumb">
+                @if (result.thumbnail) {
+                  <img [src]="result.thumbnail" [alt]="result.title" />
+                } @else {
+                  <span class="thumb-icon" aria-hidden="true">📁</span>
+                }
+              </div>
+              <div class="result-body">
+                <span class="result-title">{{ result.title }}</span>
+                @if (result.budget) {
+                  <span class="result-budget">${{ result.budget | number }}</span>
+                }
+                @if (result.skills?.length) {
+                  <div class="result-skills">
+                    @for (skill of (result.skills ?? []).slice(0, 3); track skill) {
+                      <span class="result-skill">{{ skill }}</span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+
+            @if (result.type === 'category') {
+              <!-- ── Category result ──────────────────────────── -->
+              <span class="result-cat-icon" aria-hidden="true">{{ result.icon }}</span>
+              <div class="result-body">
+                <span class="result-title">{{ result.title }}</span>
+                @if (result.projectCount !== undefined) {
+                  <span class="result-count">{{ result.projectCount }} open projects</span>
+                }
+              </div>
+            }
+
+            <svg class="result-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </li>
+        }
+      </ul>
+    } @else {
+      <!-- ── No results ──────────────────────────────────────────────────── -->
+      <div class="no-results">
+        <span aria-hidden="true">🔍</span>
+        <p>No {{ activeTab() }} matched "<strong>{{ query() }}</strong>"</p>
+      </div>
+    }
+  }
+
+</div>

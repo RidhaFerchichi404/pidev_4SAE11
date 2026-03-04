@@ -86,12 +86,15 @@ export class Profile implements OnInit {
   }
 
   get skillDomains(): string[] {
-    const domains = [...new Set(this.skills.map(s => s.domain || 'Other'))];
+    const domains = [...new Set(this.skills.flatMap(s => (s.domains && s.domains.length > 0) ? s.domains : ['Other']))];
     return domains.sort();
   }
 
   getSkillsByDomain(domain: string): Skill[] {
-    return this.skills.filter(s => (s.domain || 'Other') === domain);
+    return this.skills.filter(s => {
+      const d = (s.domains && s.domains.length > 0) ? s.domains[0] : 'Other';
+      return d === domain;
+    });
   }
 
   get avgScore(): number {
@@ -122,6 +125,31 @@ export class Profile implements OnInit {
 
   getExperienceIcon(type: string): string {
     return type === 'JOB' ? '💼' : '🚀';
+  }
+
+  getDomainIcon(domain: string): string {
+    const map: Record<string, string> = {
+      'Frontend':  '🎨',
+      'Backend':   '⚙️',
+      'DevOps':    '🛠️',
+      'Database':  '🗃️',
+      'Data':      '📊',
+      'Mobile':    '📱',
+      'Security':  '🔐',
+      'Cloud':     '☁️',
+      'AI':        '🤖',
+      'Testing':   '🧪',
+      'General':   '💡',
+      'Other':     '💡',
+    };
+    return map[domain] || '📦';
+  }
+
+  getSkillLevel(score?: number): string {
+    if (score === undefined || score === null) return 'Unrated';
+    if (score >= 80) return 'Expert';
+    if (score >= 60) return 'Intermediate';
+    return 'Beginner';
   }
 
   formatDate(dateStr?: string): string {

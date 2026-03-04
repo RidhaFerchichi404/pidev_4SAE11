@@ -1,30 +1,37 @@
-<div class="dashboard-home-page">
-  <h1>Welcome to Freelancia! 👋</h1>
-  <p class="subtitle">You're logged in as: <strong>{{ auth.getUserRole() }}</strong></p>
+<div class="dashboard-home">
 
-  <div class="cards-grid">
-    <app-card>
-      <h3>🚀 Quick Start</h3>
-      <p>Explore the sidebar to navigate to different sections of your dashboard.</p>
-    </app-card>
+  @if (isFetching()) {
+    <!-- ── Initial fetch skeleton ────────────────────────────── -->
+    <div class="feed-skeleton" aria-label="Loading projects" role="status">
+      @for (i of [1,2,3]; track i) {
+        <div class="skeleton-card">
+          <div class="sk-header">
+            <div class="sk-avatar"></div>
+            <div class="sk-lines">
+              <div class="sk-line sk-line--md"></div>
+              <div class="sk-line sk-line--sm"></div>
+            </div>
+          </div>
+          <div class="sk-line sk-line--title"></div>
+          <div class="sk-line"></div>
+          <div class="sk-line sk-line--md"></div>
+          <div class="sk-line sk-line--sm"></div>
+          <div class="sk-pills">
+            <div class="sk-pill"></div>
+            <div class="sk-pill"></div>
+            <div class="sk-pill"></div>
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <!-- ── Live project feed ──────────────────────────────────── -->
+    <app-projects-feed
+      [projects]="displayedProjects()"
+      [hasMore]="hasMore()"
+      [isLoading]="isLoading()"
+      [pageSize]="pageSize"
+      (loadMore)="loadMoreProjects()" />
+  }
 
-    @if (auth.isClient()) {
-      <app-card>
-        <h3>💼 For Clients</h3>
-        <p>Post jobs, browse freelancers, and manage your projects from here.</p>
-      </app-card>
-    }
-
-    @if (auth.isFreelancer()) {
-      <app-card>
-        <h3>🎨 For Freelancers</h3>
-        <p>Browse jobs, manage applications, and build your portfolio.</p>
-      </app-card>
-    }
-
-    <app-card>
-      <h3>🎯 Coming Soon</h3>
-      <p>Full dashboard features are being developed. This is a placeholder to show the structure.</p>
-    </app-card>
-  </div>
 </div>

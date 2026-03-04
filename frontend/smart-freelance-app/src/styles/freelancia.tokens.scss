@@ -1,0 +1,49 @@
+// freelancia.tokens.scss — Electric Blue Feed Design Tokens
+// Prefix: $fb-*  (never collides with existing $primary-500 Terracotta palette)
+
+// ── Brand: Electric Blue ─────────────────────────────────────────────────────
+$fb-primary:      #0057FF;
+$fb-primary-lt:   #3378FF;
+$fb-primary-dk:   #003FCC;
+$fb-primary-a06:  rgba(0, 87, 255, 0.06);
+$fb-primary-a12:  rgba(0, 87, 255, 0.12);
+$fb-primary-a16:  rgba(0, 87, 255, 0.16);
+$fb-primary-a24:  rgba(0, 87, 255, 0.24);
+
+// ── Success / Budget Green ───────────────────────────────────────────────────
+$fb-success:      #00C853;
+$fb-success-lt:   rgba(0, 200, 83, 0.10);
+$fb-success-dk:   #00A843;
+
+// ── Surface ──────────────────────────────────────────────────────────────────
+$fb-bg:           #F0F2F5;   // Facebook-grey page background
+$fb-card:         #FFFFFF;   // Card surface
+$fb-border:       #E4E6EB;   // Dividers / outlines
+$fb-border-focus: #0057FF;
+
+// ── Typography ───────────────────────────────────────────────────────────────
+$fb-text:         #1C1E21;   // Primary text
+$fb-text-2:       #65676B;   // Secondary / muted
+
+// ── Rating star ──────────────────────────────────────────────────────────────
+$fb-gold:         #F5C518;
+
+// ── Elevation ────────────────────────────────────────────────────────────────
+$fb-shadow-card:   0 8px 32px  rgba(0, 87, 255, 0.12);
+$fb-shadow-hover:  0 16px 48px rgba(0, 87, 255, 0.16);
+$fb-shadow-search: 0 4px 24px  rgba(0, 0, 0, 0.16);
+$fb-shadow-sm:     0 2px 8px   rgba(0, 0, 0, 0.08);
+
+// ── Border radii ─────────────────────────────────────────────────────────────
+$fb-r-card:   16px;
+$fb-r-btn:    12px;
+$fb-r-avatar: 8px;
+$fb-r-pill:   20px;
+$fb-r-input:  10px;
+
+// ── Spacing (8-pt grid) ──────────────────────────────────────────────────────
+$fb-s1: 8px;
+$fb-s2: 16px;
+$fb-s3: 24px;
+$fb-s4: 32px;
+$fb-s5: 48px;

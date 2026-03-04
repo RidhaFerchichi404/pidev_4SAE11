@@ -10,6 +10,7 @@ com\esprit\portfolio\service\ExperienceService.class
 com\esprit\portfolio\dto\AnswerSubmission.class
 com\esprit\portfolio\dto\ExperienceRequest.class
 com\esprit\portfolio\repository\SkillRepository.class
+com\esprit\portfolio\entity\Domain.class
 com\esprit\portfolio\entity\EvaluationTest$EvaluationTestBuilder.class
 com\esprit\portfolio\entity\Experience.class
 com\esprit\portfolio\repository\ExperienceRepository.class
@@ -21,9 +22,13 @@ com\esprit\portfolio\exception\GlobalExceptionHandler.class
 com\esprit\portfolio\repository\EvaluationTestRepository.class
 com\esprit\portfolio\entity\Skill$SkillBuilder.class
 com\esprit\portfolio\controller\EvaluationTestController.class
+com\esprit\portfolio\dto\SkillDomainStatDto.class
 com\esprit\portfolio\service\AIService$1.class
+com\esprit\portfolio\dto\SkillUsageStatDto.class
+com\esprit\portfolio\dto\SkillSuccessStatDto.class
 com\esprit\portfolio\service\SkillService.class
 com\esprit\portfolio\controller\SkillController.class
 com\esprit\portfolio\entity\Question.class
 com\esprit\portfolio\PortfolioApplication.class
 com\esprit\portfolio\entity\ExperienceType.class
+com\esprit\portfolio\dto\ExperienceDomainStatDto.class

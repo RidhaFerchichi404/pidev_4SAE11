@@ -1,0 +1,36 @@
+package com.esprit.portfolio.entity;
+
+public enum Domain {
+    // Technology
+    WEB_DEVELOPMENT,
+    MOBILE_DEV,
+    DATA_SCIENCE,
+    ARTIFICIAL_INTELLIGENCE,
+    DEVOPS,
+    CLOUD_COMPUTING,
+    CYBERSECURITY,
+    BLOCKCHAIN,
+    GAME_DEVELOPMENT,
+    EMBEDDED_SYSTEMS,
+    DATABASE_ADMINISTRATION,
+
+    // Creative & Media
+    UI_UX_DESIGN,
+    GRAPHIC_DESIGN,
+    PHOTOGRAPHY,
+    VIDEO_MAKING,
+    CONTENT_CREATION,
+    MUSIC_PRODUCTION,
+    ANIMATION,
+    ILLUSTRATION,
+
+    // Business & Other
+    MARKETING,
+    COPYWRITING,
+    TRANSLATION,
+    ARCHITECTURE,
+    FINANCE,
+
+    // Catch-all
+    OTHER
+}
