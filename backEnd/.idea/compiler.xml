@@ -13,13 +13,21 @@
         <module name="Contract" />
         <module name="Portfolio" />
       </profile>
+      <profile name="Annotation profile for Project" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
+        </processorPath>
+        <module name="Project" />
+      </profile>
       <profile name="Annotation profile for planning" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
         </processorPath>
         <module name="planning" />
       </profile>
@@ -31,10 +39,11 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
         </processorPath>
         <module name="user" />
+        <module name="planning" />
         <module name="review" />
         <module name="KeyCloak" />
       </profile>
-      <profile name="Annotation profile for Project" enabled="true">
+      <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -42,17 +51,14 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
         </processorPath>
         <module name="Project" />
+        <module name="Offer" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="Evaluation" target="17" />
-    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="Contract" options="-parameters" />
       <module name="Eureka" options="-parameters" />
-      <module name="Evaluation" options="-parameters" />
       <module name="KeyCloak" options="-parameters" />
       <module name="Offer" options="-parameters" />
       <module name="Portfolio" options="-parameters" />

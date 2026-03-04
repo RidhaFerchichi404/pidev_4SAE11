@@ -141,7 +141,7 @@ export class OfferService {
   getActiveOffers(page = 0, size = 10): Observable<PageResponse<Offer>> {
     const params = new HttpParams().set('page', String(page)).set('size', String(size));
     return this.http.get<PageResponse<Offer>>(OFFER_API, { params }).pipe(
-      catchError(() => of({ content: [], totalElements: 0, totalPages: 0, size, number: page, first: true, last: true }))
+      catchError((err) => { console.error('[OfferService] getActiveOffers error:', err); return throwError(() => err); })
     );
   }
 
@@ -159,17 +159,7 @@ export class OfferService {
 
   searchOffers(filter: OfferFilterRequest): Observable<PageResponse<Offer>> {
     return this.http.post<PageResponse<Offer>>(`${OFFER_API}/search`, filter).pipe(
-      catchError(() =>
-        of({
-          content: [],
-          totalElements: 0,
-          totalPages: 0,
-          size: filter.size ?? 10,
-          number: filter.page ?? 0,
-          first: true,
-          last: true,
-        })
-      )
+      catchError((err) => { console.error('[OfferService] searchOffers error:', err); return throwError(() => err); })
     );
   }
 
@@ -239,18 +229,17 @@ export class OfferService {
     );
   }
 
-  acceptApplication(id: number, freelancerId: number): Observable<OfferApplication | null> {
-    return this.http
-      .patch<OfferApplication>(`${APPLICATION_API}/${id}/accept`, null, {
-        params: { freelancerId: String(freelancerId) },
-      })
-      .pipe(catchError(() => of(null)));
+  acceptApplication(id: number, freelancerId: number): Observable<OfferApplication> {
+    return this.http.patch<OfferApplication>(`${APPLICATION_API}/${id}/accept`, null, {
+      params: { freelancerId: String(freelancerId) },
+    }).pipe(catchError((err) => { console.error('[OfferService] acceptApplication error:', err); return throwError(() => err); }));
   }
 
-  rejectApplication(id: number, freelancerId: number, reason?: string): Observable<OfferApplication | null> {
+  rejectApplication(id: number, freelancerId: number, reason?: string): Observable<OfferApplication> {
     let params: HttpParams = new HttpParams().set('freelancerId', String(freelancerId));
     if (reason != null && reason !== '') params = params.set('reason', reason);
-    return this.http.patch<OfferApplication>(`${APPLICATION_API}/${id}/reject`, null, { params }).pipe(catchError(() => of(null)));
+    return this.http.patch<OfferApplication>(`${APPLICATION_API}/${id}/reject`, null, { params })
+      .pipe(catchError((err) => { console.error('[OfferService] rejectApplication error:', err); return throwError(() => err); }));
   }
 
   markApplicationAsRead(id: number, freelancerId: number): Observable<OfferApplication | null> {

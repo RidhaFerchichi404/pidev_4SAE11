@@ -37,7 +37,6 @@ export const OFFER_STATUSES = [
   { value: 'EXPIRED',     label: 'Expired' },
   { value: 'CLOSED',      label: 'Closed' },
 ];
-
 const PAGE_SIZE = 10;
 
 @Component({

@@ -1,11 +1,8 @@
-# Configuration locale (ne pas committer ce fichier avec votre clé réelle)
-# 1. Copiez ce fichier vers : application-local.properties
-# 2. Remplacez YOUR_GOOGLE_TRANSLATE_API_KEY par votre clé API Google Cloud Translation
-# 3. Lancez le microservice Offer avec le profil "local" :
-#    java -jar ... --spring.profiles.active=local
-#    ou dans votre IDE : Active profiles = local
+# Copier ce fichier en application-local.properties et mettre ta clé OpenAI.
+# application-local.properties est ignoré par Git (ne sera pas commité).
 
-# Clé API Google Cloud Translation (traduction FR / EN / AR)
-# Obtenir une clé : https://console.cloud.google.com/apis/credentials
-# Activer l'API : Cloud Translation API
-app.translation.google-api-key=YOUR_GOOGLE_TRANSLATE_API_KEY
+# Clé API OpenAI (chat assistant)
+ai.api.key=sk-proj-VOTRE_CLE_OPENAI_ICI
+
+# Optionnel : modèle (défaut gpt-4o-mini)
+# ai.api.model=gpt-4o-mini

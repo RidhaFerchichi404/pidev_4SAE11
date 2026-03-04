@@ -82,6 +82,100 @@
     <div class="modal card shadow" (click)="$event.stopPropagation()">
       <div class="card-body">
         <h3 class="h5 card-title mb-3">Apply for {{ offer.title }}</h3>
+
+        <!-- ── Design Brief Panel ─────────────────────────────── -->
+        @if (savedBrief) {
+          <div class="brief-attach-panel" [class.brief-attach-panel--attached]="attachBrief">
+            <div class="brief-attach-header" (click)="toggleBriefPanel()">
+              <div class="brief-attach-left">
+                <!-- Mini logo preview -->
+                <div class="brief-logo-mini" [style.background]="savedBrief.primaryColor">
+                  {{ savedBrief.logoLetters }}
+                  <span class="brief-logo-dot" [style.background]="savedBrief.secondaryColor"></span>
+                </div>
+                <div class="brief-attach-info">
+                  <span class="brief-attach-title">
+                    <svg viewBox="0 0 16 16" fill="none"><path d="M8 2a1 1 0 0 1 1 1v5.586l1.293-1.293a1 1 0 1 1 1.414 1.414l-3 3a1 1 0 0 1-1.414 0l-3-3a1 1 0 0 1 1.414-1.414L7 8.586V3a1 1 0 0 1 1-1z" fill="currentColor"/><rect x="2" y="12" width="12" height="2" rx="1" fill="currentColor"/></svg>
+                    Design Brief disponible
+                  </span>
+                  <span class="brief-attach-sub">
+                    {{ savedBrief.appName || 'Brief sans nom' }}
+                    @if (savedBrief.projectType) { · {{ savedBrief.projectType }} }
+                    @if (savedBrief.pages?.length) { · {{ savedBrief.pages.length }} pages }
+                  </span>
+                </div>
+              </div>
+              <div class="brief-attach-actions" (click)="$event.stopPropagation()">
+                <!-- Toggle switch -->
+                <label class="toggle-switch" title="Attacher au message" (click)="$event.stopPropagation()">
+                  <input type="checkbox" [checked]="attachBrief" (change)="toggleAttachBrief()"/>
+                  <span class="toggle-slider"></span>
+                </label>
+                <span class="attach-label" (click)="toggleAttachBrief()">{{ attachBrief ? 'Attaché' : 'Attacher' }}</span>
+                <svg class="chevron" [class.chevron--open]="briefPanelExpanded" viewBox="0 0 16 16" fill="none" (click)="toggleBriefPanel(); $event.stopPropagation()">
+                  <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Expanded brief details -->
+            @if (briefPanelExpanded) {
+              <div class="brief-attach-details">
+                <div class="brief-detail-grid">
+                  @if (savedBrief.industry) {
+                    <div class="brief-detail-item">
+                      <span class="brief-detail-label">Secteur</span>
+                      <span class="brief-detail-val">{{ savedBrief.industry }}</span>
+                    </div>
+                  }
+                  @if (savedBrief.styleName) {
+                    <div class="brief-detail-item">
+                      <span class="brief-detail-label">Style</span>
+                      <span class="brief-detail-val">{{ savedBrief.styleName }}</span>
+                    </div>
+                  }
+                  @if (savedBrief.budget) {
+                    <div class="brief-detail-item">
+                      <span class="brief-detail-label">Budget</span>
+                      <span class="brief-detail-val">{{ savedBrief.budget }}</span>
+                    </div>
+                  }
+                  @if (savedBrief.deadline) {
+                    <div class="brief-detail-item">
+                      <span class="brief-detail-label">Délai</span>
+                      <span class="brief-detail-val">{{ savedBrief.deadline | date:'mediumDate' }}</span>
+                    </div>
+                  }
+                </div>
+                @if (savedBrief.pages?.length) {
+                  <div class="brief-pages-preview">
+                    @for (page of savedBrief.pages; track page) {
+                      <span class="brief-page-tag" [style.borderColor]="savedBrief.primaryColor" [style.color]="savedBrief.primaryColor">{{ page }}</span>
+                    }
+                  </div>
+                }
+                @if (savedBrief.description) {
+                  <p class="brief-description-preview">{{ savedBrief.description | slice:0:150 }}{{ savedBrief.description.length > 150 ? '…' : '' }}</p>
+                }
+                <div class="brief-attach-footer">
+                  <span class="brief-attach-note">
+                    <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v4M8 11v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    {{ attachBrief ? 'Le brief sera inclus dans votre message et visible par le freelancer.' : 'Activez le bouton pour inclure le brief dans votre candidature.' }}
+                  </span>
+                  <button type="button" class="btn-remove-brief" (click)="removeSavedBrief()">
+                    Supprimer le brief
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <a routerLink="/dashboard/design-brief" class="brief-create-hint">
+            <svg viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="14" height="14" rx="3" stroke="currentColor" stroke-width="2"/><path d="M7 10h6M10 7v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Créer un Design Brief pour votre projet
+          </a>
+        }
+
         <form [formGroup]="form" (ngSubmit)="submitApplication()">
           <div class="mb-3">
             <label for="message" class="form-label">Message <span class="text-danger">*</span></label>

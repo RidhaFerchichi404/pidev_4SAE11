@@ -244,17 +244,19 @@
     background: rgba($neutral-900, 0.5);
     @include backdrop-blur;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     z-index: $z-modal-backdrop;
-    padding: $spacing-md;
+    padding: $spacing-lg $spacing-md;
+    overflow-y: auto;
     animation: fadeIn $transition-base;
   }
 
   .modal {
-    max-width: 480px;
+    max-width: 540px;
     width: 100%;
     border: 0;
+    margin: auto;
   }
 
   // ── Order card modal (design Bootstrap-like purple/blue) ───────────
@@ -274,7 +276,6 @@
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
     overflow: hidden;
     animation: orderSlideUp 0.5s ease-out;
-  }
 
     h3 {
       margin: 0;
@@ -376,6 +377,7 @@
       font-size: $font-size-sm;
       margin: $spacing-md $spacing-2xl 0;
     }
+  }
 
   .package-badge {
     position: absolute;
@@ -609,6 +611,273 @@
     font-size: 13px;
     color: $error-500;
     margin-top: 4px;
+  }
+
+  // ── Design Brief Attach Panel ──────────────────────────────────────────────
+  .brief-attach-panel {
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background: white;
+
+    &--attached {
+      border-color: #6C63FF;
+      box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+    }
+  }
+
+  .brief-attach-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    cursor: pointer;
+    background: #f9fafb;
+    transition: background 0.15s ease;
+    gap: 12px;
+
+    &:hover { background: #f3f4f6; }
+  }
+
+  .brief-attach-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .brief-logo-mini {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: 800;
+    flex-shrink: 0;
+    position: relative;
+
+    .brief-logo-dot {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+  }
+
+  .brief-attach-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .brief-attach-title {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #374151;
+    svg { width: 14px; height: 14px; flex-shrink: 0; }
+  }
+
+  .brief-attach-sub {
+    font-size: 12px;
+    color: #9ca3af;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
+  }
+
+  .brief-attach-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  // Toggle switch
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+    cursor: pointer;
+
+    input { display: none; }
+
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: #d1d5db;
+      border-radius: 20px;
+      transition: background 0.2s;
+
+      &::before {
+        content: '';
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        left: 3px;
+        top: 3px;
+        background: white;
+        border-radius: 50%;
+        transition: transform 0.2s;
+        box-shadow: 0 1px 3px rgba(0,0,0,.2);
+      }
+    }
+
+    input:checked + .toggle-slider {
+      background: #6C63FF;
+      &::before { transform: translateX(16px); }
+    }
+  }
+
+  .attach-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    min-width: 44px;
+  }
+
+  .brief-attach-panel--attached .attach-label {
+    color: #6C63FF;
+  }
+
+  .chevron {
+    width: 16px;
+    height: 16px;
+    color: #9ca3af;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+
+    &--open { transform: rotate(180deg); }
+  }
+
+  // Expanded details
+  .brief-attach-details {
+    padding: 16px;
+    border-top: 1.5px solid #f3f4f6;
+    animation: fadeIn .15s ease;
+  }
+
+  .brief-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .brief-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .brief-detail-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+
+  .brief-detail-val {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+  }
+
+  .brief-pages-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .brief-page-tag {
+    padding: 3px 10px;
+    border: 1.5px solid;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    background: white;
+  }
+
+  .brief-description-preview {
+    font-size: 12px;
+    color: #6b7280;
+    background: #f9fafb;
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  .brief-attach-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1.5px solid #f3f4f6;
+    flex-wrap: wrap;
+  }
+
+  .brief-attach-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 11px;
+    color: #6b7280;
+    line-height: 1.4;
+    flex: 1;
+    min-width: 160px;
+    svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; }
+  }
+
+  .btn-remove-brief {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 11px;
+    color: #ef4444;
+    font-weight: 600;
+    padding: 0;
+    &:hover { text-decoration: underline; }
+  }
+
+  // Create brief hint
+  .brief-create-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border: 1.5px dashed #d1d5db;
+    border-radius: 12px;
+    background: #f9fafb;
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 18px;
+    transition: all 0.2s ease;
+    svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+    &:hover {
+      border-color: #6C63FF;
+      color: #6C63FF;
+      background: #f5f3ff;
+    }
   }
 }
 

@@ -34,28 +34,28 @@ public interface OfferRepository extends JpaRepository<Offer, Long>, JpaSpecific
 
     // ========== Recherches avancées ==========
 
-    @Query("SELECT o FROM Offer o WHERE o.isActive = true AND o.offerStatus = 'AVAILABLE' ORDER BY o.createdAt DESC")
+    @Query("SELECT o FROM Offer o WHERE o.isActive = true AND o.offerStatus = org.example.offer.entity.OfferStatus.AVAILABLE ORDER BY o.createdAt DESC")
     Page<Offer> findActiveOffers(Pageable pageable);
 
     @Query("SELECT o FROM Offer o WHERE o.isFeatured = true AND o.isActive = true ORDER BY o.publishedAt DESC")
     List<Offer> findFeaturedOffers();
 
-    @Query("SELECT o FROM Offer o WHERE o.offerStatus = 'AVAILABLE' AND o.isActive = true AND o.rating >= :minRating ORDER BY o.rating DESC")
+    @Query("SELECT o FROM Offer o WHERE o.offerStatus = org.example.offer.entity.OfferStatus.AVAILABLE AND o.isActive = true AND o.rating >= :minRating ORDER BY o.rating DESC")
     Page<Offer> findTopRatedOffers(@Param("minRating") BigDecimal minRating, Pageable pageable);
 
-    @Query("SELECT o FROM Offer o WHERE o.offerStatus = 'AVAILABLE' AND o.isActive = true AND o.domain = :domain ORDER BY o.publishedAt DESC")
+    @Query("SELECT o FROM Offer o WHERE o.offerStatus = org.example.offer.entity.OfferStatus.AVAILABLE AND o.isActive = true AND o.domain = :domain ORDER BY o.publishedAt DESC")
     Page<Offer> findAvailableOffersByDomain(@Param("domain") String domain, Pageable pageable);
 
-    @Query("SELECT o FROM Offer o WHERE o.price BETWEEN :minPrice AND :maxPrice AND o.offerStatus = 'AVAILABLE' AND o.isActive = true")
+    @Query("SELECT o FROM Offer o WHERE o.price BETWEEN :minPrice AND :maxPrice AND o.offerStatus = org.example.offer.entity.OfferStatus.AVAILABLE AND o.isActive = true")
     Page<Offer> findByPriceRange(@Param("minPrice") BigDecimal minPrice, @Param("maxPrice") BigDecimal maxPrice, Pageable pageable);
 
     @Query("SELECT o FROM Offer o WHERE o.title LIKE %:keyword% OR o.description LIKE %:keyword% OR o.tags LIKE %:keyword%")
     Page<Offer> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
-    @Query("SELECT o FROM Offer o WHERE o.deadline >= :date AND o.offerStatus = 'AVAILABLE'")
+    @Query("SELECT o FROM Offer o WHERE o.deadline >= :date AND o.offerStatus = org.example.offer.entity.OfferStatus.AVAILABLE")
     List<Offer> findOffersExpiringSoon(@Param("date") LocalDateTime date);
 
-    @Query("SELECT o FROM Offer o WHERE o.deadline < :now AND o.offerStatus = 'AVAILABLE'")
+    @Query("SELECT o FROM Offer o WHERE o.deadline < :now AND o.offerStatus = org.example.offer.entity.OfferStatus.AVAILABLE")
     List<Offer> findExpiredOffers(@Param("now") LocalDateTime now);
 
     // ========== Statistiques ==========
@@ -66,7 +66,7 @@ public interface OfferRepository extends JpaRepository<Offer, Long>, JpaSpecific
     @Query("SELECT AVG(o.rating) FROM Offer o WHERE o.freelancerId = :freelancerId")
     BigDecimal calculateAverageRating(@Param("freelancerId") Long freelancerId);
 
-    @Query("SELECT SUM(o.price) FROM Offer o WHERE o.freelancerId = :freelancerId AND o.offerStatus = 'ACCEPTED'")
+    @Query("SELECT SUM(o.price) FROM Offer o WHERE o.freelancerId = :freelancerId AND o.offerStatus = org.example.offer.entity.OfferStatus.ACCEPTED")
     BigDecimal calculateTotalRevenue(@Param("freelancerId") Long freelancerId);
 
     @Query("SELECT o FROM Offer o WHERE o.freelancerId = :freelancerId ORDER BY o.viewsCount DESC")
@@ -87,10 +87,10 @@ public interface OfferRepository extends JpaRepository<Offer, Long>, JpaSpecific
     Page<Offer> findActiveOffersByProjectStatusId(@Param("statusId") Long statusId, Pageable pageable);
 
     /** Pour Smart Matching : offres disponibles dont l'ID n'est pas dans la liste (ex. déjà candidaté). */
-    @Query("SELECT o FROM Offer o WHERE o.offerStatus = 'AVAILABLE' AND o.isActive = true AND o.id NOT IN :excludeIds")
+    @Query("SELECT o FROM Offer o WHERE o.offerStatus = org.example.offer.entity.OfferStatus.AVAILABLE AND o.isActive = true AND o.id NOT IN :excludeIds")
     List<Offer> findAvailableOffersExcludingIds(@Param("excludeIds") List<Long> excludeIds, Pageable pageable);
 
     /** Offres disponibles (pour fallback quand le client n'a pas d'historique). */
-    @Query("SELECT o FROM Offer o WHERE o.offerStatus = 'AVAILABLE' AND o.isActive = true ORDER BY o.isFeatured DESC, o.viewsCount DESC, o.createdAt DESC")
+    @Query("SELECT o FROM Offer o WHERE o.offerStatus = org.example.offer.entity.OfferStatus.AVAILABLE AND o.isActive = true ORDER BY o.isFeatured DESC, o.viewsCount DESC, o.createdAt DESC")
     List<Offer> findAvailableOffersForRecommendation(Pageable pageable);
 }

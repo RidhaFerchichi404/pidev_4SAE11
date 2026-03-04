@@ -1,328 +1,364 @@
-<div class="offers-container">
+<div class="lo-page">
 
-  <!-- ── Page Header ─────────────────────────────────────────────────── -->
-  <div class="offers-header">
-    <div>
-      <h2 class="section-title">My Offers</h2>
-      <p class="subtitle">Manage and track all your published offers.</p>
+  <!-- ══ Page Header ══════════════════════════════════════════════════ -->
+  <div class="lo-header">
+    <div class="lo-header__text">
+      <h1 class="lo-header__title">Mes Offres</h1>
+      <p class="lo-header__sub">Gérez et suivez toutes vos offres publiées.</p>
     </div>
-    <a routerLink="/dashboard/my-offers/add" class="btn btn--add-offer">+ Add Offer</a>
+    <a routerLink="/dashboard/my-offers/add" class="lo-btn lo-btn--primary">
+      <svg viewBox="0 0 20 20" fill="none" width="16" height="16"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+      Nouvelle offre
+    </a>
   </div>
 
-  <!-- ── Search Panel ────────────────────────────────────────────────── -->
-  <form [formGroup]="searchForm" class="search-panel" autocomplete="off">
-
-    <div class="search-bar">
-
-      <div class="search-input-wrap">
-        <svg class="search-icon" viewBox="0 0 20 20" fill="none">
-          <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.8"/>
-          <path d="m13 13 3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-        </svg>
-        <input
-          type="text"
-          formControlName="keyword"
-          class="search-input"
-          placeholder="Search title, description, tags…"
-        />
-        @if (loading) {
-          <span class="search-spinner"></span>
-        }
-        @if (searchForm.get('keyword')?.value && !loading) {
-          <button type="button" class="clear-btn" (click)="searchForm.get('keyword')?.setValue('')">✕</button>
-        }
-      </div>
-
-      <select formControlName="sortIndex" class="sort-select">
-        @for (opt of sortOptions; track $index) {
-          <option [value]="$index">{{ opt.label }}</option>
-        }
-      </select>
-
-      <button type="button" class="btn-advanced"
-        [class.btn-advanced--on]="showAdvanced"
-        (click)="toggleAdvanced()">
-        <svg viewBox="0 0 20 20" fill="none" width="15" height="15">
-          <path d="M3 5h14M6 10h8M9 15h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-        </svg>
-        Filters
-        @if (hasActiveFilters) {
-          <span class="active-dot"></span>
-        }
-      </button>
-
-      @if (hasActiveFilters) {
-        <button type="button" class="btn-reset" (click)="resetFilters()">✕ Reset</button>
+  <!-- ══ Search & Filter Bar ══════════════════════════════════════════ -->
+  <form [formGroup]="searchForm" class="lo-search-bar" autocomplete="off">
+    <div class="lo-search-input-wrap">
+      <svg class="lo-search-icon" viewBox="0 0 20 20" fill="none">
+        <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.8"/>
+        <path d="m13 13 3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <input type="text" formControlName="keyword" class="lo-search-input" placeholder="Rechercher par titre, description, tags…"/>
+      @if (loading) { <span class="lo-spinner"></span> }
+      @if (searchForm.get('keyword')?.value && !loading) {
+        <button type="button" class="lo-clear-btn" (click)="searchForm.get('keyword')?.setValue('')">✕</button>
       }
     </div>
 
-    @if (showAdvanced) {
-      <div class="advanced-panel">
-        <div class="adv-grid">
+    <select formControlName="sortIndex" class="lo-select">
+      @for (opt of sortOptions; track $index) {
+        <option [value]="$index">{{ opt.label }}</option>
+      }
+    </select>
 
-          <div class="filter-group">
-            <label class="filter-lbl">Category</label>
-            <select formControlName="category" class="filter-ctl">
-              <option value="">All categories</option>
-              @for (c of categories; track c) { <option [value]="c">{{ c }}</option> }
-            </select>
-          </div>
+    <button type="button" class="lo-btn lo-btn--ghost" [class.lo-btn--ghost-on]="showAdvanced" (click)="toggleAdvanced()">
+      <svg viewBox="0 0 20 20" fill="none" width="14" height="14"><path d="M3 5h14M6 10h8M9 15h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      Filtres
+      @if (hasActiveFilters) { <span class="lo-dot"></span> }
+    </button>
 
-          <div class="filter-group">
-            <label class="filter-lbl">Status</label>
-            <select formControlName="offerStatus" class="filter-ctl">
-              <option value="">All statuses</option>
-              @for (s of offerStatuses; track s.value) {
-                <option [value]="s.value">{{ s.label }}</option>
-              }
-            </select>
-          </div>
-
-          <div class="filter-group">
-            <label class="filter-lbl">Min price</label>
-            <input type="number" formControlName="minPrice" class="filter-ctl" placeholder="0" min="0" />
-          </div>
-
-          <div class="filter-group">
-            <label class="filter-lbl">Max price</label>
-            <input type="number" formControlName="maxPrice" class="filter-ctl" placeholder="Any" min="0" />
-          </div>
-
-        </div>
-      </div>
+    @if (hasActiveFilters) {
+      <button type="button" class="lo-btn lo-btn--danger-ghost" (click)="resetFilters()">✕ Reset</button>
     }
-
   </form>
 
-  <!-- ── Toolbar ─────────────────────────────────────────────────────── -->
-  <div class="toolbar">
-    <span class="count">
-      {{ totalElements }} offer{{ totalElements !== 1 ? 's' : '' }}
-      @if (hasActiveFilters) {
-        <span class="count__tag">filtered</span>
-      }
+  <!-- Advanced filters -->
+  @if (showAdvanced) {
+    <div class="lo-adv-panel">
+      <div class="lo-adv-grid">
+        <div class="lo-filter-group">
+          <label class="lo-filter-lbl">Catégorie</label>
+          <select formControlName="category" class="lo-filter-ctl">
+            <option value="">Toutes</option>
+            @for (c of categories; track c) { <option [value]="c">{{ c }}</option> }
+          </select>
+        </div>
+        <div class="lo-filter-group">
+          <label class="lo-filter-lbl">Statut</label>
+          <select formControlName="offerStatus" class="lo-filter-ctl">
+            <option value="">Tous</option>
+            @for (s of offerStatuses; track s.value) { <option [value]="s.value">{{ s.label }}</option> }
+          </select>
+        </div>
+        <div class="lo-filter-group">
+          <label class="lo-filter-lbl">Prix min</label>
+          <input type="number" formControlName="minPrice" class="lo-filter-ctl" placeholder="0" min="0"/>
+        </div>
+        <div class="lo-filter-group">
+          <label class="lo-filter-lbl">Prix max</label>
+          <input type="number" formControlName="maxPrice" class="lo-filter-ctl" placeholder="∞" min="0"/>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ══ Toolbar ══════════════════════════════════════════════════════ -->
+  <div class="lo-toolbar">
+    <span class="lo-toolbar__count">
+      {{ totalElements }} offre{{ totalElements !== 1 ? 's' : '' }}
+      @if (hasActiveFilters) { <span class="lo-toolbar__tag">filtrées</span> }
     </span>
-    <button type="button" class="btn-refresh" (click)="loadOffers()" [disabled]="loading">
-      {{ loading ? 'Searching…' : 'Refresh' }}
+    <button type="button" class="lo-btn lo-btn--ghost lo-btn--sm" (click)="loadOffers()" [disabled]="loading">
+      <svg viewBox="0 0 20 20" fill="none" width="13" height="13"><path d="M17 10A7 7 0 1 1 3.93 6.5M3 3v4h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      {{ loading ? 'Chargement…' : 'Actualiser' }}
     </button>
   </div>
 
-  <!-- ── Skeleton loading ────────────────────────────────────────────── -->
+  <!-- ══ Skeleton ══════════════════════════════════════════════════════ -->
   @if (loading && offers.length === 0) {
-    <div class="skeleton-grid">
+    <div class="lo-grid">
       @for (s of [1,2,3,4,5,6]; track s) {
-        <div class="skeleton-card">
-          <div class="sk sk--title"></div>
-          <div class="sk sk--badge"></div>
-          <div class="sk sk--text"></div>
-          <div class="sk sk--text sk--short"></div>
-          <div class="sk sk--btn"></div>
+        <div class="lo-skeleton-card">
+          <div class="lo-sk lo-sk--img"></div>
+          <div class="lo-sk-body">
+            <div class="lo-sk lo-sk--title"></div>
+            <div class="lo-sk lo-sk--badge"></div>
+            <div class="lo-sk lo-sk--text"></div>
+            <div class="lo-sk lo-sk--text lo-sk--short"></div>
+          </div>
         </div>
       }
     </div>
   }
 
-  <!-- ── Error State ─────────────────────────────────────────────────── -->
+  <!-- ══ Error ══════════════════════════════════════════════════════════ -->
   @if (errorMessage && !loading) {
-    <div class="error-state">
-      <p class="error">{{ errorMessage }}</p>
-      <button (click)="loadOffers()" class="btn btn--retry">Try Again</button>
+    <div class="lo-error-state">
+      <svg viewBox="0 0 48 48" fill="none" width="48" height="48"><circle cx="24" cy="24" r="20" stroke="#fca5a5" stroke-width="2.5"/><path d="M24 14v14M24 32v2" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg>
+      <p>{{ errorMessage }}</p>
+      <button (click)="loadOffers()" class="lo-btn lo-btn--primary">Réessayer</button>
     </div>
   }
 
-  <!-- ── Offers Grid ─────────────────────────────────────────────────── -->
-  <div class="offers-grid" [class.offers-grid--loading]="loading && offers.length > 0">
+  <!-- ══ Offers Grid ════════════════════════════════════════════════════ -->
+  <div class="lo-grid" [class.lo-grid--fading]="loading && offers.length > 0">
     @for (offer of offers; track offer.id) {
-      <div class="offer-card">
-        <div class="offer-content">
 
-          <div class="offer-header">
-            <h3 class="offer-title">{{ offer.title }}</h3>
-            <span class="offer-status"
+      <div class="lo-card" [ngClass]="{
+        'lo-card--draft':       offer.offerStatus === 'DRAFT',
+        'lo-card--available':   offer.offerStatus === 'AVAILABLE',
+        'lo-card--progress':    offer.offerStatus === 'IN_PROGRESS',
+        'lo-card--closed':      offer.offerStatus === 'CLOSED' || offer.offerStatus === 'EXPIRED'
+      }">
+
+        <!-- Color accent bar -->
+        <div class="lo-card__accent"></div>
+
+        <div class="lo-card__body">
+
+          <!-- Top row : domain pill + status badge -->
+          <div class="lo-card__top">
+            <span class="lo-domain-pill">{{ offer.domain }}</span>
+            <span class="lo-status-badge"
               [ngClass]="{
-                'status-draft':       offer.offerStatus === 'DRAFT',
-                'status-available':   offer.offerStatus === 'AVAILABLE',
-                'status-in-progress': offer.offerStatus === 'IN_PROGRESS',
-                'status-accepted':    offer.offerStatus === 'ACCEPTED',
-                'status-closed':      offer.offerStatus === 'CLOSED' || offer.offerStatus === 'EXPIRED'
+                'lo-badge--draft':    offer.offerStatus === 'DRAFT',
+                'lo-badge--avail':    offer.offerStatus === 'AVAILABLE',
+                'lo-badge--progress': offer.offerStatus === 'IN_PROGRESS',
+                'lo-badge--accepted': offer.offerStatus === 'ACCEPTED',
+                'lo-badge--closed':   offer.offerStatus === 'CLOSED' || offer.offerStatus === 'EXPIRED'
               }">
-              {{ offer.offerStatus }}
+              <span class="lo-badge__dot"></span>
+              {{ offer.offerStatus === 'IN_PROGRESS' ? 'En cours' :
+                 offer.offerStatus === 'AVAILABLE'   ? 'Publiée'  :
+                 offer.offerStatus === 'DRAFT'       ? 'Brouillon':
+                 offer.offerStatus === 'ACCEPTED'    ? 'Acceptée' : offer.offerStatus }}
             </span>
           </div>
 
-          <div class="offer-tags">
-            <span class="offer-domain">{{ offer.domain }}</span>
-            @if (offer.category) {
-              <span class="offer-category">{{ offer.category }}</span>
-            }
-          </div>
+          <!-- Title -->
+          <h3 class="lo-card__title">{{ offer.title }}</h3>
 
-          <p class="offer-desc">
-            {{ (offer.description | slice:0:120) }}{{ ((offer.description || '').length) > 120 ? '…' : '' }}
+          <!-- Description -->
+          <p class="lo-card__desc">
+            {{ (offer.description | slice:0:110) }}{{ ((offer.description || '').length > 110) ? '…' : '' }}
           </p>
 
-          <div class="offer-meta">
-            <span class="price">{{ offer.price | number:'1.2-2' }} TND</span>
-            <span class="duration-type">{{ offer.durationType | titlecase }}</span>
+          <!-- Meta row -->
+          <div class="lo-card__meta">
+            <div class="lo-meta-item">
+              <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <span>{{ offer.durationType | titlecase }}</span>
+            </div>
+            <div class="lo-meta-sep"></div>
+            <div class="lo-meta-item lo-meta-price">
+              <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v6M5.5 7h3.75a1.25 1.25 0 0 1 0 2.5H5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+              <strong>{{ offer.price | number:'1.0-0' }} TND</strong>
+            </div>
             @if (offer.pendingApplicationsCount) {
-              <span class="applications">{{ offer.pendingApplicationsCount }} pending</span>
+              <div class="lo-meta-sep"></div>
+              <div class="lo-meta-item lo-meta-apps">
+                <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><circle cx="8" cy="6" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M2 13c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <span>{{ offer.pendingApplicationsCount }} candidature{{ offer.pendingApplicationsCount > 1 ? 's' : '' }}</span>
+              </div>
             }
           </div>
 
-          <div class="offer-actions">
-            <a [routerLink]="['/dashboard/my-offers', offer.id, 'show']" class="btn btn--info">View</a>
+          <!-- Actions -->
+          <div class="lo-card__actions">
+            <a [routerLink]="['/dashboard/my-offers', offer.id, 'show']" class="lo-action-btn lo-action-btn--view">
+              <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.5"/></svg>
+              Voir
+            </a>
             @if (offer.offerStatus === 'DRAFT') {
-              <a [routerLink]="['/dashboard/my-offers', offer.id, 'edit']" class="btn btn--update">Edit</a>
-              <button (click)="openPublishModal(offer)" class="btn btn--publish">Publish</button>
+              <a [routerLink]="['/dashboard/my-offers', offer.id, 'edit']" class="lo-action-btn lo-action-btn--edit">
+                <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><path d="M11 2a1.41 1.41 0 0 1 2 2L5 12l-3 1 1-3 8-8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Modifier
+              </a>
+              <button (click)="openPublishModal(offer)" class="lo-action-btn lo-action-btn--publish">
+                <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><path d="M8 2v9M5 5l3-3 3 3M3 14h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Publier
+              </button>
             }
             @if (canDeleteOffer(offer)) {
-              <button (click)="openDeleteModal(offer)" class="btn btn--delete">Delete</button>
+              <button (click)="openDeleteModal(offer)" class="lo-action-btn lo-action-btn--delete" title="Supprimer">
+                <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><path d="M3 4h10M6 4V3h4v1M5 4v8h6V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
             }
           </div>
-
         </div>
       </div>
     }
   </div>
 
-  <!-- ── Empty State ─────────────────────────────────────────────────── -->
+  <!-- ══ Empty State ════════════════════════════════════════════════════ -->
   @if (!loading && !errorMessage && offers.length === 0) {
-    <div class="empty-state">
-      <span class="empty-icon">📋</span>
-      <p>No offers match your filters.</p>
-      <div class="empty-actions">
+    <div class="lo-empty">
+      <div class="lo-empty__icon">
+        <svg viewBox="0 0 80 80" fill="none" width="72" height="72">
+          <circle cx="40" cy="40" r="36" stroke="#e5e7eb" stroke-width="2.5"/>
+          <path d="M28 40h24M40 28v24" stroke="#d1d5db" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h3>Aucune offre trouvée</h3>
+      <p>{{ hasActiveFilters ? 'Essayez d\'ajuster vos filtres.' : 'Créez votre première offre pour attirer des clients.' }}</p>
+      <div class="lo-empty__actions">
         @if (hasActiveFilters) {
-          <button type="button" class="btn-reset" (click)="resetFilters()">Clear filters</button>
+          <button type="button" class="lo-btn lo-btn--ghost" (click)="resetFilters()">Effacer les filtres</button>
         }
-        <a routerLink="/dashboard/my-offers/add" class="btn btn--add-offer">Create an offer</a>
+        <a routerLink="/dashboard/my-offers/add" class="lo-btn lo-btn--primary">Créer une offre</a>
       </div>
     </div>
   }
 
-  <!-- ── Pagination ──────────────────────────────────────────────────── -->
+  <!-- ══ Pagination ═════════════════════════════════════════════════════ -->
   @if (totalPages > 1 && !loading) {
-    <div class="pagination">
-      <button type="button" (click)="prev()" [disabled]="currentPage <= 0">‹</button>
+    <div class="lo-pagination">
+      <button type="button" class="lo-page-btn" (click)="prev()" [disabled]="currentPage <= 0">
+        <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
       @for (p of pages; track p) {
-        <button type="button" class="page-btn"
-          [class.page-btn--active]="p === currentPage"
-          (click)="goToPage(p)">{{ p + 1 }}</button>
+        <button type="button" class="lo-page-btn" [class.lo-page-btn--active]="p === currentPage" (click)="goToPage(p)">{{ p + 1 }}</button>
       }
-      <button type="button" (click)="next()" [disabled]="currentPage >= totalPages - 1">›</button>
-      <span class="page-info">Page {{ currentPage + 1 }}/{{ totalPages }}</span>
+      <button type="button" class="lo-page-btn" (click)="next()" [disabled]="currentPage >= totalPages - 1">
+        <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <span class="lo-page-info">{{ currentPage + 1 }} / {{ totalPages }}</span>
     </div>
   }
 
-  <!-- ── Performance Stats ───────────────────────────────────────────── -->
-  <section class="stats-section">
-    <header class="stats-header">
-      <h3 class="stats-title">Performance overview</h3>
-      <p class="stats-subtitle">Key metrics from your offers and applications</p>
-    </header>
+  <!-- ══ Performance Stats ══════════════════════════════════════════════ -->
+  <section class="lo-stats">
+    <div class="lo-stats__head">
+      <div>
+        <h2 class="lo-stats__title">Performance</h2>
+        <p class="lo-stats__sub">Métriques clés de vos offres et candidatures</p>
+      </div>
+    </div>
+
     @if (statsLoading) {
-      <div class="stats-loading-state">
-        <span class="stats-spinner"></span>
-        <p class="stats-loading-text">Loading statistics…</p>
+      <div class="lo-stats__loading">
+        <span class="lo-stats-spinner"></span>
+        <span>Chargement des statistiques…</span>
       </div>
     } @else {
-      <div class="stats-grid">
+      <div class="lo-stats__grid">
+
+        <!-- Offers by status -->
         @if (statsByStatus) {
-          <article class="stat-card stat-card--status">
-            <div class="stat-card__header">
-              <span class="stat-card__icon stat-card__icon--status" aria-hidden="true"></span>
-              <h4 class="stat-card__title">Offers by status</h4>
+          <div class="lo-stat-card">
+            <div class="lo-stat-card__icon lo-stat-icon--blue">
+              <svg viewBox="0 0 20 20" fill="none" width="18" height="18"><rect x="3" y="3" width="14" height="14" rx="3" stroke="white" stroke-width="1.8"/><path d="M7 10h6M7 13h4" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
             </div>
-            <p class="stat-card__total">{{ totalOffersByStatus() }} total</p>
-            <div class="status-badges">
-              @for (entry of (statsByStatus | keyvalue); track entry.key) {
-                @if (entry.value > 0) {
-                  <span class="badge" [ngClass]="'badge--' + statusSlug(entry.key)">{{ entry.key }}: {{ entry.value }}</span>
-                }
-              }
-            </div>
-          </article>
-        }
-        @if (acceptanceRate) {
-          <article class="stat-card stat-card--rate">
-            <div class="stat-card__header">
-              <span class="stat-card__icon stat-card__icon--rate" aria-hidden="true"></span>
-              <h4 class="stat-card__title">Acceptance rate</h4>
-            </div>
-            <p class="stat-card__kpi rate-value">{{ formatRate(acceptanceRate.rate) }}</p>
-            <div class="rate-bar" [style.--rate]="(acceptanceRate.rate * 100) + '%'">
-              <span class="rate-bar__fill"></span>
-            </div>
-            <p class="stat-card__detail">{{ acceptanceRate.acceptedCount }} accepted / {{ acceptanceRate.totalApplications }} applications</p>
-          </article>
-        }
-        @if (monthlyEvolution) {
-          <article class="stat-card stat-card--evolution">
-            <div class="stat-card__header">
-              <span class="stat-card__icon stat-card__icon--chart" aria-hidden="true"></span>
-              <h4 class="stat-card__title">Monthly evolution</h4>
-              <div class="year-select">
-                <select class="year-select__input" [(ngModel)]="selectedYear" (ngModelChange)="refreshMonthlyEvolution()">
-                  @for (y of yearOptions; track y) {
-                    <option [value]="y">{{ y }}</option>
+            <div class="lo-stat-card__content">
+              <p class="lo-stat-card__label">Offres par statut</p>
+              <p class="lo-stat-card__value">{{ totalOffersByStatus() }}</p>
+              <div class="lo-stat-badges">
+                @for (entry of (statsByStatus | keyvalue); track entry.key) {
+                  @if (entry.value > 0) {
+                    <span class="lo-stat-badge" [ngClass]="'lo-stat-badge--' + statusSlug(entry.key)">
+                      {{ entry.key }}: {{ entry.value }}
+                    </span>
                   }
-                </select>
+                }
               </div>
             </div>
-            <div class="chart chart--bars">
-              <div class="chart__bars">
+          </div>
+        }
+
+        <!-- Acceptance rate -->
+        @if (acceptanceRate) {
+          <div class="lo-stat-card">
+            <div class="lo-stat-card__icon lo-stat-icon--green">
+              <svg viewBox="0 0 20 20" fill="none" width="18" height="18"><path d="M4 10l5 5 8-8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="lo-stat-card__content">
+              <p class="lo-stat-card__label">Taux d'acceptation</p>
+              <p class="lo-stat-card__value lo-stat-value--green">{{ formatRate(acceptanceRate.rate) }}</p>
+              <div class="lo-rate-bar">
+                <div class="lo-rate-bar__fill" [style.width]="(acceptanceRate.rate * 100) + '%'"></div>
+              </div>
+              <p class="lo-stat-card__detail">{{ acceptanceRate.acceptedCount }} acceptées / {{ acceptanceRate.totalApplications }} candidatures</p>
+            </div>
+          </div>
+        }
+
+        <!-- Monthly evolution -->
+        @if (monthlyEvolution) {
+          <div class="lo-stat-card lo-stat-card--wide">
+            <div class="lo-stat-card__icon lo-stat-icon--purple">
+              <svg viewBox="0 0 20 20" fill="none" width="18" height="18"><path d="M3 15l4-5 4 3 5-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="lo-stat-card__content" style="flex:1">
+              <div class="lo-stat-chart-head">
+                <div>
+                  <p class="lo-stat-card__label">Évolution mensuelle</p>
+                </div>
+                <select class="lo-year-select" [(ngModel)]="selectedYear" (ngModelChange)="refreshMonthlyEvolution()">
+                  @for (y of yearOptions; track y) { <option [value]="y">{{ y }}</option> }
+                </select>
+              </div>
+              <div class="lo-chart">
                 @for (m of monthlyEvolution.months; track m.month) {
-                  <div class="chart__bar-wrap" [title]="monthName(m.month) + ': ' + m.count">
-                    <span class="chart__bar" [style.--h]="(maxMonthCount ? (m.count / maxMonthCount) : 0) * 100"></span>
+                  <div class="lo-chart__col" [title]="monthName(m.month) + ': ' + m.count + ' offres'">
+                    <span class="lo-chart__val">{{ m.count || '' }}</span>
+                    <div class="lo-chart__bar-wrap">
+                      <div class="lo-chart__bar" [style.height.%]="maxMonthCount ? (m.count / maxMonthCount) * 100 : 0"></div>
+                    </div>
+                    <span class="lo-chart__lbl">{{ monthName(m.month) }}</span>
                   </div>
                 }
               </div>
-              <div class="chart__labels">
-                @for (m of monthlyEvolution.months; track m.month) {
-                  <span class="chart__label">{{ monthName(m.month) }}</span>
-                }
-              </div>
-              <div class="chart__values">
-                @for (m of monthlyEvolution.months; track m.month) {
-                  <span class="chart__value">{{ m.count }}</span>
-                }
-              </div>
             </div>
-          </article>
+          </div>
         }
+
       </div>
     }
   </section>
 
-  <!-- ── Delete Modal ────────────────────────────────────────────────── -->
+  <!-- ══ Delete Modal ═══════════════════════════════════════════════════ -->
   @if (offerToDelete) {
-    <div class="modal-overlay" (click)="closeDeleteModal()">
-      <div class="modal modal--confirm" (click)="$event.stopPropagation()">
-        <h3>Delete offer</h3>
-        <p class="modal-message">
-          Are you sure you want to delete <strong>{{ offerToDelete.title }}</strong>?
-        </p>
-        <div class="modal-actions">
-          <button type="button" class="btn-secondary" (click)="closeDeleteModal()" [disabled]="deleting">Cancel</button>
-          <button type="button" class="btn-danger" (click)="doDelete()" [disabled]="deleting">
-            {{ deleting ? 'Deleting…' : 'Delete' }}
+    <div class="lo-modal-overlay" (click)="closeDeleteModal()">
+      <div class="lo-modal" (click)="$event.stopPropagation()">
+        <div class="lo-modal__icon lo-modal__icon--danger">
+          <svg viewBox="0 0 24 24" fill="none" width="28" height="28"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3 class="lo-modal__title">Supprimer l'offre</h3>
+        <p class="lo-modal__msg">Voulez-vous vraiment supprimer <strong>{{ offerToDelete.title }}</strong> ? Cette action est irréversible.</p>
+        <div class="lo-modal__actions">
+          <button type="button" class="lo-btn lo-btn--ghost" (click)="closeDeleteModal()" [disabled]="deleting">Annuler</button>
+          <button type="button" class="lo-btn lo-btn--danger" (click)="doDelete()" [disabled]="deleting">
+            {{ deleting ? 'Suppression…' : 'Supprimer' }}
           </button>
         </div>
       </div>
     </div>
   }
 
-  <!-- ── Publish Modal ───────────────────────────────────────────────── -->
+  <!-- ══ Publish Modal ═════════════════════════════════════════════════ -->
   @if (offerToPublish) {
-    <div class="modal-overlay" (click)="closePublishModal()">
-      <div class="modal modal--confirm" (click)="$event.stopPropagation()">
-        <h3>Publish offer</h3>
-        <p class="modal-message">
-          Publish <strong>{{ offerToPublish.title }}</strong> so clients can see and apply?
-        </p>
-        <div class="modal-actions">
-          <button type="button" class="btn-secondary" (click)="closePublishModal()" [disabled]="publishing">Cancel</button>
-          <button type="button" class="btn-primary" (click)="doPublish()" [disabled]="publishing">
-            {{ publishing ? 'Publishing…' : 'Publish' }}
+    <div class="lo-modal-overlay" (click)="closePublishModal()">
+      <div class="lo-modal" (click)="$event.stopPropagation()">
+        <div class="lo-modal__icon lo-modal__icon--success">
+          <svg viewBox="0 0 24 24" fill="none" width="28" height="28"><path d="M12 2v12M8 6l4-4 4 4M4 20h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3 class="lo-modal__title">Publier l'offre</h3>
+        <p class="lo-modal__msg">Publier <strong>{{ offerToPublish.title }}</strong> pour que les clients puissent la voir et postuler ?</p>
+        <div class="lo-modal__actions">
+          <button type="button" class="lo-btn lo-btn--ghost" (click)="closePublishModal()" [disabled]="publishing">Annuler</button>
+          <button type="button" class="lo-btn lo-btn--primary" (click)="doPublish()" [disabled]="publishing">
+            {{ publishing ? 'Publication…' : 'Publier' }}
           </button>
         </div>
       </div>

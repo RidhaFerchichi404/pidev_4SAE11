@@ -1,23 +1,45 @@
-<div class="show-offer-page" *ngIf="offer">
-  <div class="back-row">
-    <a routerLink="/dashboard/my-offers" class="btn-back">Back to my offers</a>
-  </div>
-  <div class="offer-detail card">
-    <div class="offer-header">
-      <h1>{{ offer.title }}</h1>
-      <span class="status-badge">{{ offer.offerStatus }}</span>
-    </div>
-    <p class="domain">{{ offer.domain }}</p>
-    <p class="description">{{ offer.description }}</p>
-    <div class="meta">
-      <span class="price">{{ offer.price | number:'1.2-2' }} ({{ offer.durationType }})</span>
-      <span *ngIf="offer.deadline">Deadline: {{ offer.deadline }}</span>
-      <span *ngIf="offer.pendingApplicationsCount != null">{{ offer.pendingApplicationsCount }} pending</span>
-    </div>
+<div class="so-page show-offer-page" *ngIf="offer">
+
+  <div class="so-back">
+    <a routerLink="/dashboard/my-offers" class="so-back__link">
+      <svg viewBox="0 0 20 20" fill="none" width="16" height="16"><path d="M12 4l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Retour à mes offres
+    </a>
   </div>
 
-  <!-- ── Offer Quality Score (Fiverr-style) ──────────────────── -->
-  <section class="quality-score-section card">
+  <!-- Layout 2 colonnes type Fiverr : contenu principal | sidebar ─────── -->
+  <div class="so-layout">
+    <!-- ── Colonne principale (gauche) ───────────────────────────────── -->
+    <div class="so-main">
+
+      <!-- Carte offre : image + titre + description -->
+      <article class="so-gig-card">
+        <div class="so-gig-card__media" [class.so-gig-card__media--placeholder]="!offer.imageUrl">
+          @if (offer.imageUrl) {
+            <img [src]="offer.imageUrl" [alt]="offer.title" class="so-gig-card__img" />
+          } @else {
+            <div class="so-gig-card__placeholder">
+              <svg viewBox="0 0 48 48" fill="none" width="64" height="64"><rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" stroke-width="2"/><path d="M16 20l6 6 10-12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>Image de l'offre</span>
+            </div>
+          }
+        </div>
+        <div class="so-gig-card__body">
+          <div class="so-gig-card__top">
+            <span class="so-gig-card__domain">{{ offer.domain }}</span>
+            <span class="so-gig-card__status" [ngClass]="'so-gig-status--' + (offer.offerStatus | lowercase)">
+              {{ offer.offerStatus === 'IN_PROGRESS' ? 'En cours' : offer.offerStatus === 'AVAILABLE' ? 'Publiée' : offer.offerStatus === 'DRAFT' ? 'Brouillon' : offer.offerStatus }}
+            </span>
+          </div>
+          <h1 class="so-gig-card__title">{{ offer.title }}</h1>
+          <div class="so-gig-card__description">
+            <p>{{ offer.description }}</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- Score qualité ───────────────────────────────────────────────── -->
+  <section class="so-section quality-score-section card">
     <div class="qs-header" (click)="scoreExpanded = !scoreExpanded" style="cursor:pointer">
       <div class="qs-header-left">
         <span class="qs-icon">📊</span>
@@ -49,7 +71,7 @@
               [attr.stroke]="scoreLevel.color"
               stroke-width="10"
               stroke-linecap="round"
-              [attr.stroke-dasharray]="scoreDasharray"
+              [attr.stroke-dasharray]="2 * 3.14159 * 52"
               [attr.stroke-dashoffset]="scoreDashoffset"
               transform="rotate(-90 60 60)"
               style="transition: stroke-dashoffset 0.8s ease"
@@ -104,11 +126,36 @@
           🏆 Excellent ! Votre offre est parfaitement optimisée.
         }
       </p>
+
+      <!-- Edit CTA — visible only when offer can still be edited (DRAFT status) -->
+      @if (offer?.offerStatus === 'DRAFT' && qualityScore < 100) {
+        <div class="qs-edit-cta">
+          <a [routerLink]="['/dashboard/my-offers', offer!.id, 'edit']" class="btn-edit-offer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Modifier mon offre pour améliorer le score
+          </a>
+          <p class="qs-edit-hint">
+            Il vous manque <strong>{{ 100 - qualityScore }} pts</strong> pour atteindre le score parfait.
+          </p>
+        </div>
+      }
+
+      @if (offer?.offerStatus !== 'DRAFT') {
+        <div class="qs-readonly-notice">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          Cette offre est <strong>{{ offer?.offerStatus }}</strong> et ne peut plus être modifiée.
+        </div>
+      }
     }
   </section>
 
-  <!-- Traduction multilingue (Google Translate – FR / EN / AR) -->
-  <section class="translate-section card">
+  <!-- Traduction ───────────────────────────────────────────────────── -->
+  <section class="so-section translate-section card">
     <h2 class="translate-section__title">
       <span class="translate-section__icon" aria-hidden="true"></span>
       Translate this offer
@@ -160,63 +207,438 @@
     }
   </section>
 
-  <!-- Q&A : questions des clients (répondre ici) -->
-  <section class="qa-freelancer-section card">
-    <h2 class="qa-freelancer-section__title">Questions from clients</h2>
-    <p class="qa-freelancer-section__subtitle">Answer client questions before they apply.</p>
+  <!-- Q&A ─────────────────────────────────────────────────────────── -->
+  <section class="so-section so-qa-section" [class.so-qa-section--open]="qaSectionExpanded">
+    <button type="button" class="so-qa-header" (click)="toggleQaSection()" [attr.aria-expanded]="qaSectionExpanded">
+      <span class="so-qa-header__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </span>
+      <div class="so-qa-header__text">
+        <h2 class="so-qa-title">Questions des clients</h2>
+        <p class="so-qa-subtitle">Répondez aux questions avant que les clients ne postulent.</p>
+      </div>
+      <div class="so-qa-header__right">
+        @if (offerQuestions.length > 0 && !loadingQuestions) {
+          <span class="so-qa-badge">{{ offerQuestions.length }} question{{ offerQuestions.length > 1 ? 's' : '' }}</span>
+        }
+        <span class="so-qa-header__chevron-wrap">
+          <svg class="so-qa-header__chevron" viewBox="0 0 20 20" fill="none" width="20" height="20">
+            <path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </div>
+    </button>
+
+    @if (qaSectionExpanded) {
     @if (loadingQuestions) {
-      <p class="qa-freelancer-section__loading">Loading...</p>
+      <div class="so-qa-loading">
+        <span class="so-qa-loading__dot"></span>
+        <span class="so-qa-loading__dot"></span>
+        <span class="so-qa-loading__dot"></span>
+        <p>Chargement des questions…</p>
+      </div>
     } @else if (offerQuestions.length === 0) {
-      <p class="qa-freelancer-section__empty">No questions yet.</p>
+      <div class="so-qa-empty">
+        <svg class="so-qa-empty__icon" viewBox="0 0 64 64" fill="none" width="48" height="48">
+          <circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4" opacity="0.4"/>
+          <path d="M24 24h16v4H24zM24 32h12v2H24zM24 40h10v2H24z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <p class="so-qa-empty__text">Aucune question pour le moment</p>
+        <span class="so-qa-empty__hint">Les questions des clients apparaîtront ici.</span>
+      </div>
     } @else {
-      <div class="qa-freelancer-list">
+      <ul class="so-qa-list">
         @for (q of offerQuestions; track q.id) {
-          <div class="qa-freelancer-item" [class.qa-freelancer-item--answered]="q.answered">
-            <p class="qa-freelancer-item__q">{{ q.questionText }}</p>
-            <span class="qa-freelancer-item__date">Asked {{ formatDate(q.askedAt) }}</span>
-            @if (q.answered && q.answerText) {
-              <p class="qa-freelancer-item__a"><strong>Your answer:</strong> {{ q.answerText }}</p>
-            } @else {
-              <div class="qa-freelancer-item__answer-form">
-                <textarea
-                  [id]="'answer-' + q.id"
-                  placeholder="Write your answer..."
-                  [(ngModel)]="answerTexts[q.id]"
-                  name="answer-{{ q.id }}"
-                  rows="2"
-                ></textarea>
-                <button type="button" class="btn-answer" (click)="submitAnswer(q.id)" [disabled]="answeringId === q.id || !(answerTexts[q.id] || '').trim()">
-                  {{ answeringId === q.id ? 'Sending...' : 'Reply' }}
-                </button>
+          <li class="so-qa-item"
+              [class.so-qa-item--answered]="q.answered"
+              [class.so-qa-item--open]="expandedQuestions.has(q.id)">
+
+            <!-- ── En-tête cliquable ──────────────────────────────── -->
+            <button type="button" class="so-qa-item__head" (click)="toggleQuestion(q.id)" [attr.aria-expanded]="expandedQuestions.has(q.id)">
+              <span class="so-qa-item__status-dot"
+                    [class.so-qa-item__status-dot--answered]="q.answered"
+                    [class.so-qa-item__status-dot--pending]="!q.answered"
+                    aria-hidden="true"></span>
+              <span class="so-qa-item__icon so-qa-item__icon--q" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <div class="so-qa-item__content">
+                <p class="so-qa-item__text">{{ q.questionText }}</p>
+                <span class="so-qa-item__date">
+                  {{ formatDate(q.askedAt) }}
+                  @if (q.answered) {
+                    <span class="so-qa-item__answered-chip">
+                      <svg viewBox="0 0 16 16" fill="none" width="12" height="12"><path d="M3 8l4 4 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      Répondue
+                    </span>
+                  } @else {
+                    <span class="so-qa-item__pending-chip">En attente</span>
+                  }
+                </span>
+              </div>
+              <svg class="so-qa-item__chevron" viewBox="0 0 20 20" fill="none" width="18" height="18">
+                <path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+
+            <!-- ── Corps accordéon ───────────────────────────────── -->
+            @if (expandedQuestions.has(q.id)) {
+              <div class="so-qa-item__body">
+                @if (q.answered && q.answerText) {
+                  <div class="so-qa-item__answer">
+                    <div class="so-qa-item__answer-meta">
+                      <svg viewBox="0 0 20 20" fill="none" width="16" height="16"><path d="M10 2a8 8 0 1 0 0 16A8 8 0 0 0 10 2z" stroke="currentColor" stroke-width="2"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      Votre réponse
+                    </div>
+                    <p class="so-qa-item__answer-text">{{ q.answerText }}</p>
+                  </div>
+                } @else {
+                  <div class="so-qa-item__form">
+                    <label [for]="'answer-' + q.id" class="so-qa-item__label">Votre réponse</label>
+                    <textarea
+                      [id]="'answer-' + q.id"
+                      class="so-qa-item__textarea"
+                      placeholder="Écrivez votre réponse…"
+                      [(ngModel)]="answerTexts[q.id]"
+                      name="answer-{{ q.id }}"
+                      rows="3"
+                    ></textarea>
+                    <button type="button" class="so-qa-item__btn" (click)="submitAnswer(q.id)" [disabled]="answeringId === q.id || !(answerTexts[q.id] || '').trim()">
+                      @if (answeringId === q.id) {
+                        <span class="so-qa-item__btn-spinner"></span>
+                        Envoi…
+                      } @else {
+                        <svg viewBox="0 0 20 20" fill="none" width="16" height="16"><path d="M18 2L9 11M18 2l-7 14-3-6-6-3 14-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Répondre
+                      }
+                    </button>
+                  </div>
+                }
               </div>
             }
-          </div>
+          </li>
         }
-      </div>
+      </ul>
+    }
     }
   </section>
 
-  <div class="applications-section">
-    <h2>Applications</h2>
-    <p class="loading-msg" *ngIf="loadingApps">Loading applications...</p>
-    <p class="empty-msg" *ngIf="!loadingApps && applications.length === 0">No applications yet.</p>
-    <div class="applications-list" *ngIf="!loadingApps && applications.length > 0">
-      <div class="app-card" *ngFor="let app of applications">
-        <div class="app-main">
-          <p class="app-message">{{ app.message }}</p>
-          <p class="app-meta">Proposed budget: {{ app.proposedBudget | number:'1.2-2' }} - Applied {{ formatDate(app.appliedAt) }}</p>
-          <span class="app-status">{{ app.status }}</span>
+  <!-- ── Candidatures (liste) ───────────────────────────────────────── -->
+  <section class="so-section so-apps-section">
+    <div class="so-apps-header">
+      <div class="so-apps-header__left">
+        <h2 class="so-apps-title">
+          <svg viewBox="0 0 20 20" fill="none" width="20" height="20"><path d="M17 9H7M13 5l4 4-4 4M3 5v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Candidatures reçues
+        </h2>
+        <p class="so-apps-sub">{{ applications.length }} candidature{{ applications.length !== 1 ? 's' : '' }} pour cette offre</p>
+      </div>
+      @if (applications.length > 0) {
+        <div class="so-apps-stats">
+          <span class="so-stat-chip so-stat-chip--pending">{{ countByStatus('PENDING') }} en attente</span>
+          <span class="so-stat-chip so-stat-chip--accepted">{{ countByStatus('ACCEPTED') }} acceptées</span>
         </div>
-        <div class="app-actions" *ngIf="app.status === 'PENDING'">
-          <button type="button" class="btn-accept" (click)="accept(app)" [disabled]="actioning">Accept</button>
-          <button type="button" class="btn-reject" (click)="reject(app)" [disabled]="actioning">Reject</button>
+      }
+    </div>
+
+    @if (loadingApps) {
+      <ul class="so-apps-list so-apps-list--loading">
+        @for (s of [1,2,3]; track s) {
+          <li class="so-app-row so-app-row--skeleton">
+            <div class="so-app-row__avatar sk-box"></div>
+            <div class="so-app-row__main">
+              <div class="sk-line sk-line--title"></div>
+              <div class="sk-line sk-line--meta"></div>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (!loadingApps && applications.length === 0) {
+      <div class="so-apps-empty">
+        <svg viewBox="0 0 64 64" fill="none" width="56" height="56">
+          <circle cx="32" cy="32" r="28" stroke="#e5e7eb" stroke-width="3"/>
+          <path d="M22 32h20M32 22v20" stroke="#d1d5db" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <p>Aucune candidature pour le moment.</p>
+        <span>Partagez votre offre pour attirer des clients.</span>
+      </div>
+    }
+
+    @if (!loadingApps && applications.length > 0) {
+      <ul class="so-apps-list">
+        @for (app of applications; track app.id) {
+          <li class="so-app-row" [class.so-app-row--expanded]="expandedApps.has(app.id)" [class.so-app-row--pending]="app.status === 'PENDING'" [class.so-app-row--accepted]="app.status === 'ACCEPTED'" [class.so-app-row--rejected]="app.status === 'REJECTED'">
+
+            <!-- Row: avatar | infos | statut | brief | chevron -->
+            <div class="so-app-row__head" (click)="toggleApp(app.id)">
+              <div class="so-app-row__avatar-wrap">
+                <div class="app-status-dot" [class.dot--pending]="app.status === 'PENDING'" [class.dot--accepted]="app.status === 'ACCEPTED'" [class.dot--rejected]="app.status === 'REJECTED'"></div>
+                @if (hasBrief(app.message)) {
+                  <div class="app-brief-logo" [style.background]="briefColors(app.message).primary">
+                    {{ briefInitials(app.message) }}
+                    <span class="brief-logo-dot" [style.background]="briefColors(app.message).secondary"></span>
+                  </div>
+                } @else {
+                  <div class="app-avatar">
+                    <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="12" r="6" fill="#d1d5db"/><path d="M4 28c0-6.627 5.373-12 12-12s12 5.373 12 12" fill="#e5e7eb"/></svg>
+                  </div>
+                }
+              </div>
+              <div class="so-app-row__info">
+                <span class="so-app-row__name">
+                  @if (hasBrief(app.message)) {
+                    {{ briefField(app.message, 'Projet') || 'Client #' + app.clientId }}
+                  } @else {
+                    Client #{{ app.clientId }}
+                  }
+                </span>
+                <span class="so-app-row__meta">
+                  {{ app.proposedBudget | number:'1.0-0' }} TND · {{ formatDate(app.appliedAt) }}
+                  @if (app.estimatedDuration) { · {{ app.estimatedDuration }} j }
+                </span>
+              </div>
+              <div class="so-app-row__badges">
+                <span class="app-badge" [class.badge--pending]="app.status === 'PENDING'" [class.badge--accepted]="app.status === 'ACCEPTED'" [class.badge--rejected]="app.status === 'REJECTED'">
+                  @if (app.status === 'PENDING') { En attente }
+                  @else if (app.status === 'ACCEPTED') { Acceptée }
+                  @else if (app.status === 'REJECTED') { Refusée }
+                  @else { {{ app.status }} }
+                </span>
+                @if (hasBrief(app.message)) {
+                  <span class="brief-indicator" title="Design Brief joint">
+                    <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="3" fill="#6C63FF"/><text x="8" y="11" text-anchor="middle" font-size="8" font-weight="800" fill="white">B</text></svg>
+                    Brief
+                  </span>
+                }
+              </div>
+              <svg class="so-app-row__chevron" [class.so-app-row__chevron--open]="expandedApps.has(app.id)" viewBox="0 0 16 16" fill="none">
+                <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+
+            <!-- ── Card Body (expanded) ─────────────────────────── -->
+            @if (expandedApps.has(app.id)) {
+              <div class="app-card-body">
+
+                <!-- Personal message -->
+                @if (personalMessage(app.message)) {
+                  <div class="app-message-block">
+                    <span class="block-label">
+                      <svg viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h10M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                      Message du client
+                    </span>
+                    <p class="app-message-text">{{ personalMessage(app.message) }}</p>
+                  </div>
+                }
+
+                <!-- Design Brief Card -->
+                @if (hasBrief(app.message)) {
+                  <div class="brief-card-freelancer" [style.--brief-primary]="briefColors(app.message).primary" [style.--brief-secondary]="briefColors(app.message).secondary">
+
+                    <!-- Brief header -->
+                    <div class="brief-card-header">
+                      <div class="brief-card-logo">
+                        <svg viewBox="0 0 56 56" width="56" height="56">
+                          <rect x="3" y="3" width="50" height="50" rx="14" [attr.fill]="briefColors(app.message).primary"/>
+                          <text x="28" y="36" text-anchor="middle" font-family="'Segoe UI'" font-size="20" font-weight="800" fill="white">{{ briefInitials(app.message) }}</text>
+                          <circle cx="46" cy="10" r="8" [attr.fill]="briefColors(app.message).secondary"/>
+                        </svg>
+                      </div>
+                      <div class="brief-card-title">
+                        <h4>{{ briefField(app.message, 'Projet') || 'Projet sans nom' }}</h4>
+                        @if (briefField(app.message, 'Tagline')) {
+                          <p class="brief-tagline">{{ briefField(app.message, 'Tagline') }}</p>
+                        }
+                        <div class="brief-badges-row">
+                          @if (briefField(app.message, 'Secteur')) {
+                            <span class="brief-badge">{{ briefField(app.message, 'Secteur') }}</span>
+                          }
+                          @if (briefField(app.message, 'Type')) {
+                            <span class="brief-badge brief-badge--type">{{ briefField(app.message, 'Type') }}</span>
+                          }
+                          @if (briefField(app.message, 'Style')) {
+                            <span class="brief-badge brief-badge--style">{{ briefField(app.message, 'Style') }}</span>
+                          }
+                        </div>
+                      </div>
+                      <div class="brief-card-colors">
+                        <div class="color-dot-pair">
+                          <span class="color-dot" [style.background]="briefColors(app.message).primary" [title]="briefColors(app.message).primary"></span>
+                          <span class="color-dot" [style.background]="briefColors(app.message).secondary" [title]="briefColors(app.message).secondary"></span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Brief details grid -->
+                    <div class="brief-card-details">
+                      @if (briefField(app.message, 'Budget')) {
+                        <div class="brief-detail">
+                          <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v6M5.5 7h3.75a1.25 1.25 0 0 1 0 2.5H5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                          <span>Budget :</span>
+                          <strong>{{ briefField(app.message, 'Budget') }}</strong>
+                        </div>
+                      }
+                      @if (briefField(app.message, 'Délai')) {
+                        <div class="brief-detail">
+                          <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M2 7h12M5.5 1v4M10.5 1v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                          <span>Délai :</span>
+                          <strong>{{ briefField(app.message, 'Délai') }}</strong>
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Pages -->
+                    @if (briefPages(app.message).length > 0) {
+                      <div class="brief-pages-row">
+                        <span class="block-label">
+                          <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 6h6M5 9h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                          Pages ({{ briefPages(app.message).length }})
+                        </span>
+                        <div class="brief-pages-chips">
+                          @for (page of briefPages(app.message); track page) {
+                            <span class="brief-page-chip" [style.borderColor]="briefColors(app.message).primary" [style.color]="briefColors(app.message).primary">{{ page }}</span>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    <!-- Description -->
+                    @if (briefField(app.message, 'Description')) {
+                      <div class="brief-description">
+                        <span class="block-label">
+                          <svg viewBox="0 0 16 16" fill="none"><path d="M3 4h10M3 7h10M3 10h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                          Description du projet
+                        </span>
+                        <p>{{ briefField(app.message, 'Description') }}</p>
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- Portfolio URL -->
+                @if (app.portfolioUrl) {
+                  <div class="app-portfolio">
+                    <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.5"/></svg>
+                    Portfolio :
+                    <a [href]="app.portfolioUrl" target="_blank" rel="noopener">{{ app.portfolioUrl }}</a>
+                  </div>
+                }
+
+                <!-- Action error -->
+                @if (actionError) {
+                  <div class="action-error-msg" (click)="actionError = null">
+                    <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v4M8 11v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    {{ actionError }}
+                    <span class="action-error-close">✕</span>
+                  </div>
+                }
+
+                <!-- Actions -->
+                <div class="app-actions">
+                  @if (app.status === 'PENDING') {
+                    <button type="button" class="btn-accept" (click)="accept(app); $event.stopPropagation()" [disabled]="actioning">
+                      @if (actioning) {
+                        <svg class="spin" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2" stroke-dasharray="25" stroke-dashoffset="10"/></svg>
+                        En cours…
+                      } @else {
+                        <svg viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Accepter
+                      }
+                    </button>
+                    <button type="button" class="btn-reject" (click)="reject(app); $event.stopPropagation()" [disabled]="actioning">
+                      <svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      Refuser
+                    </button>
+                  }
+                  @if (app.status === 'ACCEPTED') {
+                    <button type="button" class="btn-create-project" (click)="createProject(app); $event.stopPropagation()">
+                      <svg viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                      Créer le projet
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+    </div>
+    <aside class="so-sidebar">
+      <div class="so-order-card">
+        <div class="so-order-card__price-block">
+          <span class="so-order-card__label">À partir de</span>
+          <p class="so-order-card__price">{{ offer.price | number:'1.0-0' }} <span class="so-order-card__currency">TND</span></p>
+          <span class="so-order-card__duration">{{ offer.durationType | titlecase }}</span>
         </div>
-        <div class="app-actions" *ngIf="app.status === 'ACCEPTED'">
-          <button type="button" class="btn-create-project" (click)="createProject(app)">Create project</button>
+        <div class="so-order-card__divider"></div>
+        <ul class="so-order-card__specs">
+          <li class="so-order-card__spec">
+            <svg viewBox="0 0 16 16" fill="none" width="16" height="16"><path d="M2 4h12M2 8h8M2 12h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <span><strong>Domaine</strong> {{ offer.domain }}</span>
+          </li>
+          @if (offer.deadline) {
+            <li class="so-order-card__spec">
+              <svg viewBox="0 0 16 16" fill="none" width="16" height="16"><rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M2 7h12M5.5 1v4M10.5 1v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <span><strong>Date limite</strong> {{ offer.deadline }}</span>
+            </li>
+          }
+          @if (offer.pendingApplicationsCount != null) {
+            <li class="so-order-card__spec so-order-card__spec--highlight">
+              <svg viewBox="0 0 16 16" fill="none" width="16" height="16"><circle cx="8" cy="6" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M2 13c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <span><strong>{{ offer.pendingApplicationsCount }}</strong> candidature{{ offer.pendingApplicationsCount > 1 ? 's' : '' }} en attente</span>
+            </li>
+          }
+        </ul>
+        <div class="so-order-card__actions">
+          @if (offer.offerStatus === 'DRAFT') {
+            <a [routerLink]="['/dashboard/my-offers', offer.id, 'edit']" class="so-order-btn so-order-btn--primary">
+              <svg viewBox="0 0 20 20" fill="none" width="18" height="18"><path d="M11 3H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-7"/><path d="M16.5 2.5a2.12 2.12 0 0 1 3 3L13 12l-4 1 1-4 7.5-7.5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Modifier l'offre
+            </a>
+            <button type="button" class="so-order-btn so-order-btn--secondary" (click)="openPublishModal(offer)">
+              <svg viewBox="0 0 20 20" fill="none" width="18" height="18"><path d="M10 3v11M6 7l4-4 4 4M3 17h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Publier l'offre
+            </button>
+          } @else {
+            <a [routerLink]="['/dashboard/my-offers', offer.id, 'edit']" class="so-order-btn so-order-btn--outline">
+              <svg viewBox="0 0 20 20" fill="none" width="18" height="18"><path d="M11 3H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-7"/><path d="M16.5 2.5a2.12 2.12 0 0 1 3 3L13 12l-4 1 1-4 7.5-7.5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Voir / Modifier
+            </a>
+          }
+          <a routerLink="/dashboard/my-offers" class="so-order-btn so-order-btn--ghost">
+            <svg viewBox="0 0 20 20" fill="none" width="18" height="18"><path d="M8 4L4 8l4 4M4 8h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Toutes mes offres
+          </a>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Modal Publier l'offre -->
+  @if (offerToPublish) {
+    <div class="lo-modal-overlay" (click)="closePublishModal()">
+      <div class="lo-modal" (click)="$event.stopPropagation()">
+        <div class="lo-modal__icon lo-modal__icon--success">
+          <svg viewBox="0 0 24 24" fill="none" width="28" height="28"><path d="M12 2v12M8 6l4-4 4 4M4 20h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3 class="lo-modal__title">Publier l'offre</h3>
+        <p class="lo-modal__msg">Publier <strong>{{ offerToPublish.title }}</strong> pour que les clients puissent la voir et postuler ?</p>
+        <div class="lo-modal__actions">
+          <button type="button" class="lo-btn lo-btn--ghost" (click)="closePublishModal()" [disabled]="publishing">Annuler</button>
+          <button type="button" class="lo-btn lo-btn--primary" (click)="doPublish()" [disabled]="publishing">
+            {{ publishing ? 'Publication…' : 'Publier' }}
+          </button>
         </div>
       </div>
     </div>
-  </div>
+  }
 </div>
-<p class="error-msg" *ngIf="errorMessage">{{ errorMessage }}</p>
-<p class="loading-msg" *ngIf="loading && !offer">Loading offer...</p>
+<p class="so-err" *ngIf="errorMessage">{{ errorMessage }}</p>
+<p class="so-loading" *ngIf="loading && !offer">Chargement de l'offre…</p>

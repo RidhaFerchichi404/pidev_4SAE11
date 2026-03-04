@@ -1,0 +1,13 @@
+package org.example.offer.entity;
+
+public enum NotificationType {
+    NEW_QUESTION,
+    QUESTION_ANSWERED,
+    APPLICATION_RECEIVED,
+    APPLICATION_ACCEPTED,
+    APPLICATION_REJECTED,
+    OFFER_PUBLISHED,
+    OFFER_EXPIRED,
+    CONTRACT_CREATED,
+    GENERAL
+}

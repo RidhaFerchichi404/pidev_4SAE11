@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Clés / secrets locaux (ne pas commiter)
+**/application-local.properties

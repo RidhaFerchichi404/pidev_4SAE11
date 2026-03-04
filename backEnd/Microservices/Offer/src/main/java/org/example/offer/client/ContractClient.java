@@ -37,9 +37,10 @@ public class ContractClient {
             log.info("Contract created for offerApplicationId={}, clientId={}, freelancerId={}",
                     request.getOfferApplicationId(), request.getClientId(), request.getFreelancerId());
         } catch (Exception e) {
-            log.error("Failed to create contract via Contract service at {}: {}", url, e.getMessage());
-            throw new org.example.offer.exception.BadRequestException(
-                    "Application accepted but contract creation failed. Please try again or contact support.");
+            // Log the error but do NOT block the application acceptance.
+            // The contract can be created manually later if the Contract service is unavailable.
+            log.warn("Contract service unavailable at {}. Application was accepted but contract was NOT auto-created. Error: {}",
+                    url, e.getMessage());
         }
     }
 }

@@ -2,14 +2,13 @@ package org.example.offer.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.offer.client.NotificationClient;
 import org.example.offer.client.UserFeignClient;
-import org.example.offer.dto.NotificationRequestDto;
 import org.example.offer.dto.request.AnswerQuestionRequest;
 import org.example.offer.dto.request.OfferQuestionRequest;
 import org.example.offer.dto.response.OfferQuestionResponse;
 import org.example.offer.entity.Offer;
 import org.example.offer.entity.OfferQuestion;
+import org.example.offer.entity.NotificationType;
 import org.example.offer.exception.BadRequestException;
 import org.example.offer.exception.ResourceNotFoundException;
 import org.example.offer.repository.OfferQuestionRepository;
@@ -32,7 +31,7 @@ public class OfferQuestionService {
 
     private final OfferQuestionRepository questionRepository;
     private final OfferRepository offerRepository;
-    private final NotificationClient notificationClient;
+    private final NotificationService notificationService;
     private final EmailService emailService;
     private final UserFeignClient userFeignClient;
 
@@ -62,18 +61,11 @@ public class OfferQuestionService {
         q = questionRepository.save(q);
         log.info("Question added for offer {} by client {}", offerId, clientId);
 
-        // 1. Notification in-app pour le freelancer (via Notification microservice)
+        // 1. Notification in-app pour le freelancer
         try {
             String title = "New question on your offer";
             String msg = "A client asked: \"" + (q.getQuestionText().length() > 80 ? q.getQuestionText().substring(0, 80) + "…" : q.getQuestionText()) + "\"";
-            NotificationRequestDto req = NotificationRequestDto.builder()
-                    .userId(String.valueOf(offer.getFreelancerId()))
-                    .title(title)
-                    .body(msg)
-                    .type("NEW_QUESTION")
-                    .data(Map.of("offerId", String.valueOf(offerId), "questionId", String.valueOf(q.getId())))
-                    .build();
-            notificationClient.create(req);
+            notificationService.createNotification(offer.getFreelancerId(), NotificationType.NEW_QUESTION, title, msg, offerId, q.getId());
         } catch (Exception e) {
             log.warn("Could not create notification for new question (offer={}, questionId={}): {}", offerId, q.getId(), e.getMessage());
         }

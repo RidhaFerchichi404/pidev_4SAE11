@@ -94,6 +94,7 @@ export const routes: Routes = [
         ]
       },
       { path: 'my-offer-applications', loadComponent: () => import('./pages/dashboard/my-offer-applications/my-offer-applications').then(m => m.MyOfferApplications) },
+      { path: 'design-brief', loadComponent: () => import('./pages/dashboard/design-brief/design-brief').then(m => m.DesignBrief), title: 'Design Brief Builder' },
       {
         path: 'reviews',
         children: [

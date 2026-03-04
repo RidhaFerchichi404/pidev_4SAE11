@@ -1,0 +1,618 @@
+<div class="brief-page">
+
+  <!-- ── Page Header ──────────────────────────────────────────── -->
+  <div class="brief-header">
+    <a routerLink="/dashboard/browse-offers" class="back-link">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M13 4 7 10l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Retour aux offres
+    </a>
+    <div class="brief-header__content">
+      <h1>Design Brief Builder</h1>
+      <p>Décrivez votre vision en 3 étapes et partagez-la avec les freelancers.</p>
+    </div>
+  </div>
+
+  <!-- ── Progress Bar ─────────────────────────────────────────── -->
+  <div class="progress-track">
+    <div class="progress-bar" [style.width.%]="progressPercent"></div>
+    <div class="progress-steps">
+      @for (s of [1, 2, 3]; track s) {
+        <button
+          class="progress-step"
+          [class.active]="step === s"
+          [class.done]="step > s"
+          (click)="goToStep(s)"
+        >
+          @if (step > s) {
+            <svg viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5 6.5-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          } @else {
+            {{ s }}
+          }
+          <span class="step-label">
+            {{ s === 1 ? 'Identité' : s === 2 ? 'Structure' : 'Résumé' }}
+          </span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  STEP 1 — Brand Identity                                    -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  @if (step === 1) {
+    <div class="brief-body">
+      <div class="step-layout">
+
+        <!-- Left: Form -->
+        <div class="step-form">
+          <h2 class="step-title">
+            <span class="step-num">1</span>
+            Identité de la marque
+          </h2>
+          <p class="step-desc">Définissez le nom, le secteur et le style visuel de votre projet.</p>
+
+          <!-- App name -->
+          <div class="field-group">
+            <label class="field-label">Nom de l'application / du projet *</label>
+            <input
+              type="text"
+              class="field-input"
+              placeholder="ex. SmartFreelance, NovaPay..."
+              [(ngModel)]="brief.appName"
+              maxlength="40"
+            />
+            <span class="field-count">{{ brief.appName.length }}/40</span>
+          </div>
+
+          <!-- Tagline -->
+          <div class="field-group">
+            <label class="field-label">Tagline (optionnel)</label>
+            <input
+              type="text"
+              class="field-input"
+              placeholder="ex. Connectez les talents au monde"
+              [(ngModel)]="brief.tagline"
+              maxlength="80"
+            />
+          </div>
+
+          <!-- Industry -->
+          <div class="field-group">
+            <label class="field-label">Secteur d'activité *</label>
+            <div class="chips-grid">
+              @for (ind of industries; track ind) {
+                <button
+                  type="button"
+                  class="chip"
+                  [class.selected]="brief.industry === ind"
+                  (click)="brief.industry = ind"
+                >{{ ind }}</button>
+              }
+            </div>
+          </div>
+
+          <!-- Style -->
+          <div class="field-group">
+            <label class="field-label">Style visuel *</label>
+            <div class="style-grid">
+              @for (s of styles; track s.id) {
+                <button
+                  type="button"
+                  class="style-card"
+                  [class.selected]="brief.style === s.id"
+                  (click)="brief.style = s.id"
+                >
+                  <div class="style-preview" [attr.data-style]="s.id"></div>
+                  <strong>{{ s.label }}</strong>
+                  <span>{{ s.desc }}</span>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Logo Preview -->
+        <aside class="preview-panel">
+          <h3 class="preview-title">Aperçu Logo</h3>
+
+          <!-- Logo icon type selector -->
+          <div class="icon-tabs">
+            @for (it of iconTypes; track it.id) {
+              <button
+                type="button"
+                class="icon-tab"
+                [class.active]="brief.iconType === it.id"
+                (click)="brief.iconType = it.id"
+              >{{ it.label }}</button>
+            }
+          </div>
+
+          <!-- SVG Logo Preview -->
+          <div class="logo-canvas" [style.background]="brief.primaryColor + '18'">
+            <svg class="logo-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+
+              @if (brief.iconType === 'letter') {
+                <!-- Letter / Initials logo -->
+                <rect x="20" y="20" width="160" height="160" rx="32"
+                  [attr.fill]="brief.primaryColor"/>
+                <text x="100" y="128" text-anchor="middle"
+                  font-family="'Segoe UI', sans-serif"
+                  font-size="72" font-weight="800" fill="white">{{ logoLetters }}</text>
+                <!-- Accent dot -->
+                <circle cx="162" cy="38" r="18" [attr.fill]="brief.secondaryColor"/>
+              }
+
+              @if (brief.iconType === 'abstract') {
+                <!-- Abstract geometric logo -->
+                <circle cx="100" cy="100" r="80" [attr.fill]="brief.primaryColor" opacity="0.15"/>
+                <polygon points="100,25 170,155 30,155" [attr.fill]="brief.primaryColor"/>
+                <polygon points="100,55 150,145 50,145" [attr.fill]="brief.secondaryColor" opacity="0.85"/>
+                <circle cx="100" cy="100" r="22" fill="white"/>
+              }
+
+              @if (brief.iconType === 'badge') {
+                <!-- Badge / Shield logo -->
+                <path d="M100 15 L175 50 L175 120 Q175 165 100 190 Q25 165 25 120 L25 50 Z"
+                  [attr.fill]="brief.primaryColor"/>
+                <path d="M100 35 L157 63 L157 118 Q157 152 100 172 Q43 152 43 118 L43 63 Z"
+                  [attr.fill]="brief.secondaryColor" opacity="0.3"/>
+                <text x="100" y="120" text-anchor="middle"
+                  font-family="'Segoe UI', sans-serif"
+                  font-size="56" font-weight="800" fill="white">{{ logoLetters }}</text>
+              }
+
+              @if (brief.iconType === 'circle') {
+                <!-- Circle logo -->
+                <circle cx="100" cy="100" r="80" [attr.fill]="brief.primaryColor"/>
+                <circle cx="100" cy="100" r="60" [attr.fill]="brief.secondaryColor" opacity="0.3"/>
+                <text x="100" y="117" text-anchor="middle"
+                  font-family="'Segoe UI', sans-serif"
+                  font-size="52" font-weight="800" fill="white">{{ logoLetters }}</text>
+                <circle cx="100" cy="100" r="80" fill="none"
+                  [attr.stroke]="brief.secondaryColor" stroke-width="6"/>
+              }
+            </svg>
+
+            <!-- App name below logo -->
+            <div class="logo-name" [style.color]="brief.primaryColor">
+              {{ brief.appName || 'Votre Application' }}
+            </div>
+            @if (brief.tagline) {
+              <div class="logo-tagline">{{ brief.tagline }}</div>
+            }
+          </div>
+
+          <!-- Color Palettes -->
+          <div class="palette-section">
+            <label class="field-label">Palette de couleurs</label>
+            <div class="palette-grid">
+              @for (p of palettes; track p.name) {
+                <button
+                  type="button"
+                  class="palette-btn"
+                  [title]="p.name"
+                  [class.selected]="brief.primaryColor === p.primary"
+                  (click)="setPalette(p)"
+                >
+                  <span class="swatch" [style.background]="p.primary"></span>
+                  <span class="swatch" [style.background]="p.secondary"></span>
+                </button>
+              }
+            </div>
+
+            <!-- Custom colors -->
+            <div class="custom-colors">
+              <div class="color-pick">
+                <label>Principale</label>
+                <input type="color" [(ngModel)]="brief.primaryColor" class="color-input"/>
+                <span class="hex-val">{{ brief.primaryColor }}</span>
+              </div>
+              <div class="color-pick">
+                <label>Secondaire</label>
+                <input type="color" [(ngModel)]="brief.secondaryColor" class="color-input"/>
+                <span class="hex-val">{{ brief.secondaryColor }}</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <!-- Navigation -->
+      <div class="step-nav">
+        <span></span>
+        <button
+          type="button"
+          class="btn-next"
+          [disabled]="!step1Valid"
+          (click)="nextStep()"
+        >
+          Étape suivante
+          <svg viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  STEP 2 — App Structure                                     -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  @if (step === 2) {
+    <div class="brief-body">
+      <div class="step-layout">
+
+        <!-- Left: Form -->
+        <div class="step-form">
+          <h2 class="step-title">
+            <span class="step-num">2</span>
+            Structure de l'application
+          </h2>
+          <p class="step-desc">Définissez le type de projet et les pages/écrans nécessaires.</p>
+
+          <!-- Project type -->
+          <div class="field-group">
+            <label class="field-label">Type de projet *</label>
+            <div class="type-grid">
+              @for (pt of projectTypes; track pt) {
+                <button
+                  type="button"
+                  class="type-card"
+                  [class.selected]="brief.projectType === pt"
+                  (click)="brief.projectType = pt"
+                >
+                  <div class="type-icon">
+                    @if (pt.includes('Mobile')) {
+                      <svg viewBox="0 0 24 24" fill="none"><rect x="7" y="2" width="10" height="20" rx="2" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="18" r="1" fill="currentColor"/></svg>
+                    } @else if (pt.includes('Web') || pt.includes('App')) {
+                      <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="15" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 21h8M12 18v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    } @else if (pt.includes('commerce')) {
+                      <svg viewBox="0 0 24 24" fill="none"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" stroke="currentColor" stroke-width="2"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0" stroke="currentColor" stroke-width="2"/></svg>
+                    } @else if (pt.includes('Dashboard')) {
+                      <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/></svg>
+                    } @else if (pt.includes('Landing')) {
+                      <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="2"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    } @else if (pt.includes('Portfolio')) {
+                      <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" stroke="currentColor" stroke-width="2"/></svg>
+                    } @else {
+                      <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/></svg>
+                    }
+                  </div>
+                  {{ pt }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Pages -->
+          <div class="field-group">
+            <label class="field-label">Pages / Écrans à inclure *</label>
+            <p class="field-hint">Sélectionnez toutes les pages souhaitées.</p>
+            <div class="pages-grid">
+              @for (page of availablePages; track page) {
+                <button
+                  type="button"
+                  class="page-chip"
+                  [class.selected]="isPageSelected(page)"
+                  (click)="togglePage(page)"
+                >
+                  <svg class="check-icon" viewBox="0 0 16 16" fill="none">
+                    <path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  {{ page }}
+                </button>
+              }
+            </div>
+
+            <!-- Custom pages -->
+            <div class="custom-page-add">
+              <input
+                type="text"
+                class="field-input"
+                placeholder="Ajouter une page personnalisée..."
+                [(ngModel)]="brief.customPageInput"
+                (keyup.enter)="addCustomPage()"
+                maxlength="40"
+              />
+              <button type="button" class="btn-add-page" (click)="addCustomPage()">+ Ajouter</button>
+            </div>
+            @if (brief.customPages.length > 0) {
+              <div class="custom-tags">
+                @for (cp of brief.customPages; track cp) {
+                  <span class="custom-tag">
+                    {{ cp }}
+                    <button type="button" (click)="removeCustomPage(cp)">×</button>
+                  </span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Budget & Deadline -->
+          <div class="two-col">
+            <div class="field-group">
+              <label class="field-label">Budget estimé</label>
+              <select class="field-input" [(ngModel)]="brief.budget">
+                <option value="">Sélectionner...</option>
+                @for (b of budgetRanges; track b) {
+                  <option [value]="b">{{ b }}</option>
+                }
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Délai souhaité</label>
+              <input type="date" class="field-input" [(ngModel)]="brief.deadline" />
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="field-group">
+            <label class="field-label">Description détaillée du projet</label>
+            <textarea
+              class="field-input field-textarea"
+              rows="4"
+              placeholder="Décrivez votre vision, vos besoins spécifiques, vos inspirations..."
+              [(ngModel)]="brief.description"
+              maxlength="1000"
+            ></textarea>
+            <span class="field-count">{{ brief.description.length }}/1000</span>
+          </div>
+        </div>
+
+        <!-- Right: Structure Preview -->
+        <aside class="preview-panel">
+          <h3 class="preview-title">Aperçu Structure</h3>
+          <div class="structure-preview">
+            <!-- Project type badge -->
+            @if (brief.projectType) {
+              <div class="structure-header" [style.background]="brief.primaryColor">
+                <div class="structure-logo">{{ logoLetters }}</div>
+                <div>
+                  <div class="structure-app-name">{{ brief.appName || 'Mon Application' }}</div>
+                  <div class="structure-type">{{ brief.projectType }}</div>
+                </div>
+              </div>
+            } @else {
+              <div class="structure-empty">
+                <svg viewBox="0 0 64 64" fill="none" width="56" height="56">
+                  <rect x="8" y="8" width="48" height="48" rx="8" stroke="#ccc" stroke-width="3" stroke-dasharray="6 4"/>
+                  <path d="M32 22v20M22 32h20" stroke="#ccc" stroke-width="3" stroke-linecap="round"/>
+                </svg>
+                <span>Sélectionnez un type de projet</span>
+              </div>
+            }
+
+            <!-- Pages list -->
+            @if (brief.pages.length > 0) {
+              <div class="pages-tree">
+                <div class="tree-root" [style.borderColor]="brief.primaryColor">
+                  {{ brief.appName || 'Application' }}
+                </div>
+                <div class="tree-branches">
+                  @for (page of brief.pages; track page) {
+                    <div class="tree-leaf">
+                      <div class="leaf-dot" [style.background]="brief.primaryColor"></div>
+                      <div class="leaf-card">{{ page }}</div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Stats -->
+            @if (brief.pages.length > 0 || brief.projectType) {
+              <div class="structure-stats">
+                <div class="stat">
+                  <span class="stat-val">{{ brief.pages.length }}</span>
+                  <span class="stat-lbl">Pages</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-val">{{ brief.projectType ? '1' : '0' }}</span>
+                  <span class="stat-lbl">Type défini</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-val">{{ brief.budget ? '✓' : '–' }}</span>
+                  <span class="stat-lbl">Budget</span>
+                </div>
+              </div>
+            }
+          </div>
+        </aside>
+      </div>
+
+      <!-- Navigation -->
+      <div class="step-nav">
+        <button type="button" class="btn-prev" (click)="prevStep()">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M13 4l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Retour
+        </button>
+        <button
+          type="button"
+          class="btn-next"
+          [disabled]="!step2Valid"
+          (click)="nextStep()"
+        >
+          Voir le résumé
+          <svg viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  STEP 3 — Summary & Share                                   -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  @if (step === 3) {
+    <div class="brief-body">
+      <h2 class="step-title center">
+        <span class="step-num">3</span>
+        Votre Brief de Projet
+      </h2>
+      <p class="step-desc center">Votre brief est prêt. Partagez-le avec les freelancers pour obtenir des propositions précises.</p>
+
+      <div class="summary-layout">
+
+        <!-- Brief Card -->
+        <div class="brief-card" [style.--primary]="brief.primaryColor" [style.--secondary]="brief.secondaryColor">
+
+          <!-- Card Header -->
+          <div class="card-top">
+            <div class="card-logo">
+              <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" width="80" height="80">
+                @if (brief.iconType === 'letter' || brief.iconType === '') {
+                  <rect x="4" y="4" width="72" height="72" rx="16" [attr.fill]="brief.primaryColor"/>
+                  <text x="40" y="52" text-anchor="middle" font-family="'Segoe UI'" font-size="30" font-weight="800" fill="white">{{ logoLetters }}</text>
+                  <circle cx="66" cy="14" r="10" [attr.fill]="brief.secondaryColor"/>
+                }
+                @if (brief.iconType === 'abstract') {
+                  <circle cx="40" cy="40" r="36" [attr.fill]="brief.primaryColor" opacity="0.15"/>
+                  <polygon points="40,8 68,62 12,62" [attr.fill]="brief.primaryColor"/>
+                  <circle cx="40" cy="40" r="12" fill="white"/>
+                }
+                @if (brief.iconType === 'badge') {
+                  <path d="M40 5L73 20V50Q73 70 40 78Q7 70 7 50V20Z" [attr.fill]="brief.primaryColor"/>
+                  <text x="40" y="48" text-anchor="middle" font-family="'Segoe UI'" font-size="24" font-weight="800" fill="white">{{ logoLetters }}</text>
+                }
+                @if (brief.iconType === 'circle') {
+                  <circle cx="40" cy="40" r="36" [attr.fill]="brief.primaryColor"/>
+                  <text x="40" y="48" text-anchor="middle" font-family="'Segoe UI'" font-size="24" font-weight="800" fill="white">{{ logoLetters }}</text>
+                  <circle cx="40" cy="40" r="36" fill="none" [attr.stroke]="brief.secondaryColor" stroke-width="4"/>
+                }
+              </svg>
+            </div>
+            <div class="card-identity">
+              <h2>{{ brief.appName || 'Mon Projet' }}</h2>
+              @if (brief.tagline) { <p class="tagline">{{ brief.tagline }}</p> }
+              <div class="badge-row">
+                @if (brief.industry) { <span class="badge">{{ brief.industry }}</span> }
+                @if (brief.projectType) { <span class="badge badge--type">{{ brief.projectType }}</span> }
+                @if (selectedStyle) { <span class="badge badge--style">{{ selectedStyle.label }}</span> }
+              </div>
+            </div>
+          </div>
+
+          <!-- Sections -->
+          <div class="card-sections">
+
+            <!-- Colors -->
+            <div class="card-section">
+              <h4>Identité Visuelle</h4>
+              <div class="colors-row">
+                <div class="color-swatch-big">
+                  <div class="swatch-circle" [style.background]="brief.primaryColor"></div>
+                  <span>Principale<br><strong>{{ brief.primaryColor }}</strong></span>
+                </div>
+                <div class="color-swatch-big">
+                  <div class="swatch-circle" [style.background]="brief.secondaryColor"></div>
+                  <span>Secondaire<br><strong>{{ brief.secondaryColor }}</strong></span>
+                </div>
+                @if (selectedStyle) {
+                  <div class="style-badge-big" [attr.data-style]="brief.style">
+                    <strong>{{ selectedStyle.label }}</strong>
+                    <span>{{ selectedStyle.desc }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Pages -->
+            <div class="card-section">
+              <h4>Structure de l'Application <span class="count-badge">{{ brief.pages.length + brief.customPages.length }} pages</span></h4>
+              <div class="pages-tags">
+                @for (page of brief.pages; track page) {
+                  <span class="page-tag" [style.borderColor]="brief.primaryColor" [style.color]="brief.primaryColor">{{ page }}</span>
+                }
+              </div>
+            </div>
+
+            <!-- Details -->
+            @if (brief.budget || brief.deadline || brief.description) {
+              <div class="card-section">
+                <h4>Détails du Projet</h4>
+                <div class="details-list">
+                  @if (brief.budget) {
+                    <div class="detail-row">
+                      <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2"/><path d="M10 6v8M7 9h4.5a1.5 1.5 0 0 1 0 3H7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                      <span><strong>Budget :</strong> {{ brief.budget }}</span>
+                    </div>
+                  }
+                  @if (brief.deadline) {
+                    <div class="detail-row">
+                      <svg viewBox="0 0 20 20" fill="none"><rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" stroke-width="2"/><path d="M3 8h14M7 2v4M13 2v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                      <span><strong>Délai :</strong> {{ brief.deadline | date:'longDate':'':'fr' }}</span>
+                    </div>
+                  }
+                  @if (brief.description) {
+                    <div class="detail-row align-top">
+                      <svg viewBox="0 0 20 20" fill="none"><path d="M4 6h12M4 10h12M4 14h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                      <span>{{ brief.description }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Card Footer -->
+          <div class="card-footer">
+            <span class="generated-date">Brief généré le {{ '' | date:'longDate':'':'fr' }}</span>
+          </div>
+        </div>
+
+        <!-- Action Panel -->
+        <aside class="action-panel">
+          <h3>Actions</h3>
+
+          <button type="button" class="action-btn primary" (click)="copyBrief()">
+            @if (copied) {
+              <svg viewBox="0 0 20 20" fill="none"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Copié !
+            } @else {
+              <svg viewBox="0 0 20 20" fill="none"><rect x="8" y="2" width="10" height="12" rx="2" stroke="currentColor" stroke-width="2"/><path d="M4 6H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-1" stroke="currentColor" stroke-width="2"/></svg>
+              Copier le brief
+            }
+          </button>
+
+          <a routerLink="/dashboard/browse-offers" class="action-btn secondary">
+            <svg viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="2"/><path d="m14 14 3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Trouver des freelancers
+          </a>
+
+          <button type="button" class="action-btn ghost" (click)="step = 1">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M3 10a7 7 0 1 1 14 0 7 7 0 0 1-14 0z" stroke="currentColor" stroke-width="2"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Modifier le brief
+          </button>
+
+          <!-- Saved confirmation -->
+          @if (briefSaved) {
+            <div class="saved-notice">
+              <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" fill="#10b981"/><path d="M6 10l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Brief sauvegardé ! Il sera proposé automatiquement lors de votre prochaine candidature.
+            </div>
+          }
+
+          <!-- Tips -->
+          <div class="tips-box">
+            <h4>Conseils</h4>
+            <ul>
+              <li>Copiez le brief et collez-le dans votre message au freelancer.</li>
+              <li>Utilisez "Trouver des freelancers" pour parcourir les offres correspondantes.</li>
+              <li>Plus votre brief est détaillé, meilleures sont les propositions.</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+
+      <!-- Navigation -->
+      <div class="step-nav">
+        <button type="button" class="btn-prev" (click)="prevStep()">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M13 4l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Retour
+        </button>
+        <a routerLink="/dashboard/browse-offers" class="btn-next">
+          Parcourir les offres
+          <svg viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+  }
+
+</div>

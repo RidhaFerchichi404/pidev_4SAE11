@@ -1,27 +1,63 @@
 <div class="browse-offers-page">
-  <h1>Browse Offers</h1>
-  <p class="subtitle">Find freelancer services and apply for the one that fits your needs.</p>
 
-  <!-- Smart Matching : recommandations basées sur historique + comportement -->
+  <!-- ── Page Header ────────────────────────────────────────────── -->
+  <div class="offers-header">
+    <div>
+      <h1 class="section-title">Browse Offers</h1>
+      <p class="subtitle">Find freelancer services and apply for the one that fits your needs.</p>
+    </div>
+  </div>
+
+  <!-- ── Design Brief CTA ─────────────────────────────────────── -->
+  <div class="brief-cta-banner">
+    <div class="brief-cta-banner__left">
+      <div class="brief-cta-icon">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="4" width="40" height="40" rx="12" fill="white" fill-opacity="0.2"/>
+          <rect x="8" y="8" width="32" height="32" rx="8" fill="white" fill-opacity="0.15"/>
+          <text x="24" y="32" text-anchor="middle" font-family="'Segoe UI'" font-size="18" font-weight="900" fill="white">AB</text>
+          <circle cx="38" cy="10" r="6" fill="#FF6584"/>
+        </svg>
+      </div>
+      <div>
+        <h3>Créez votre Design Brief</h3>
+        <p>Définissez l'identité visuelle et la structure de votre application avant de choisir un freelancer. Partagez votre brief pour obtenir des propositions précises.</p>
+      </div>
+    </div>
+    <a routerLink="/dashboard/design-brief" class="brief-cta-btn">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      Créer mon brief
+    </a>
+  </div>
+
+  <!-- ── Smart Matching : Recommended ──────────────────────────── -->
   @if (currentUser) {
     <section class="recommended-section">
-      <h2 class="recommended-section__title">Recommended for you</h2>
+      <h2 class="recommended-section__title">✨ Recommended for you</h2>
       <p class="recommended-section__subtitle">Based on your history and browsing.</p>
       @if (loadingRecommendations) {
-        <p class="recommended-section__loading">Loading recommendations…</p>
+        <div class="recommended-grid">
+          @for (s of [1,2,3]; track s) {
+            <div class="offer-card offer-card--skeleton">
+              <div class="sk sk--title"></div>
+              <div class="sk sk--text"></div>
+              <div class="sk sk--btn"></div>
+            </div>
+          }
+        </div>
       } @else if (recommendedOffers.length > 0) {
         <div class="recommended-grid">
           @for (o of recommendedOffers; track o.id) {
             <div class="offer-card offer-card--recommended">
               <div class="offer-content">
-                <span class="offer-badge">Recommended</span>
+                <span class="offer-badge">⭐ Recommended</span>
                 <h3 class="offer-title">{{ o.title }}</h3>
                 <span class="offer-domain">{{ o.domain }}</span>
-                <p class="offer-desc">{{ (o.description | slice:0:100) }}{{ ((o.description || '').length) > 100 ? '...' : '' }}</p>
+                <p class="offer-desc">{{ (o.description | slice:0:100) }}{{ ((o.description || '').length > 100) ? '…' : '' }}</p>
                 <div class="offer-meta">
                   <span class="price">{{ o.price | number:'1.2-2' }} ({{ o.durationType }})</span>
                 </div>
-                <a [routerLink]="['/dashboard/browse-offers', o.id]" class="btn-view">View and Apply</a>
+                <a [routerLink]="['/dashboard/browse-offers', o.id]" class="btn-view">View & Apply</a>
               </div>
             </div>
           }
@@ -30,31 +66,250 @@
     </section>
   }
 
-  <div class="toolbar">
-    <span class="count">{{ totalElements }} offer(s)</span>
-    <button type="button" class="btn-refresh" (click)="load()" [disabled]="loading">{{ loading ? 'Loading...' : 'Refresh' }}</button>
-  </div>
-  <p class="loading-msg" *ngIf="loading && offers.length === 0">Loading offers...</p>
-  <div class="empty-state" *ngIf="!loading && offers.length === 0">
-    <span class="empty-icon">🔍</span>
-    <p>No offers available right now. Check back soon!</p>
-  </div>
-  <div class="offers-grid" *ngIf="offers.length > 0">
-    <div class="offer-card" *ngFor="let o of offers">
-      <div class="offer-content">
-        <h3 class="offer-title">{{ o.title }}</h3>
-        <span class="offer-domain">{{ o.domain }}</span>
-        <p class="offer-desc">{{ (o.description | slice:0:100) }}{{ ((o.description || '').length) > 100 ? '...' : '' }}</p>
-        <div class="offer-meta">
-          <span class="price">{{ o.price | number:'1.2-2' }} ({{ o.durationType }})</span>
-        </div>
-        <a [routerLink]="['/dashboard/browse-offers', o.id]" class="btn-view">View and Apply</a>
+  <!-- ── Search Panel ───────────────────────────────────────────── -->
+  <form [formGroup]="searchForm" class="search-panel" autocomplete="off">
+
+    <div class="search-bar">
+      <!-- Keyword search -->
+      <div class="search-input-wrap">
+        <svg class="search-icon" viewBox="0 0 20 20" fill="none">
+          <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.8"/>
+          <path d="m13 13 3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <input
+          type="text"
+          formControlName="keyword"
+          class="search-input"
+          placeholder="Search title, description, tags…"
+        />
+        @if (searchForm.get('keyword')?.value) {
+          <button type="button" class="clear-btn" (click)="searchForm.patchValue({ keyword: '' })">✕</button>
+        }
+        @if (loading && offers.length > 0) {
+          <span class="search-spinner"></span>
+        }
       </div>
+
+      <!-- Sort -->
+      <select formControlName="sortIndex" class="sort-select">
+        @for (opt of sortOptions; track $index) {
+          <option [value]="$index">{{ opt.label }}</option>
+        }
+      </select>
+
+      <!-- Advanced toggle -->
+      <button type="button"
+              class="btn-advanced"
+              [class.btn-advanced--active]="showAdvanced || hasActiveFilters"
+              (click)="toggleAdvanced()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="4" y1="6" x2="20" y2="6"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+          <line x1="11" y1="18" x2="13" y2="18"/>
+        </svg>
+        Filters
+        @if (hasActiveFilters) {
+          <span class="active-dot"></span>
+        }
+      </button>
+
+      <!-- Reset -->
+      @if (hasActiveFilters) {
+        <button type="button" class="btn-reset" (click)="resetFilters()">Reset</button>
+      }
     </div>
+
+    <!-- Advanced panel -->
+    @if (showAdvanced) {
+      <div class="advanced-panel">
+        <div class="adv-grid">
+          <div class="filter-group">
+            <label class="filter-lbl">Category</label>
+            <select formControlName="category" class="filter-ctl">
+              <option value="">All categories</option>
+              @for (cat of categories; track cat) {
+                <option [value]="cat">{{ cat }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-lbl">Min Price</label>
+            <input type="number" formControlName="minPrice" class="filter-ctl" placeholder="0" min="0"/>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-lbl">Max Price</label>
+            <input type="number" formControlName="maxPrice" class="filter-ctl" placeholder="Any" min="0"/>
+          </div>
+        </div>
+      </div>
+    }
+  </form>
+
+  <!-- ── Toolbar ────────────────────────────────────────────────── -->
+  <div class="toolbar">
+    <span class="toolbar-count">
+      @if (loading && offers.length === 0) { Searching… }
+      @else { {{ totalElements }} offer(s) found }
+    </span>
+    <button type="button" class="btn-refresh" (click)="loadOffers()" [disabled]="loading">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+      {{ loading ? 'Searching…' : 'Refresh' }}
+    </button>
   </div>
-  <div class="pagination" *ngIf="totalPages > 1">
-    <button type="button" (click)="prev()" [disabled]="page <= 0">Previous</button>
-    <span>Page {{ page + 1 }} of {{ totalPages }}</span>
-    <button type="button" (click)="next()" [disabled]="page >= totalPages - 1">Next</button>
+
+  <!-- ── Error State ────────────────────────────────────────────── -->
+  @if (errorMessage && !loading) {
+    <div class="error-state">
+      <p class="error">{{ errorMessage }}</p>
+      <button (click)="loadOffers()" class="btn-retry">Try Again</button>
+    </div>
+  }
+
+  <!-- ── Skeleton loading ───────────────────────────────────────── -->
+  @if (loading && offers.length === 0) {
+    <div class="offers-grid">
+      @for (s of [1,2,3,4,5,6]; track s) {
+        <div class="offer-card offer-card--skeleton">
+          <div class="sk sk--title"></div>
+          <div class="sk sk--badge"></div>
+          <div class="sk sk--text"></div>
+          <div class="sk sk--text sk--short"></div>
+          <div class="sk sk--btn"></div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── Offers Grid ────────────────────────────────────────────── -->
+  @if (!loading || offers.length > 0) {
+    <div class="offers-grid" [class.offers-grid--loading]="loading && offers.length > 0">
+      @for (o of offers; track o.id) {
+        <div class="offer-card">
+          <div class="offer-content">
+            <div class="offer-header">
+              <h3 class="offer-title">{{ o.title }}</h3>
+              @if (o.isFeatured) {
+                <span class="featured-badge">⭐ Featured</span>
+              }
+            </div>
+            <span class="offer-domain">{{ o.domain }}</span>
+            @if (o.tags) {
+              <div class="offer-tags">
+                @for (tag of (o.tags | slice:0:3).split(','); track tag) {
+                  <span class="tag">{{ tag.trim() }}</span>
+                }
+              </div>
+            }
+            <p class="offer-desc">{{ (o.description | slice:0:110) }}{{ ((o.description || '').length > 110) ? '…' : '' }}</p>
+            <div class="offer-meta">
+              <span class="price">{{ o.price | number:'1.2-2' }}</span>
+              <span class="duration-type">· {{ o.durationType }}</span>
+              @if (o.rating && o.rating > 0) {
+                <span class="rating">⭐ {{ o.rating | number:'1.1-1' }}</span>
+              }
+            </div>
+            <a [routerLink]="['/dashboard/browse-offers', o.id]" class="btn-view">View & Apply</a>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── Empty State ────────────────────────────────────────────── -->
+  @if (!loading && !errorMessage && offers.length === 0) {
+    <div class="empty-state">
+      <span class="empty-icon">🔍</span>
+      <p>No offers match your search. Try different keywords or reset filters.</p>
+      @if (hasActiveFilters) {
+        <button type="button" class="btn-reset btn-reset--centered" (click)="resetFilters()">
+          Clear all filters
+        </button>
+      }
+    </div>
+  }
+
+  <!-- ── Pagination ─────────────────────────────────────────────── -->
+  @if (totalPages > 1 && !loading) {
+    <div class="pagination">
+      <button type="button" [disabled]="currentPage === 0" (click)="goToPage(currentPage - 1)">Previous</button>
+      @for (p of pages; track p) {
+        <button type="button"
+                [class.active]="p === currentPage"
+                (click)="goToPage(p)">{{ p + 1 }}</button>
+      }
+      <button type="button" [disabled]="currentPage >= totalPages - 1" (click)="goToPage(currentPage + 1)">Next</button>
+    </div>
+  }
+
+  <!-- ── Chatbot Assistant ──────────────────────────────────────── -->
+  <div class="chatbot-widget">
+    @if (chatOpen) {
+      <div class="chatbot-panel">
+        <div class="chatbot-panel__header">
+          <span class="chatbot-panel__title">
+            <span class="chatbot-panel__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            Assistant Offres
+          </span>
+          <button type="button" class="chatbot-panel__close" (click)="toggleChat()" aria-label="Fermer le chat">
+            <svg viewBox="0 0 20 20" fill="none" width="18" height="18"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <div class="chatbot-panel__messages" #chatMessagesEl>
+          @for (msg of chatMessages; track $index) {
+            <div class="chat-msg" [class.chat-msg--bot]="msg.role === 'bot'" [class.chat-msg--user]="msg.role === 'user'">
+              @if (msg.role === 'bot') {
+                <span class="chat-msg__avatar chat-msg__avatar--bot" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z" stroke="currentColor" stroke-width="2"/><path d="M8 10h8M8 14h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </span>
+              }
+              <div class="chat-msg__bubble">
+                @if (msg.fromApi) {
+                  <span class="chat-msg__badge-ai" title="Réponse générée par l’IA">IA</span>
+                }
+                <p class="chat-msg__text" [innerHTML]="msg.text | chatMarkdown"></p>
+              </div>
+            </div>
+          }
+          @if (chatSending) {
+            <div class="chat-msg chat-msg--bot">
+              <span class="chat-msg__avatar chat-msg__avatar--bot"><svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z" stroke="currentColor" stroke-width="2"/></svg></span>
+              <div class="chat-msg__bubble chat-msg__typing"><span></span><span></span><span></span></div>
+            </div>
+          }
+        </div>
+        <div class="chatbot-panel__suggestions">
+          <button type="button" class="chat-suggestion" (click)="sendChatMessage('Comment choisir une offre ?')">Comment choisir une offre ?</button>
+          <button type="button" class="chat-suggestion" (click)="sendChatMessage('C\u0027est quoi un Design Brief ?')">C'est quoi un Design Brief ?</button>
+          <button type="button" class="chat-suggestion" (click)="sendChatMessage('Donne-moi des idées pour mon projet')">Idées pour mon projet</button>
+        </div>
+        <div class="chatbot-panel__input-wrap">
+          <input
+            type="text"
+            class="chatbot-panel__input"
+            placeholder="Posez votre question…"
+            [(ngModel)]="chatInput"
+            (keydown.enter)="sendChatMessage()"
+          />
+          <button type="button" class="chatbot-panel__send" (click)="sendChatMessage()" [disabled]="chatSending || !chatInput.trim()" aria-label="Envoyer">
+            <svg viewBox="0 0 20 20" fill="none" width="18" height="18"><path d="M18 2L9 11M18 2l-7 14-3-6-6-3 14-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+    }
+    <button type="button" class="chatbot-fab" (click)="toggleChat()" [class.chatbot-fab--open]="chatOpen" aria-label="Ouvrir l’assistant">
+      @if (chatOpen) {
+        <svg viewBox="0 0 20 20" fill="none" width="24" height="24"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      } @else {
+        <svg viewBox="0 0 24 24" fill="none" width="24" height="24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      }
+    </button>
   </div>
+
 </div>

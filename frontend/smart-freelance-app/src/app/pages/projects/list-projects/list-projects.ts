@@ -384,4 +384,8 @@ export class ListProjects implements OnInit, OnDestroy {
     const pxPerBar = 32;
     return Math.max(minHeight, n * pxPerBar);
   }
+
+  get isBrowseJobs(): boolean {
+    return this.router.url.includes('browse-jobs');
+  }
 }
