@@ -242,6 +242,67 @@
             </svg>
           </a>
 
+          <!-- Profile views dropdown (freelancer only) -->
+          @if (auth.isFreelancer()) {
+            <div class="views-container">
+              <button type="button"
+                      class="icon-btn views-btn"
+                      (click)="toggleViewsDropdown()"
+                      [attr.aria-expanded]="viewsDropdownOpen()"
+                      aria-label="Profile views">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <ellipse cx="10" cy="10" rx="9" ry="6" stroke="currentColor" stroke-width="1.4"/>
+                  <circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.4"/>
+                </svg>
+                @if (profileViewCount() > 0) {
+                  <span class="views-badge">{{ profileViewCount() > 999 ? '999+' : profileViewCount() }}</span>
+                }
+              </button>
+              @if (viewsDropdownOpen()) {
+                <div class="views-dropdown" role="dialog" aria-label="Profile views">
+                  <div class="views-dropdown-header">
+                    <span class="views-dropdown-title">Profile Views</span>
+                    <span class="views-dropdown-count">{{ profileViewCount() }} total</span>
+                  </div>
+                  @if (viewsDropdownLoading()) {
+                    <p class="views-dropdown-loading">Loading…</p>
+                  } @else if (viewerList().length === 0) {
+                    <p class="views-dropdown-empty">No profile views yet.</p>
+                  } @else {
+                    <ul class="views-dropdown-list">
+                      @for (v of viewerList(); track v.viewedAt) {
+                        <li class="views-dropdown-item">
+                          <button type="button"
+                                  class="viewer-card"
+                                  [disabled]="v.viewerId == null"
+                                  (click)="goToViewer(v.viewerId)">
+                            @if (v.avatarUrl) {
+                              <img [src]="v.avatarUrl" alt="" class="viewer-avatar-img" />
+                            } @else {
+                              <span class="viewer-avatar">{{ v.name[0] }}</span>
+                            }
+                            <div class="viewer-info">
+                              <span class="viewer-name">{{ v.name }}</span>
+                              <span class="viewer-time">{{ formatNotifTime(v.viewedAt) }}</span>
+                            </div>
+                          </button>
+                        </li>
+                      }
+                    </ul>
+                  }
+                  <a [routerLink]="['/dashboard/freelancer-portfolio', auth.getUserId()]"
+                     class="views-dropdown-see-all views-dropdown-analytics"
+                     (click)="viewsDropdownOpen.set(false)">
+                    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" width="14" height="14">
+                      <path d="M2 12l3-4 3 3 3-5 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    View full analytics
+                  </a>
+                </div>
+              }
+            </div>
+          }
+
           <!-- Notifications dropdown -->
           <div class="notif-container">
             <button type="button"

@@ -4,8 +4,10 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { Chart, registerables } from 'chart.js';
 import { AuthService } from '../../../core/services/auth.service';
+import { ProfileViewService, ProfileViewStats, DailyViewStat } from '../../../core/services/profile-view.service';
 import {
   FreelancerService,
   FreelancerProfile,
@@ -28,7 +30,11 @@ export class DashboardFreelancerPortfolio implements OnInit, AfterViewInit, OnDe
   isLoading = true;
   notFound = false;
 
-  /** True when the viewer is the profile owner — shows Engagement Metrics panel */
+  // ── Real analytics (loaded from API for the owner) ──────────────────────────
+  analyticsLoading = false;
+  analytics: ProfileViewStats | null = null;
+  dailyStats: DailyViewStat[] = [];
+
   get isOwner(): boolean {
     return this.auth.getUserId() === this.profile?.userId;
   }
@@ -39,6 +45,7 @@ export class DashboardFreelancerPortfolio implements OnInit, AfterViewInit, OnDe
   constructor(
     public auth: AuthService,
     private freelancerSvc: FreelancerService,
+    private profileViewSvc: ProfileViewService,
     private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef,
@@ -56,7 +63,15 @@ export class DashboardFreelancerPortfolio implements OnInit, AfterViewInit, OnDe
         this.profile = p;
         this.isLoading = false;
         this.cdr.detectChanges();
-        if (this.chartPending && this.isOwner) this.drawChart();
+
+        // Record view (fire-and-forget; self-views ignored server-side)
+        const viewerId = this.auth.getUserId();
+        this.profileViewSvc.recordView(p.userId, viewerId);
+
+        // Load real analytics only for the owner
+        if (this.isOwner) {
+          this.loadAnalytics(p.userId);
+        }
       },
       error: () => { this.notFound = true; this.isLoading = false; this.cdr.detectChanges(); },
     });
@@ -64,27 +79,60 @@ export class DashboardFreelancerPortfolio implements OnInit, AfterViewInit, OnDe
 
   ngAfterViewInit(): void {
     this.chartPending = true;
-    if (this.isOwner && this.profile) this.drawChart();
+    if (this.isOwner && this.dailyStats.length > 0) this.drawChart();
   }
 
   ngOnDestroy(): void {
     this.chart?.destroy();
   }
 
+  // ── Analytics ───────────────────────────────────────────────────────────────
+
+  private loadAnalytics(userId: number): void {
+    this.analyticsLoading = true;
+    forkJoin({
+      stats: this.profileViewSvc.getStats(userId),
+      daily: this.profileViewSvc.getDailyStats(userId, 30),
+    }).subscribe({
+      next: ({ stats, daily }) => {
+        this.analytics = stats;
+        this.dailyStats = daily;
+        this.analyticsLoading = false;
+        this.cdr.detectChanges();
+        if (this.chartPending) this.drawChart();
+      },
+      error: () => { this.analyticsLoading = false; this.cdr.detectChanges(); },
+    });
+  }
+
   // ── Chart ───────────────────────────────────────────────────────────────────
 
   private drawChart(): void {
     const canvas = this.chartCanvasRef?.nativeElement;
-    if (!canvas || !this.profile) return;
+    if (!canvas) return;
     this.chart?.destroy();
-    const visits = this.profile.metrics.dailyVisits;
+
+    // Build a complete 30-day label array, filling missing days with 0
+    const today = new Date();
+    const labels: string[] = [];
+    const dataMap = new Map(this.dailyStats.map(d => [d.date, d.count]));
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      labels.push(d.toISOString().slice(0, 10));
+    }
+    const data = labels.map(l => dataMap.get(l) ?? 0);
+
     this.chart = new Chart(canvas, {
       type: 'line',
       data: {
-        labels: visits.map(v => v.date),
+        labels: labels.map(l => {
+          const d = new Date(l + 'T00:00:00');
+          return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }),
         datasets: [{
           label: 'Daily Visits',
-          data: visits.map(v => v.visits),
+          data,
           borderColor: '#E37E33',
           backgroundColor: 'rgba(227,126,51,.1)',
           borderWidth: 2.5,
@@ -111,10 +159,19 @@ export class DashboardFreelancerPortfolio implements OnInit, AfterViewInit, OnDe
         },
         scales: {
           x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 11 }, maxTicksLimit: 8 } },
-          y: { grid: { color: '#f1f5f9' }, ticks: { color: '#94a3b8', font: { size: 11 } }, beginAtZero: false },
+          y: { grid: { color: '#f1f5f9' }, ticks: { color: '#94a3b8', font: { size: 11 } }, beginAtZero: true },
         },
       },
     });
+  }
+
+  // ── Week-over-week change ────────────────────────────────────────────────────
+
+  weekChange(): { pct: string; up: boolean } {
+    const tw = this.analytics?.thisWeekViews ?? 0;
+    const lw = this.analytics?.lastWeekViews ?? 0;
+    const pct = lw > 0 ? (((tw - lw) / lw) * 100) : (tw > 0 ? 100 : 0);
+    return { pct: Math.abs(pct).toFixed(1), up: tw >= lw };
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -157,12 +214,6 @@ export class DashboardFreelancerPortfolio implements OnInit, AfterViewInit, OnDe
 
   levelColor(level: string): string {
     return level === 'Expert' ? '#E37E33' : level === 'Intermediate' ? '#3b82f6' : '#94a3b8';
-  }
-
-  weekChange(p: FreelancerProfile): { pct: string; up: boolean } {
-    const { thisWeekVisits: tw, lastWeekVisits: lw } = p.metrics;
-    const pct = lw > 0 ? (((tw - lw) / lw) * 100).toFixed(1) : '0.0';
-    return { pct: Math.abs(Number(pct)).toFixed(1), up: tw >= lw };
   }
 
   formatNum(n: number): string { return n.toLocaleString(); }

@@ -56,6 +56,15 @@ public class UserController {
         }
     }
 
+    @Operation(summary = "Get all freelancers", description = "Returns a list of all users with FREELANCER role and active status.")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved list of freelancers")
+    @GetMapping(value = "/freelancers", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<UserResponse> getFreelancers() {
+        return userService.findFreelancers().stream()
+                .map(UserResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
     @Operation(summary = "Get user by ID", description = "Returns a single user by their unique identifier.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User found"),

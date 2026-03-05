@@ -30,6 +30,11 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    public List<User> findFreelancers() {
+        return userRepository.findByRoleAndIsActive(com.esprit.user.entity.Role.FREELANCER, true);
+    }
+
+    @Transactional(readOnly = true)
     public User findById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));

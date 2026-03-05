@@ -1,10 +1,12 @@
 import { Component, Input, OnInit, signal, HostListener, OnDestroy } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { filter } from 'rxjs/operators';
+import { filter, switchMap } from 'rxjs/operators';
+import { forkJoin, of } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
 import { NotificationService, NotificationItem } from '../../../core/services/notification.service';
+import { ProfileViewService, ProfileViewItem } from '../../../core/services/profile-view.service';
 import { Button } from '../button/button';
 import { LiveSearch } from '../live-search/live-search.component';
 
@@ -38,9 +40,15 @@ export class Header implements OnInit, OnDestroy {
 
   avatarUrl = signal<string | null>(null);
   notificationUnreadCount = signal<number>(0);
+  profileViewCount = signal<number>(0);
   showToast = signal(false);
   toastMessage = signal('You have a new notification');
   deletingNotifId = signal<string | null>(null);
+
+  // Views dropdown
+  viewsDropdownOpen = signal(false);
+  viewsDropdownLoading = signal(false);
+  viewerList = signal<{ viewerId: number | null; viewedAt: string; name: string; avatarUrl: string | null }[]>([]);
 
   private routerSub?: ReturnType<typeof Router.prototype.events.subscribe>;
   private pollTimer?: ReturnType<typeof setInterval>;
@@ -51,6 +59,7 @@ export class Header implements OnInit, OnDestroy {
     public auth: AuthService,
     private userService: UserService,
     private notificationService: NotificationService,
+    private profileViewSvc: ProfileViewService,
     private router: Router
   ) {}
 
@@ -64,6 +73,12 @@ export class Header implements OnInit, OnDestroy {
         });
       }
       this.refreshNotificationCount(true);
+      if (this.auth.isFreelancer()) {
+        const userId = this.auth.getUserId();
+        if (userId != null) {
+          this.profileViewSvc.getTotalCount(userId).subscribe(count => this.profileViewCount.set(count));
+        }
+      }
       this.routerSub = this.router.events
         .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
         .subscribe((e) => {
@@ -113,6 +128,50 @@ export class Header implements OnInit, OnDestroy {
     this.notifDropdownOpen.set(open);
     if (open) this.loadNotificationList();
     this.userMenuOpen.set(false);
+    this.viewsDropdownOpen.set(false);
+  }
+
+  toggleViewsDropdown(): void {
+    const open = !this.viewsDropdownOpen();
+    this.viewsDropdownOpen.set(open);
+    if (open) this.loadViewerList();
+    this.notifDropdownOpen.set(false);
+    this.userMenuOpen.set(false);
+  }
+
+  loadViewerList(): void {
+    const userId = this.auth.getUserId();
+    if (userId == null) return;
+    this.viewsDropdownLoading.set(true);
+    this.profileViewSvc.getRecentViewers(userId).pipe(
+      switchMap((items: ProfileViewItem[]) => {
+        const viewerIds = items.filter(v => v.viewerId != null).map(v => v.viewerId!);
+        const unique = [...new Set(viewerIds)];
+        if (unique.length === 0) {
+          return of(items.map(v => ({ ...v, name: 'Anonymous', avatarUrl: null as string | null })));
+        }
+        const userCalls = unique.map(id => this.userService.getById(id));
+        return forkJoin(userCalls).pipe(
+          switchMap(users => {
+            const nameMap = new Map<number, { name: string; avatarUrl: string | null }>();
+            users.forEach((u, i) => {
+              nameMap.set(unique[i], {
+                name: u ? `${u.firstName} ${u.lastName}` : 'Unknown',
+                avatarUrl: u?.avatarUrl?.trim() || null,
+              });
+            });
+            return of(items.map(v => ({
+              ...v,
+              name: v.viewerId != null ? (nameMap.get(v.viewerId)?.name ?? 'Unknown') : 'Anonymous',
+              avatarUrl: v.viewerId != null ? (nameMap.get(v.viewerId)?.avatarUrl ?? null) : null,
+            })));
+          })
+        );
+      })
+    ).subscribe({
+      next: list => { this.viewerList.set(list); this.viewsDropdownLoading.set(false); },
+      error: () => { this.viewerList.set([]); this.viewsDropdownLoading.set(false); },
+    });
   }
 
   loadNotificationList(): void {
@@ -166,6 +225,12 @@ export class Header implements OnInit, OnDestroy {
     this.notifDropdownOpen.set(false);
     this.router.navigate([route], { queryParams });
     if (!n.read) this.markNotifRead(n);
+  }
+
+  goToViewer(viewerId: number | null): void {
+    if (viewerId == null) return;
+    this.viewsDropdownOpen.set(false);
+    this.router.navigate(['/dashboard/freelancer-portfolio', viewerId]);
   }
 
   dismissToast(): void {
@@ -248,6 +313,9 @@ export class Header implements OnInit, OnDestroy {
     }
     if (!target.closest('.notif-container')) {
       this.notifDropdownOpen.set(false);
+    }
+    if (!target.closest('.views-container')) {
+      this.viewsDropdownOpen.set(false);
     }
     if (!target.closest('.nav-group')) {
       this.activeDropdown.set(null);

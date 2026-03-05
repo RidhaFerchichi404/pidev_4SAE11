@@ -383,19 +383,60 @@
   background: linear-gradient(135deg, #faf5ff 0%, $white 100%);
 }
 
+// Analytics loading state
+.dfp-analytics-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 2.5rem 1.5rem;
+  color: $neutral-500;
+  font-size: $font-size-sm;
+}
+
+.dfp-analytics-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid $neutral-200;
+  border-top-color: $primary-500;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
 .dfp-stat-card {
   background: $white;
   border: 1px solid $neutral-200;
   border-radius: $radius-lg;
   padding: 1.1rem 1.25rem;
   box-shadow: $shadow-xs;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow $transition-base, transform $transition-base;
 
+  &:hover { box-shadow: $shadow-md; transform: translateY(-2px); }
+
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: $radius-md;
+    background: $neutral-50;
+    margin-bottom: .7rem;
+  }
   &__label { font-size: $font-size-xs; text-transform: uppercase; letter-spacing: .06em; color: $neutral-400; font-weight: $font-weight-semibold; margin: 0 0 .3rem; }
   &__val   { font-size: 1.8rem; font-weight: $font-weight-extrabold; color: $neutral-900; line-height: 1; margin: 0; }
   &__sub   { font-size: .75rem; color: $neutral-400; margin: .3rem 0 0; }
   &__change { font-size: .82rem; font-weight: $font-weight-bold; margin: .3rem 0 0; }
 
-  &--highlight { border-color: #fed7aa; background: #fff7ed; }
+  &--highlight {
+    border-color: #fed7aa;
+    background: linear-gradient(135deg, #fff7ed 0%, #fff 100%);
+    .dfp-stat-card__icon { background: #fef3c7; }
+  }
 }
 
 .dfp-change--up   { color: $success-600; }
@@ -409,10 +450,22 @@
   padding: $spacing-lg;
   box-shadow: $shadow-xs;
 
-  &__title { font-size: .85rem; font-weight: $font-weight-semibold; color: $neutral-600; margin-bottom: $spacing-md; }
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $spacing-md;
+  }
+  &__title { font-size: .85rem; font-weight: $font-weight-semibold; color: $neutral-600; margin: 0; }
 }
 
-.dfp-chart-wrap { height: 220px; }
+.dfp-chart-no-data {
+  font-size: .75rem;
+  color: $neutral-400;
+  font-style: italic;
+}
+
+.dfp-chart-wrap { height: 240px; }
 
 // ── CTA banner ───────────────────────────────────────────────────────────────
 .dfp-cta-banner {

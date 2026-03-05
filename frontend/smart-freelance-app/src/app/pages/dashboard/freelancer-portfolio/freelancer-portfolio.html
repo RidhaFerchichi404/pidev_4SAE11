@@ -220,7 +220,7 @@
         </div>
       </section>
 
-      <!-- ── 5. ENGAGEMENT METRICS (owner only) ────────────────────────── -->
+      <!-- ── 5. PORTFOLIO ANALYTICS (owner only) ────────────────────────── -->
       @if (isOwner) {
         <section class="dfp-section dfp-metrics">
           <div class="dfp-section__head">
@@ -229,53 +229,91 @@
             <span class="badge bg-warning text-dark ms-3">Owner View</span>
           </div>
 
-          <!-- Stat cards -->
-          <div class="row g-3 mb-4">
-            <div class="col-6 col-lg-3">
-              <div class="dfp-stat-card">
-                <p class="dfp-stat-card__label">Total Visits</p>
-                <p class="dfp-stat-card__val">{{ formatNum(profile.metrics.totalVisits) }}</p>
-                <p class="dfp-stat-card__sub">All time</p>
-              </div>
+          @if (analyticsLoading) {
+            <div class="dfp-analytics-loading">
+              <div class="dfp-analytics-spinner"></div>
+              <span>Loading analytics…</span>
             </div>
-            <div class="col-6 col-lg-3">
-              <div class="dfp-stat-card">
-                <p class="dfp-stat-card__label">Unique Visitors</p>
-                <p class="dfp-stat-card__val">{{ formatNum(profile.metrics.uniqueVisits) }}</p>
-                <p class="dfp-stat-card__sub">All time</p>
-              </div>
-            </div>
-            <div class="col-6 col-lg-3">
-              <div class="dfp-stat-card dfp-stat-card--highlight">
-                <p class="dfp-stat-card__label">This Week</p>
-                <p class="dfp-stat-card__val">{{ formatNum(profile.metrics.thisWeekVisits) }}</p>
-                <p
-                  class="dfp-stat-card__change"
-                  [class.dfp-change--up]="weekChange(profile).up"
-                  [class.dfp-change--down]="!weekChange(profile).up"
-                >
-                  {{ weekChange(profile).up ? '▲' : '▼' }}
-                  {{ weekChange(profile).pct }}%
-                  <span class="dfp-change-sub">vs last week ({{ formatNum(profile.metrics.lastWeekVisits) }})</span>
-                </p>
-              </div>
-            </div>
-            <div class="col-6 col-lg-3">
-              <div class="dfp-stat-card">
-                <p class="dfp-stat-card__label">Hire Rate</p>
-                <p class="dfp-stat-card__val">5.2%</p>
-                <p class="dfp-stat-card__sub">Visits → Hires</p>
-              </div>
-            </div>
-          </div>
+          } @else {
 
-          <!-- Line chart -->
-          <div class="dfp-chart-card">
-            <p class="dfp-chart-card__title">Daily Visits — Last 30 Days</p>
-            <div class="dfp-chart-wrap">
-              <canvas #visitChartCanvas></canvas>
+            <!-- Stat cards -->
+            <div class="row g-3 mb-4">
+              <div class="col-6 col-lg-3">
+                <div class="dfp-stat-card">
+                  <div class="dfp-stat-card__icon">
+                    <svg viewBox="0 0 20 20" fill="none" width="20" height="20">
+                      <ellipse cx="10" cy="10" rx="9" ry="5.5" stroke="#667eea" stroke-width="1.5"/>
+                      <circle cx="10" cy="10" r="2.5" fill="#667eea"/>
+                    </svg>
+                  </div>
+                  <p class="dfp-stat-card__label">Total Views</p>
+                  <p class="dfp-stat-card__val">{{ formatNum(analytics?.totalViews ?? 0) }}</p>
+                  <p class="dfp-stat-card__sub">All time</p>
+                </div>
+              </div>
+              <div class="col-6 col-lg-3">
+                <div class="dfp-stat-card dfp-stat-card--highlight">
+                  <div class="dfp-stat-card__icon">
+                    <svg viewBox="0 0 20 20" fill="none" width="20" height="20">
+                      <rect x="2" y="10" width="3" height="8" rx="1" fill="#E37E33"/>
+                      <rect x="7" y="6"  width="3" height="12" rx="1" fill="#E37E33" opacity=".75"/>
+                      <rect x="12" y="3" width="3" height="15" rx="1" fill="#E37E33" opacity=".5"/>
+                      <rect x="17" y="7" width="1" height="11" rx=".5" fill="#E37E33" opacity=".3"/>
+                    </svg>
+                  </div>
+                  <p class="dfp-stat-card__label">This Week</p>
+                  <p class="dfp-stat-card__val">{{ formatNum(analytics?.thisWeekViews ?? 0) }}</p>
+                  <p class="dfp-stat-card__change"
+                     [class.dfp-change--up]="weekChange().up"
+                     [class.dfp-change--down]="!weekChange().up">
+                    {{ weekChange().up ? '▲' : '▼' }} {{ weekChange().pct }}%
+                    <span class="dfp-change-sub">vs last week</span>
+                  </p>
+                </div>
+              </div>
+              <div class="col-6 col-lg-3">
+                <div class="dfp-stat-card">
+                  <div class="dfp-stat-card__icon">
+                    <svg viewBox="0 0 20 20" fill="none" width="20" height="20">
+                      <rect x="3" y="4" width="14" height="14" rx="1" stroke="#3b82f6" stroke-width="1.4"/>
+                      <path d="M3 8h14M7 2v4M13 2v4" stroke="#3b82f6" stroke-width="1.4" stroke-linecap="round"/>
+                    </svg>
+                  </div>
+                  <p class="dfp-stat-card__label">Last Week</p>
+                  <p class="dfp-stat-card__val">{{ formatNum(analytics?.lastWeekViews ?? 0) }}</p>
+                  <p class="dfp-stat-card__sub">Previous 7 days</p>
+                </div>
+              </div>
+              <div class="col-6 col-lg-3">
+                <div class="dfp-stat-card">
+                  <div class="dfp-stat-card__icon">
+                    <svg viewBox="0 0 20 20" fill="none" width="20" height="20">
+                      <path d="M3 14l4-5 3 3 3-6 4 4" stroke="#f59e0b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
+                  <p class="dfp-stat-card__label">Avg / Day</p>
+                  <p class="dfp-stat-card__val">
+                    {{ analytics && analytics.totalViews > 0 ? (analytics.totalViews / 30 | number:'1.1-1') : '0.0' }}
+                  </p>
+                  <p class="dfp-stat-card__sub">Last 30 days</p>
+                </div>
+              </div>
             </div>
-          </div>
+
+            <!-- Line chart -->
+            <div class="dfp-chart-card">
+              <div class="dfp-chart-card__header">
+                <p class="dfp-chart-card__title">Daily Views — Last 30 Days</p>
+                @if (dailyStats.length === 0) {
+                  <span class="dfp-chart-no-data">No views recorded yet</span>
+                }
+              </div>
+              <div class="dfp-chart-wrap">
+                <canvas #visitChartCanvas></canvas>
+              </div>
+            </div>
+
+          }
         </section>
       }
 

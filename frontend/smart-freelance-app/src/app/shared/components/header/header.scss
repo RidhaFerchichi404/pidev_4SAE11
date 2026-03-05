@@ -276,6 +276,204 @@
   &:focus-visible { @include focus-ring; }
 }
 
+// Profile views dropdown
+.views-container {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.views-btn {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.views-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  font-size: 10px;
+  font-weight: $font-weight-semibold;
+  line-height: 16px;
+  text-align: center;
+  color: #fff;
+  background: $info-600;
+  border-radius: $radius-full;
+  border: 2px solid #ffffff;
+}
+
+.views-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 6px;
+  width: 320px;
+  max-height: 400px;
+  background: #fff;
+  border-radius: $radius-lg;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  border: 1px solid $neutral-200;
+  z-index: $z-fixed + 5;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: dropIn 0.14s $ease-out both;
+}
+
+.views-dropdown-header {
+  padding: 12px 14px;
+  border-bottom: 1px solid $neutral-100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.views-dropdown-title {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $neutral-900;
+}
+
+.views-dropdown-count {
+  font-size: 11px;
+  color: $info-600;
+  font-weight: $font-weight-medium;
+}
+
+.views-dropdown-loading,
+.views-dropdown-empty {
+  padding: 20px 14px;
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $neutral-500;
+  text-align: center;
+}
+
+.views-dropdown-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.views-dropdown-item {
+  list-style: none;
+  margin: 0;
+}
+
+.viewer-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: $neutral-50;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary-500;
+    outline-offset: -2px;
+  }
+}
+
+.viewer-avatar,
+.viewer-avatar-img {
+  width: 32px;
+  height: 32px;
+  border-radius: $radius-full;
+  flex-shrink: 0;
+}
+
+.viewer-avatar {
+  background: $gradient-primary;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: $font-weight-semibold;
+  font-size: 12px;
+}
+
+.viewer-avatar-img {
+  object-fit: cover;
+  display: block;
+}
+
+.viewer-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viewer-name {
+  font-size: 13px;
+  font-weight: $font-weight-medium;
+  color: $neutral-800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.viewer-time {
+  font-size: 11px;
+  color: $neutral-400;
+}
+
+.views-dropdown-see-all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  text-align: center;
+  border-top: 1px solid $neutral-100;
+  text-decoration: none;
+  flex-shrink: 0;
+  color: $primary-600;
+  transition: background $transition-fast, color $transition-fast;
+
+  &:hover { background: $neutral-50; }
+}
+
+.views-dropdown-analytics {
+  background: linear-gradient(to right, rgba(227, 126, 51, 0.06), rgba(226, 61, 89, 0.06));
+  color: $primary-600;
+
+  &:hover {
+    background: linear-gradient(to right, rgba(227, 126, 51, 0.12), rgba(226, 61, 89, 0.12));
+  }
+}
+
 // Notification dropdown container
 .notif-container {
   position: relative;
