@@ -3,9 +3,11 @@ package com.esprit.user.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -130,5 +132,26 @@ class UserControllerWebMvcTest {
         mockMvc.perform(get("/api/users/by-role").param("role", "ADMIN"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    void getUsersByRoleInvalidValueReturnsEmptyList() throws Exception {
+        mockMvc.perform(get("/api/users/by-role").param("role", "UNKNOWN"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    void deleteUserReturnsNoContent() throws Exception {
+        mockMvc.perform(delete("/api/users/5"))
+            .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void getAllUsersReturnsEmptyOnServiceFailure() throws Exception {
+        doThrow(new RuntimeException("db down")).when(userService).findAll();
+        mockMvc.perform(get("/api/users"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray());
     }
 }

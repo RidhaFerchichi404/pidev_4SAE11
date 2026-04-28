@@ -1,13 +1,15 @@
 package com.esprit.apigateway;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootTest
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 class ApiGatewayApplicationTests {
 
     @Test
-    void contextLoads() {
+    void hasSpringBootApplicationAnnotation() {
+        assertTrue(ApiGatewayApplication.class.isAnnotationPresent(SpringBootApplication.class));
     }
 
 }

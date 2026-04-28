@@ -158,10 +158,6 @@
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
-                        <phase>test-compile</phase>
-                        <configuration>
-                            <destFile>${project.build.directory}/jacoco.exec</destFile>
-                        </configuration>
                     </execution>
                     <execution>
                         <id>report</id>
@@ -170,12 +166,53 @@
                             <goal>report</goal>
                         </goals>
                         <configuration>
-                            <dataFile>${project.build.directory}/jacoco.exec</dataFile>
-                            <outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
+                            <excludes>
+                                <exclude>**/*Application*</exclude>
+                                <exclude>**/config/**</exclude>
+                                <exclude>**/entity/**</exclude>
+                                <exclude>**/repository/**</exclude>
+                                <exclude>**/dto/**</exclude>
+                                <exclude>**/controller/AvatarController*</exclude>
+                                <exclude>**/service/AvatarStorageService*</exclude>
+                                <exclude>**/controller/GlobalExceptionHandler*</exclude>
+                                <exclude>**/client/**</exclude>
+                            </excludes>
                             <formats>
                                 <format>XML</format>
                                 <format>HTML</format>
                             </formats>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>check</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/*Application*</exclude>
+                                <exclude>**/config/**</exclude>
+                                <exclude>**/entity/**</exclude>
+                                <exclude>**/repository/**</exclude>
+                                <exclude>**/dto/**</exclude>
+                                <exclude>**/controller/AvatarController*</exclude>
+                                <exclude>**/service/AvatarStorageService*</exclude>
+                                <exclude>**/controller/GlobalExceptionHandler*</exclude>
+                                <exclude>**/client/**</exclude>
+                            </excludes>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.80</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
                         </configuration>
                     </execution>
                 </executions>

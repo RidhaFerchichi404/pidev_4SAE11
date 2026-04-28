@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -34,7 +34,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
-        <!-- Micrometer Prometheus registry — exposes /actuator/prometheus scrape endpoint -->
+        <!-- Micrometer Prometheus registry â€” exposes /actuator/prometheus scrape endpoint -->
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
@@ -81,7 +81,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- iText 7 – PDF generation -->
+        <!-- iText 7 â€“ PDF generation -->
         <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>kernel</artifactId>
@@ -154,10 +154,36 @@
                             </formats>
                         </configuration>
                     </execution>
-                </executions>
+                                    <execution>
+                        <id>check</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <include>org/example/contract/service/ContractService*</include>
+                                <include>org/example/contract/service/CommentService*</include>
+                                <include>org/example/contract/service/ConflictService*</include>
+                            </includes>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.40</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution></executions>
             </plugin>
         </plugins>
     </build>
 
 </project>
+
 
