@@ -21,7 +21,6 @@ def services = [
   [id: 'ticket-service', path: 'backEnd/Microservices/ticket-service/Jenkinsfile', downstream: ['services/api-gateway']],
   [id: 'subcontracting', path: 'backEnd/Microservices/Subcontracting/Jenkinsfile', downstream: ['services/api-gateway']],
   [id: 'aimodel', path: 'backEnd/Microservices/AImodel/Jenkinsfile', downstream: ['services/task']],
-  [id: 'aimodel-node', path: 'backEnd/Microservices/aimodel-node/Jenkinsfile', downstream: ['services/task']],
   [id: 'api-gateway', path: 'backEnd/apiGateway/Jenkinsfile', downstream: ['services/frontend']],
   [id: 'frontend', path: 'frontend/smart-freelance-app/Jenkinsfile', downstream: []]
 ]

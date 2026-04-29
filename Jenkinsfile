@@ -47,9 +47,11 @@ pipeline {
                         portfolio: { runService("services/portfolio") },
                         chat: { runService("services/chat") },
                         meeting: { runService("services/meeting") },
-                        freelanciaJob: { runService("services/freelancia-job") },
-                        aimodel: { runService("services/aimodel") }
+                        freelanciaJob: { runService("services/freelancia-job") }
                     )
+                    // Run AImodel after the parallel wave: avoids ABORTED from sibling parallel branches
+                    // when another service fails, and reduces executor/memory contention with other Maven builds.
+                    runService("services/aimodel")
                 }
             }
         }

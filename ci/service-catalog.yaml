@@ -149,9 +149,9 @@ services:
     dependsOn: [config-server, user, project, offer, contract, portfolio, notification]
 
   - id: aimodel
-    path: backEnd/Microservices/aimodel-node
-    jenkinsfile: backEnd/Microservices/aimodel-node/Jenkinsfile
-    buildTool: node
+    path: backEnd/Microservices/AImodel
+    jenkinsfile: backEnd/Microservices/AImodel/Jenkinsfile
+    buildTool: maven
     image: aimodel
     deployment: ""
     dependsOn: [eureka]
