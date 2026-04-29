@@ -27,7 +27,7 @@ pipeline {
             }
             post {
                 always {
-                    junit allowEmptyResults: true, testResults: "${AIMODEL_DIR}/target/surefire-reports/*.xml"
+                    junit allowEmptyResults: true, testResults: "${AIMODEL_DIR}/target/surefire-reports/**/*.xml, ${AIMODEL_DIR}/target/failsafe-reports/**/*.xml, ${AIMODEL_DIR}/target/*-reports/**/*.xml, ${AIMODEL_DIR}/build/test-results/**/*.xml, ${AIMODEL_DIR}/coverage/test-results/**/*.xml, ${AIMODEL_DIR}/test-results/**/*.xml"
                 }
             }
         }
@@ -37,7 +37,28 @@ pipeline {
                 dir(AIMODEL_DIR) {
                     withCredentials([string(credentialsId: 'SonarQubeToken', variable: 'SONAR_TOKEN')]) {
                         withSonarQubeEnv('SonarQube') {
-                            sh 'if [ -f mvnw ]; then chmod +x mvnw && ./mvnw sonar:sonar -Dsonar.projectKey=aimodel -Dsonar.projectName=AImodel -Dsonar.token=$SONAR_TOKEN; else mvn sonar:sonar -Dsonar.projectKey=aimodel -Dsonar.projectName=AImodel -Dsonar.token=$SONAR_TOKEN; fi'
+                            sh '''
+                              set +e
+                              JACOCO_REPORTS=$(find . -type f -name "jacoco*.xml" -print 2>/dev/null | sed 's#^\\./##' | paste -sd, -)
+                              JUNIT_REPORTS=$(find . -type f \\( -path "./target/surefire-reports/*.xml" -o -path "./target/surefire-reports/**/*.xml" -o -path "./target/failsafe-reports/*.xml" -o -path "./target/failsafe-reports/**/*.xml" -o -path "./target/*-reports/*.xml" -o -path "./target/*-reports/**/*.xml" -o -path "./build/test-results/*.xml" -o -path "./build/test-results/**/*.xml" -o -path "./coverage/test-results/*.xml" -o -path "./coverage/test-results/**/*.xml" -o -path "./test-results/*.xml" -o -path "./test-results/**/*.xml" \\) -print 2>/dev/null | sed 's#^\\./##' | paste -sd, -)
+                              set -e
+
+                              COVERAGE_ARG=""
+                              if [ -n "$JACOCO_REPORTS" ]; then
+                                COVERAGE_ARG="-Dsonar.coverage.jacoco.xmlReportPaths=$JACOCO_REPORTS"
+                              fi
+                              JUNIT_ARG=""
+                              if [ -n "$JUNIT_REPORTS" ]; then
+                                JUNIT_ARG="-Dsonar.junit.reportPaths=$JUNIT_REPORTS"
+                              fi
+
+                              if [ -f mvnw ]; then
+                                chmod +x mvnw
+                                ./mvnw -B sonar:sonar -Dsonar.projectKey=aimodel -Dsonar.projectName=AImodel $COVERAGE_ARG $JUNIT_ARG -Dsonar.token=$SONAR_TOKEN
+                              else
+                                mvn -B sonar:sonar -Dsonar.projectKey=aimodel -Dsonar.projectName=AImodel $COVERAGE_ARG $JUNIT_ARG -Dsonar.token=$SONAR_TOKEN
+                              fi
+                            '''
                         }
                     }
                 }

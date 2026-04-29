@@ -108,7 +108,7 @@ def runMicroservicePipeline(Map cfg) {
                         }
                     }
                 }
-                junit allowEmptyResults: true, testResults: "${servicePath}/target/surefire-reports/*.xml, ${servicePath}/target/failsafe-reports/*.xml, ${servicePath}/build/test-results/test/*.xml, ${servicePath}/build/test-results/integrationTest/*.xml, ${servicePath}/coverage/test-results/*.xml, ${servicePath}/test-results/**/*.xml"
+                junit allowEmptyResults: true, testResults: "${servicePath}/target/surefire-reports/**/*.xml, ${servicePath}/target/failsafe-reports/**/*.xml, ${servicePath}/target/*-reports/**/*.xml, ${servicePath}/build/test-results/**/*.xml, ${servicePath}/coverage/test-results/**/*.xml, ${servicePath}/test-results/**/*.xml"
             }
 
             stage("Package") {
@@ -157,6 +157,20 @@ def runMicroservicePipeline(Map cfg) {
                                             .findAll { it }
                                             .unique()
                                 }
+                                def findJUnitReports = {
+                                    def matches = sh(
+                                            script: "find . -type f \\( -path './target/surefire-reports/*.xml' -o -path './target/surefire-reports/**/*.xml' -o -path './target/failsafe-reports/*.xml' -o -path './target/failsafe-reports/**/*.xml' -o -path './target/*-reports/*.xml' -o -path './target/*-reports/**/*.xml' -o -path './build/test-results/*.xml' -o -path './build/test-results/**/*.xml' -o -path './coverage/test-results/*.xml' -o -path './coverage/test-results/**/*.xml' -o -path './test-results/*.xml' -o -path './test-results/**/*.xml' \\) -print 2>/dev/null || true",
+                                            returnStdout: true
+                                    ).trim()
+                                    if (!matches) {
+                                        return []
+                                    }
+                                    return matches
+                                            .split("\\r?\\n")
+                                            .collect { it?.trim()?.replaceFirst('^\\./', '') }
+                                            .findAll { it }
+                                            .unique()
+                                }
                                 if (buildTool == "maven") {
                                     sh """
                                       if [ -f mvnw ]; then
@@ -167,15 +181,17 @@ def runMicroservicePipeline(Map cfg) {
                                     """
                                     def jacocoReports = findCoverageReports(["**/jacoco.xml", "**/jacoco-*.xml", "**/jacoco*.xml"])
                                     def genericCoverageReports = findCoverageReports(["**/coverage*.xml", "**/cobertura*.xml"])
+                                    def junitReports = findJUnitReports()
                                     def sonarCoverageArgs = jacocoReports ? "-Dsonar.coverage.jacoco.xmlReportPaths=${jacocoReports.join(',')}" : ""
+                                    def sonarTestArgs = junitReports ? "-Dsonar.junit.reportPaths=${junitReports.join(',')}" : ""
                                     if (genericCoverageReports) {
                                         sonarCoverageArgs = "${sonarCoverageArgs} -Dsonar.coverageReportPaths=${genericCoverageReports.join(',')}".trim()
                                     }
                                     sh """
                                       if [ -f mvnw ]; then
-                                        ./mvnw -B sonar:sonar -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} ${sonarCoverageArgs} -Dsonar.token=\$SONAR_TOKEN
+                                        ./mvnw -B sonar:sonar -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} ${sonarCoverageArgs} ${sonarTestArgs} -Dsonar.token=\$SONAR_TOKEN
                                       else
-                                        mvn -B sonar:sonar -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} ${sonarCoverageArgs} -Dsonar.token=\$SONAR_TOKEN
+                                        mvn -B sonar:sonar -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} ${sonarCoverageArgs} ${sonarTestArgs} -Dsonar.token=\$SONAR_TOKEN
                                       fi
                                     """
                                     if (!skipCoverageForService && !jacocoReports && !genericCoverageReports) {
@@ -196,15 +212,17 @@ def runMicroservicePipeline(Map cfg) {
                                     """
                                     def jacocoReports = findCoverageReports(["**/jacoco*.xml"])
                                     def genericCoverageReports = findCoverageReports(["**/coverage*.xml", "**/cobertura*.xml"])
+                                    def junitReports = findJUnitReports()
                                     def sonarCoverageArgs = jacocoReports ? "-Dsonar.coverage.jacoco.xmlReportPaths=${jacocoReports.join(',')}" : ""
+                                    def sonarTestArgs = junitReports ? "-Dsonar.junit.reportPaths=${junitReports.join(',')}" : ""
                                     if (genericCoverageReports) {
                                         sonarCoverageArgs = "${sonarCoverageArgs} -Dsonar.coverageReportPaths=${genericCoverageReports.join(',')}".trim()
                                     }
                                     sh """
                                       if [ -f gradlew ]; then
-                                        ./gradlew sonarqube -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} ${sonarCoverageArgs} -Dsonar.token=\$SONAR_TOKEN
+                                        ./gradlew sonarqube -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} ${sonarCoverageArgs} ${sonarTestArgs} -Dsonar.token=\$SONAR_TOKEN
                                       else
-                                        gradle sonarqube -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} ${sonarCoverageArgs} -Dsonar.token=\$SONAR_TOKEN
+                                        gradle sonarqube -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} ${sonarCoverageArgs} ${sonarTestArgs} -Dsonar.token=\$SONAR_TOKEN
                                       fi
                                     """
                                     if (!skipCoverageForService && !jacocoReports && !genericCoverageReports) {
@@ -240,6 +258,7 @@ def runMicroservicePipeline(Map cfg) {
                                                 sh "npm test -- --coverage --watch=false || npm test -- --coverage || npm test || true"
                                             }
                                             def lcovReports = findCoverageReports(["**/lcov.info"])
+                                            def junitReports = findJUnitReports()
                                             if (!lcovReports && fileExists("coverage/lcov.info")) {
                                                 lcovReports = ["coverage/lcov.info"]
                                             }
@@ -253,6 +272,7 @@ def runMicroservicePipeline(Map cfg) {
                                             if (genericCoverageReports) {
                                                 sonarCoverageArgs = "${sonarCoverageArgs} -Dsonar.coverageReportPaths=${genericCoverageReports.join(',')}".trim()
                                             }
+                                            def sonarTestArgs = junitReports ? "-Dsonar.junit.reportPaths=${junitReports.join(',')}" : ""
                                             if (!skipCoverageForService && !lcovReports && !genericCoverageReports) {
                                                 unstable("No Node coverage report detected for ${cfg.imageName}. Searched lcov.info/coverage*.xml/cobertura*.xml under ${servicePath}; Sonar analysis continues without coverage.")
                                             } else if (skipCoverageForService) {
@@ -260,7 +280,7 @@ def runMicroservicePipeline(Map cfg) {
                                             } else {
                                                 echo "Coverage reports detected for ${cfg.imageName}: ${(lcovReports + genericCoverageReports).join(', ')}"
                                             }
-                                            sh "npx -y sonar-scanner -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} ${sonarCoverageArgs} -Dsonar.token=\\$SONAR_TOKEN"
+                                            sh "npx -y sonar-scanner -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} ${sonarCoverageArgs} ${sonarTestArgs} -Dsonar.token=\\$SONAR_TOKEN"
                                         }
                                         sonarAnalysisExecuted = true
                                     } else {

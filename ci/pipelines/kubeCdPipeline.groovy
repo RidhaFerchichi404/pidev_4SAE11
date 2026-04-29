@@ -8,13 +8,13 @@ pipeline {
     }
 
     parameters {
-        string(name: "REPO_URL", defaultValue: "https://github.com/YOUR_ORG/YOUR_REPO.git", description: "Git repository URL containing Kubernetes manifests")
+        string(name: "REPO_URL", defaultValue: "https://github.com/RidhaFerchichi404/pidev_4SAE11.git", description: "Git repository URL containing Kubernetes manifests")
         string(name: "BRANCH", defaultValue: "main", description: "Branch to deploy from")
-        string(name: "KUBECONFIG_CREDENTIALS_ID", defaultValue: "KubeconfigFile", description: "Jenkins secret file credential ID for kubeconfig")
-        string(name: "KUBE_CONTEXT", defaultValue: "", description: "Kubernetes context name from kubeconfig (required)")
+        string(name: "KUBECONFIG_CREDENTIALS_ID", defaultValue: "kubeconfig", description: "Jenkins secret file credential ID for kubeconfig")
+        string(name: "KUBE_CONTEXT", defaultValue: "kubernetes-admin@kubernetes", description: "Kubernetes context name from kubeconfig (required)")
         string(name: "KUBE_NAMESPACE", defaultValue: "smart-freelance-dev", description: "Application namespace to deploy")
         string(name: "MANIFEST_PATH", defaultValue: "k8s", description: "Path to app manifests in repo")
-        string(name: "IMAGE_REPO", defaultValue: "docker.io/YOUR_DOCKERHUB_USERNAME", description: "Registry/repository prefix")
+        string(name: "IMAGE_REPO", defaultValue: "docker.io/ridhaferchichi", description: "Registry/repository prefix")
         string(name: "IMAGE_TAG", defaultValue: "", description: "Immutable image tag to deploy (required)")
         booleanParam(name: "DEPLOY_MONITORING", defaultValue: true, description: "Deploy Prometheus and Grafana stack")
         string(name: "MONITORING_MANIFEST_PATH", defaultValue: "k8s/monitoring", description: "Path to monitoring manifests")
@@ -26,7 +26,6 @@ pipeline {
 
     environment {
         GITHUB_CREDS_ID = "GithubCredentials"
-        RELEASE_LABEL = "${params.IMAGE_TAG ?: env.BUILD_NUMBER}"
         RENDER_DIR = ".cd-rendered"
     }
 
@@ -54,6 +53,7 @@ pipeline {
                 sh """
                   set -e
                   command -v kubectl >/dev/null 2>&1 || { echo 'kubectl is not installed on this Jenkins agent'; exit 1; }
+                  command -v python3 >/dev/null 2>&1 || { echo 'python3 is not installed on this Jenkins agent'; exit 1; }
                   test -d "${params.MANIFEST_PATH}" || { echo "Manifest path not found: ${params.MANIFEST_PATH}"; exit 1; }
                 """
             }
@@ -91,19 +91,57 @@ pipeline {
                   rm -rf "${env.RENDER_DIR}"
                   mkdir -p "${env.RENDER_DIR}/app"
                   cp -R "${params.MANIFEST_PATH}/." "${env.RENDER_DIR}/app/"
+                  rm -rf "${env.RENDER_DIR}/app/monitoring"
+                  rm -f "${env.RENDER_DIR}/app/10-ingress.yaml"
                   python3 - <<'PY'
 import pathlib
 import re
 
 repo = "${params.IMAGE_REPO}".strip().rstrip("/")
 tag = "${params.IMAGE_TAG}".strip()
+namespace = "${params.KUBE_NAMESPACE}".strip()
 target = pathlib.Path("${env.RENDER_DIR}") / "app"
 
 pattern = re.compile(r"YOUR_DOCKERHUB_USERNAME/([A-Za-z0-9._-]+):latest")
+namespace_pattern = re.compile(r"^(\s*namespace:\s*)smart-freelance\s*$", re.MULTILINE)
 
 for file in target.rglob("*.y*ml"):
     data = file.read_text(encoding="utf-8")
     updated = pattern.sub(lambda m: f"{repo}/{m.group(1)}:{tag}", data)
+    updated = namespace_pattern.sub(lambda m: f"{m.group(1)}{namespace}", updated)
+    if file.name == "00-namespace.yaml":
+        updated = re.sub(r"^(\s*name:\s*)smart-freelance\s*$", lambda m: f"{m.group(1)}{namespace}", updated, flags=re.MULTILINE)
+    if updated != data:
+        file.write_text(updated, encoding="utf-8")
+PY
+                  if [ -f "${env.RENDER_DIR}/app/02-secrets.yaml" ] && rg -n ':\s*""\s*(#.*)?$' "${env.RENDER_DIR}/app/02-secrets.yaml" >/dev/null; then
+                    echo "WARNING: Incomplete values detected in 02-secrets.yaml; skipping this manifest for this deploy."
+                    mv "${env.RENDER_DIR}/app/02-secrets.yaml" "${env.RENDER_DIR}/app/02-secrets.yaml.skipped"
+                  fi
+                """
+            }
+        }
+
+        stage("Render Monitoring Manifests") {
+            when {
+                expression { return params.DEPLOY_MONITORING }
+            }
+            steps {
+                sh """
+                  set -e
+                  rm -rf "${env.RENDER_DIR}/monitoring"
+                  mkdir -p "${env.RENDER_DIR}/monitoring"
+                  cp -R "${params.MONITORING_MANIFEST_PATH}/." "${env.RENDER_DIR}/monitoring/"
+                  python3 - <<'PY'
+import pathlib
+import re
+
+app_namespace = "${params.KUBE_NAMESPACE}".strip()
+target = pathlib.Path("${env.RENDER_DIR}") / "monitoring"
+
+for file in target.rglob("*.y*ml"):
+    data = file.read_text(encoding="utf-8")
+    updated = re.sub(r"smart-freelance-dev", app_namespace, data)
     if updated != data:
         file.write_text(updated, encoding="utf-8")
 PY
@@ -121,9 +159,9 @@ PY
                       kubectl create namespace "${params.KUBE_NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
 
                       if [ "${params.DRY_RUN_ONLY}" = "true" ]; then
-                        kubectl -n "${params.KUBE_NAMESPACE}" apply --server-side --dry-run=server -f "${env.RENDER_DIR}/app"
+                        kubectl apply --server-side --dry-run=server -f "${env.RENDER_DIR}/app"
                       else
-                        kubectl -n "${params.KUBE_NAMESPACE}" apply -f "${env.RENDER_DIR}/app"
+                        kubectl apply -f "${env.RENDER_DIR}/app"
                       fi
                     """
                 }
@@ -141,11 +179,12 @@ PY
                       export KUBECONFIG="$KUBECONFIG_FILE"
                       kubectl config use-context "${params.KUBE_CONTEXT}"
                       test -d "${params.MONITORING_MANIFEST_PATH}" || { echo "Monitoring manifest path not found: ${params.MONITORING_MANIFEST_PATH}"; exit 1; }
+                      test -d "${env.RENDER_DIR}/monitoring" || { echo "Rendered monitoring path not found: ${env.RENDER_DIR}/monitoring"; exit 1; }
 
                       if [ "${params.DRY_RUN_ONLY}" = "true" ]; then
-                        kubectl apply --server-side --dry-run=server -f "${params.MONITORING_MANIFEST_PATH}"
+                        kubectl apply --server-side --dry-run=server -f "${env.RENDER_DIR}/monitoring"
                       else
-                        kubectl apply -f "${params.MONITORING_MANIFEST_PATH}"
+                        kubectl apply -f "${env.RENDER_DIR}/monitoring"
                       fi
                     """
                 }

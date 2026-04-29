@@ -12,6 +12,11 @@ pipeline {
         string(name: "IMAGE_TAG", defaultValue: "", description: "Optional tag override")
         booleanParam(name: "PUSH_IMAGE", defaultValue: true, description: "Push images to Docker Hub")
         booleanParam(name: "RUN_SONARQUBE", defaultValue: true, description: "Run SonarQube analysis in child jobs")
+        booleanParam(name: "TRIGGER_CD", defaultValue: false, description: "Trigger standalone Kubernetes CD pipeline after CI")
+        string(name: "CD_JOB_NAME", defaultValue: "orchestration/cd-k8s-main", description: "Jenkins job name for CD pipeline")
+        string(name: "CD_KUBE_CONTEXT", defaultValue: "kubernetes-admin@kubernetes", description: "Kubernetes context passed to CD job")
+        string(name: "CD_KUBE_NAMESPACE", defaultValue: "smart-freelance-dev", description: "Namespace passed to CD job")
+        booleanParam(name: "CD_DEPLOY_MONITORING", defaultValue: true, description: "Whether CD should deploy monitoring stack")
     }
     environment {
         ORCH_TAG = "${params.IMAGE_TAG?.trim() ? params.IMAGE_TAG.trim() : env.BUILD_NUMBER}"
@@ -73,6 +78,24 @@ pipeline {
                 script {
                     runService("services/api-gateway")
                     runService("services/frontend")
+                }
+            }
+        }
+        stage("Trigger CD") {
+            when {
+                expression { return params.TRIGGER_CD }
+            }
+            steps {
+                script {
+                    build job: params.CD_JOB_NAME, wait: false, parameters: [
+                        string(name: "REPO_URL", value: params.REPO_URL),
+                        string(name: "BRANCH", value: params.BRANCH),
+                        string(name: "IMAGE_REPO", value: params.IMAGE_REPO),
+                        string(name: "IMAGE_TAG", value: ORCH_TAG),
+                        string(name: "KUBE_CONTEXT", value: params.CD_KUBE_CONTEXT),
+                        string(name: "KUBE_NAMESPACE", value: params.CD_KUBE_NAMESPACE),
+                        booleanParam(name: "DEPLOY_MONITORING", value: params.CD_DEPLOY_MONITORING)
+                    ]
                 }
             }
         }

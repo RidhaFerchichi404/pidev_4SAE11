@@ -3,30 +3,30 @@
 Use this template before enabling the CD job in Jenkins.
 
 ## Kubernetes / Environment
-- Kubeconfig Jenkins credential ID:
-- Kubernetes context (`KUBE_CONTEXT`):
-- Dev namespace:
-- Staging namespace:
-- Prod namespace:
-- kube-apiserver endpoint reachable from Jenkins (yes/no):
+- Kubeconfig Jenkins credential ID: kubeconfig
+- Kubernetes context (`kubernetes-admin@kubernetes`):
+- Dev namespace: smart-freelance-dev
+- Staging namespace: smart-freelance-staging
+- Prod namespace: smart-freelance-prod
+- kube-apiserver endpoint reachable from Jenkins (yes/no): YES
 
 ## Release / Images
-- Registry prefix (`IMAGE_REPO`):
-- CI tag format (`IMAGE_TAG` style):
-- Promotion mode (auto/manual):
+- Registry prefix (`IMAGE_REPO`): docker.io/ridhaferchichi
+- CI tag format (`IMAGE_TAG` style): Jenkins build number by default when IMAGE_TAG is empty; optional manual override supported.
+- Promotion mode (auto/manual): manual (recommended currently); can be switched to auto by triggering CD downstream from CI with IMAGE_TAG.
 
 ## App Deployment Scope
-- Manifest path (`MANIFEST_PATH`):
-- Services to deploy (deployment names):
-- Any service excluded from CD rollout:
+- Manifest path (`MANIFEST_PATH`): k8s
+- Services to deploy (deployment names): eureka, config-server, keycloak-auth, user, project, offer, contract, portfolio, review, planning, task, notification, gamification, chat, meeting, freelancia-job, api-gateway, frontend
+- Any service excluded from CD rollout: aimodel, aimodel-node, ticket-service, subcontracting (not present in current root k8s deployment manifests)
 
 ## Monitoring
-- Deploy monitoring from CD (`DEPLOY_MONITORING` true/false):
-- Grafana exposure mode (NodePort/Ingress):
-- If Ingress, host name:
-- Dashboards/KPIs required:
+- Deploy monitoring from CD (`DEPLOY_MONITORING` true/false):true
+- Grafana exposure mode (NodePort/Ingress): NodePort
+- If Ingress, host name: 
+- Dashboards/KPIs required: platform overview baseline (healthy pods, CPU by pod, memory by pod, HTTP request rate). Add latency and error-rate panels once all services expose Prometheus metrics consistently.
 
 ## Access / Security
-- Who can approve prod deployments:
-- TLS requirement for Grafana:
-- Alerting destination (optional now):
+- Who can approve prod deployments: admin
+- TLS requirement for Grafana: admin
+- Alerting destination (optional now): me 
