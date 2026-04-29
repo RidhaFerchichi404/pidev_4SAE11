@@ -18,6 +18,8 @@ def runMicroservicePipeline(Map cfg) {
     def sonarAnalysisExecuted = false
     def nodeToolName = "NodeJS"
     def nodeToolHome = ""
+    def normalizedServicePath = (servicePath ?: "").replace("\\", "/")
+    def skipCoverageForService = normalizedServicePath.contains("backEnd/Microservices/aimodel-node")
 
     def withNodeEnv = { Closure body ->
         if (nodeToolHome?.trim()) {
@@ -133,6 +135,9 @@ def runMicroservicePipeline(Map cfg) {
                         withCredentials([string(credentialsId: sonarTokenCredentialsId, variable: "SONAR_TOKEN")]) {
                             withSonarQubeEnv(sonarServerName) {
                                 def sonarProjectKey = cfg.imageName.replaceAll("[^a-zA-Z0-9_.:-]", "-")
+                                def mavenCoveragePath = "target/site/jacoco/jacoco.xml"
+                                def gradleCoveragePath = "build/reports/jacoco/test/jacocoTestReport.xml"
+                                def nodeCoveragePath = "coverage/lcov.info"
                                 if (buildTool == "maven") {
                                     def hasJacocoPlugin = (sh(
                                             script: "rg -q \"<artifactId>jacoco-maven-plugin</artifactId>\" pom.xml",
@@ -140,25 +145,67 @@ def runMicroservicePipeline(Map cfg) {
                                     ) == 0)
                                     sh """
                                       if [ -f mvnw ]; then
-                                        ./mvnw -B ${hasJacocoPlugin ? 'jacoco:report ' : ''}sonar:sonar -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} -Dsonar.token=\$SONAR_TOKEN
+                                        ./mvnw -B test ${hasJacocoPlugin ? 'jacoco:report ' : ''}sonar:sonar -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} -Dsonar.coverage.jacoco.xmlReportPaths=${mavenCoveragePath} -Dsonar.token=\$SONAR_TOKEN
                                       else
-                                        mvn -B ${hasJacocoPlugin ? 'jacoco:report ' : ''}sonar:sonar -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} -Dsonar.token=\$SONAR_TOKEN
+                                        mvn -B test ${hasJacocoPlugin ? 'jacoco:report ' : ''}sonar:sonar -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} -Dsonar.coverage.jacoco.xmlReportPaths=${mavenCoveragePath} -Dsonar.token=\$SONAR_TOKEN
                                       fi
                                     """
+                                    if (!skipCoverageForService && !fileExists(mavenCoveragePath)) {
+                                        error("Coverage report not found for ${cfg.imageName}. Expected ${servicePath}/${mavenCoveragePath}")
+                                    } else if (skipCoverageForService) {
+                                        echo "Skipping coverage report enforcement for ${cfg.imageName}."
+                                    } else {
+                                        echo "Coverage report detected for ${cfg.imageName}: ${mavenCoveragePath}"
+                                    }
                                     sonarAnalysisExecuted = true
                                 } else if (buildTool == "gradle") {
                                     sh """
                                       if [ -f gradlew ]; then
-                                        ./gradlew sonarqube -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} -Dsonar.token=\$SONAR_TOKEN
+                                        ./gradlew test jacocoTestReport sonarqube -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} -Dsonar.coverage.jacoco.xmlReportPaths=${gradleCoveragePath} -Dsonar.token=\$SONAR_TOKEN || ./gradlew test sonarqube -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} -Dsonar.coverage.jacoco.xmlReportPaths=${gradleCoveragePath} -Dsonar.token=\$SONAR_TOKEN
                                       else
-                                        gradle sonarqube -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} -Dsonar.token=\$SONAR_TOKEN
+                                        gradle test jacocoTestReport sonarqube -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} -Dsonar.coverage.jacoco.xmlReportPaths=${gradleCoveragePath} -Dsonar.token=\$SONAR_TOKEN || gradle test sonarqube -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} -Dsonar.coverage.jacoco.xmlReportPaths=${gradleCoveragePath} -Dsonar.token=\$SONAR_TOKEN
                                       fi
                                     """
+                                    if (!skipCoverageForService && !fileExists(gradleCoveragePath)) {
+                                        error("Coverage report not found for ${cfg.imageName}. Expected ${servicePath}/${gradleCoveragePath}")
+                                    } else if (skipCoverageForService) {
+                                        echo "Skipping coverage report enforcement for ${cfg.imageName}."
+                                    } else {
+                                        echo "Coverage report detected for ${cfg.imageName}: ${gradleCoveragePath}"
+                                    }
                                     sonarAnalysisExecuted = true
                                 } else {
                                     if (npmAvailable) {
                                         withNodeEnv {
-                                            sh "npx -y sonar-scanner -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} -Dsonar.sources=. -Dsonar.token=\\$SONAR_TOKEN"
+                                            def hasTestCoverageScript = (sh(
+                                                    script: "node -e \"const p=require('./package.json'); process.exit(p.scripts && p.scripts['test:coverage'] ? 0 : 1)\"",
+                                                    returnStatus: true
+                                            ) == 0)
+                                            def hasCoverageScript = (sh(
+                                                    script: "node -e \"const p=require('./package.json'); process.exit(p.scripts && p.scripts['coverage'] ? 0 : 1)\"",
+                                                    returnStatus: true
+                                            ) == 0)
+                                            def hasCiTestScript = (sh(
+                                                    script: "node -e \"const p=require('./package.json'); process.exit(p.scripts && p.scripts['test:ci'] ? 0 : 1)\"",
+                                                    returnStatus: true
+                                            ) == 0)
+                                            if (hasTestCoverageScript) {
+                                                sh "npm run test:coverage"
+                                            } else if (hasCoverageScript) {
+                                                sh "npm run coverage"
+                                            } else if (hasCiTestScript) {
+                                                sh "npm run test:ci -- --coverage --watch=false || npm run test:ci"
+                                            } else {
+                                                sh "npm test -- --coverage --watch=false || npm test -- --coverage || npm test || true"
+                                            }
+                                            if (!skipCoverageForService && !fileExists(nodeCoveragePath)) {
+                                                error("Coverage report not found for ${cfg.imageName}. Expected ${servicePath}/${nodeCoveragePath}")
+                                            } else if (skipCoverageForService) {
+                                                echo "Skipping coverage report enforcement for ${cfg.imageName}."
+                                            } else {
+                                                echo "Coverage report detected for ${cfg.imageName}: ${nodeCoveragePath}"
+                                            }
+                                            sh "npx -y sonar-scanner -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} -Dsonar.sources=. -Dsonar.javascript.lcov.reportPaths=${nodeCoveragePath} -Dsonar.token=\\$SONAR_TOKEN"
                                         }
                                         sonarAnalysisExecuted = true
                                     } else {
@@ -176,7 +223,7 @@ def runMicroservicePipeline(Map cfg) {
                             return
                         }
                         try {
-                            timeout(time: 120, unit: "SECONDS") {
+                            timeout(time: 15, unit: "SECONDS") {
                                 def qualityGate = waitForQualityGate abortPipeline: false
                                 if (qualityGate?.status != "OK") {
                                     echo "SonarQube Quality Gate status: ${qualityGate?.status}. Continuing without marking build unstable."
