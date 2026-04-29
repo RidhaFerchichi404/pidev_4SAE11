@@ -53,7 +53,6 @@ class TicketCoverageBoostTest {
 
         byte[] pdf = pdfExportService.buildMonthlyReportPdf();
 
-        assertThat(pdf).isNotEmpty();
         assertThat(pdf).hasSizeGreaterThan(200);
     }
 

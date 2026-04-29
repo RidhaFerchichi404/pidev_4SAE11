@@ -4,10 +4,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.multipart.MultipartFile;
 import tn.esprit.freelanciajob.Service.FileStorageServiceImpl;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,8 +26,9 @@ class FileStorageServiceImplTest {
         List<MockMultipartFile> files = java.util.stream.IntStream.range(0, 6)
             .mapToObj(i -> new MockMultipartFile("f" + i, "a" + i + ".pdf", "application/pdf", new byte[]{1}))
             .toList();
+        List<MultipartFile> multipartFiles = new ArrayList<>(files);
 
-        assertThatThrownBy(() -> service.validateFiles((List) files))
+        assertThatThrownBy(() -> service.validateFiles(multipartFiles))
             .isInstanceOf(RuntimeException.class)
             .hasMessageContaining("Too many files");
     }
@@ -34,8 +37,9 @@ class FileStorageServiceImplTest {
     void validateFilesRejectsUnsupportedType() {
         FileStorageServiceImpl service = new FileStorageServiceImpl();
         MockMultipartFile file = new MockMultipartFile("f", "a.txt", "text/plain", "x".getBytes());
+        List<MultipartFile> multipartFiles = new ArrayList<>(List.of(file));
 
-        assertThatThrownBy(() -> service.validateFiles(List.of(file)))
+        assertThatThrownBy(() -> service.validateFiles(multipartFiles))
             .isInstanceOf(RuntimeException.class)
             .hasMessageContaining("File type not allowed");
     }

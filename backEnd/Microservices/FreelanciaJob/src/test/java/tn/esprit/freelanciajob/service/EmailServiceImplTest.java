@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -68,6 +69,8 @@ class EmailServiceImplTest {
         ReflectionTestUtils.setField(emailService, "fromName", "Freelancia Platform");
         doThrow(new org.springframework.mail.MailSendException("smtp down")).when(mailSender).send(any(SimpleMailMessage.class));
 
-        emailService.sendSimpleEmail("dev@platform.tn", "Subject", "Body");
+        assertThatCode(() -> emailService.sendSimpleEmail("dev@platform.tn", "Subject", "Body"))
+                .doesNotThrowAnyException();
+        verify(mailSender).send(any(SimpleMailMessage.class));
     }
 }

@@ -33,7 +33,7 @@ class NotificationServiceTest {
         List<NotificationResponse> list = service.findByUserId("u-1");
 
         assertThat(created.getId()).isNotBlank();
-        assertThat(created.getBody()).isEqualTo("");
+        assertThat(created.getBody()).isEmpty();
         assertThat(created.getType()).isEqualTo("GENERAL");
         assertThat(created.isRead()).isFalse();
         assertThat(list).hasSize(1);
