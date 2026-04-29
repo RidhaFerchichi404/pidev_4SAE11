@@ -151,9 +151,9 @@ def runMicroservicePipeline(Map cfg) {
                                 if (buildTool == "maven") {
                                     sh """
                                       if [ -f mvnw ]; then
-                                        ./mvnw -B org.jacoco:jacoco-maven-plugin:0.8.12:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.12:report
+                                        ./mvnw -B test jacoco:report
                                       else
-                                        mvn -B org.jacoco:jacoco-maven-plugin:0.8.12:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.12:report
+                                        mvn -B test jacoco:report
                                       fi
                                     """
                                     def jacocoReports = findCoverageReports(["**/jacoco.xml", "**/jacoco*.xml"])
