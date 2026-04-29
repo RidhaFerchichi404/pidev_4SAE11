@@ -4,6 +4,8 @@ import com.esprit.notification.dto.NotificationRequest;
 import com.esprit.notification.dto.NotificationResponse;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -12,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class InMemoryNotificationStoreTest {
 
     @Test
-    void createAndFindByUserId_returnsNewestFirst() throws InterruptedException {
+    void createAndFindByUserId_returnsNewestFirst() throws Exception {
         InMemoryNotificationStore store = new InMemoryNotificationStore();
 
         NotificationResponse first = store.create(NotificationRequest.builder()
@@ -20,7 +22,12 @@ class InMemoryNotificationStoreTest {
                 .title("first")
                 .data(Map.of("a", "1"))
                 .build());
-        Thread.sleep(5);
+        Field docsField = InMemoryNotificationStore.class.getDeclaredField("documents");
+        docsField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Map<String, Map<String, Object>> docs = (Map<String, Map<String, Object>>) docsField.get(store);
+        docs.get("notifications/" + first.getId()).put("createdAt", Instant.now().minusSeconds(60).toString());
+
         NotificationResponse second = store.create(NotificationRequest.builder()
                 .userId("u-1")
                 .title("second")

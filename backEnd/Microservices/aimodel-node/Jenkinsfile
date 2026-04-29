@@ -2,9 +2,9 @@ node {
     checkout scm
     def runner = load('ci/pipelines/microservicePipeline.groovy')
     runner.runMicroservicePipeline([
-    serviceName: 'aimodel',
+    serviceName: 'aimodel-node',
     servicePath: 'backEnd/Microservices/aimodel-node',
-    imageName: 'aimodel',
+    imageName: 'aimodel-node',
     deploymentName: '',
     repoUrl: 'https://github.com/YOUR_ORG/YOUR_REPO.git'
 ])

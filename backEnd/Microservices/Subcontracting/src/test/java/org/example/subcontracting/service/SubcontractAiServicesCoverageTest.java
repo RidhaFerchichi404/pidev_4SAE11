@@ -61,7 +61,7 @@ class SubcontractAiServicesCoverageTest {
         ReflectionTestUtils.setField(aiMatchService, "anthropicApiKey", "");
         SubcontractMatchResponse heuristic = aiMatchService.matchSubcontractors(1L, List.of("Java"));
         assertThat(heuristic.getCandidates()).hasSize(1);
-        assertThat(heuristic.getCandidates().get(0).getMatchScore()).isGreaterThan(0);
+        assertThat(heuristic.getCandidates().get(0).getMatchScore()).isPositive();
 
         ReflectionTestUtils.setField(aiMatchService, "anthropicApiKey", "key");
         ReflectionTestUtils.setField(aiMatchService, "anthropicUrl", "http://anthropic.local");

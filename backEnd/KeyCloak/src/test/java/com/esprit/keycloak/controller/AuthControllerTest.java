@@ -102,8 +102,9 @@ class AuthControllerTest {
     @Test
     void refreshRequiresToken() {
         AuthController controller = new AuthController(mock(KeycloakAdminService.class), mock(KeycloakTokenService.class));
+        Map<String, String> payload = Map.of();
         org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
-            () -> controller.refresh(Map.of()));
+            () -> controller.refresh(payload));
     }
 
     @Test

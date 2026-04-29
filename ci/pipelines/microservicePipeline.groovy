@@ -87,7 +87,7 @@ def runMicroservicePipeline(Map cfg) {
             stage("Test") {
                 dir(servicePath) {
                     if (buildTool == "maven") {
-                        sh "if [ -f mvnw ]; then ./mvnw -B test; else mvn -B test; fi"
+                        sh "if [ -f mvnw ]; then ./mvnw -B verify; else mvn -B verify; fi"
                     } else if (buildTool == "gradle") {
                         sh "if [ -f gradlew ]; then ./gradlew test; else gradle test; fi"
                     } else {
@@ -108,7 +108,7 @@ def runMicroservicePipeline(Map cfg) {
                         }
                     }
                 }
-                junit allowEmptyResults: true, testResults: "${servicePath}/target/surefire-reports/*.xml, ${servicePath}/build/test-results/test/*.xml, ${servicePath}/coverage/test-results/*.xml, ${servicePath}/test-results/**/*.xml"
+                junit allowEmptyResults: true, testResults: "${servicePath}/target/surefire-reports/*.xml, ${servicePath}/target/failsafe-reports/*.xml, ${servicePath}/build/test-results/test/*.xml, ${servicePath}/build/test-results/integrationTest/*.xml, ${servicePath}/coverage/test-results/*.xml, ${servicePath}/test-results/**/*.xml"
             }
 
             stage("Package") {
@@ -160,12 +160,12 @@ def runMicroservicePipeline(Map cfg) {
                                 if (buildTool == "maven") {
                                     sh """
                                       if [ -f mvnw ]; then
-                                        ./mvnw -B test jacoco:report
+                                        ./mvnw -B verify jacoco:report
                                       else
-                                        mvn -B test jacoco:report
+                                        mvn -B verify jacoco:report
                                       fi
                                     """
-                                    def jacocoReports = findCoverageReports(["**/jacoco.xml", "**/jacoco*.xml"])
+                                    def jacocoReports = findCoverageReports(["**/jacoco.xml", "**/jacoco-*.xml", "**/jacoco*.xml"])
                                     def genericCoverageReports = findCoverageReports(["**/coverage*.xml", "**/cobertura*.xml"])
                                     def sonarCoverageArgs = jacocoReports ? "-Dsonar.coverage.jacoco.xmlReportPaths=${jacocoReports.join(',')}" : ""
                                     if (genericCoverageReports) {
@@ -240,8 +240,16 @@ def runMicroservicePipeline(Map cfg) {
                                                 sh "npm test -- --coverage --watch=false || npm test -- --coverage || npm test || true"
                                             }
                                             def lcovReports = findCoverageReports(["**/lcov.info"])
+                                            if (!lcovReports && fileExists("coverage/lcov.info")) {
+                                                lcovReports = ["coverage/lcov.info"]
+                                            }
+                                            if (!lcovReports && fileExists("coverage/smart-freelance-app/lcov.info")) {
+                                                lcovReports = ["coverage/smart-freelance-app/lcov.info"]
+                                            }
                                             def genericCoverageReports = findCoverageReports(["**/coverage*.xml", "**/cobertura*.xml"])
-                                            def sonarCoverageArgs = lcovReports ? "-Dsonar.javascript.lcov.reportPaths=${lcovReports.join(',')}" : ""
+                                            def sonarCoverageArgs = lcovReports
+                                                    ? "-Dsonar.javascript.lcov.reportPaths=${lcovReports.join(',')} -Dsonar.typescript.lcov.reportPaths=${lcovReports.join(',')}"
+                                                    : ""
                                             if (genericCoverageReports) {
                                                 sonarCoverageArgs = "${sonarCoverageArgs} -Dsonar.coverageReportPaths=${genericCoverageReports.join(',')}".trim()
                                             }
@@ -252,7 +260,7 @@ def runMicroservicePipeline(Map cfg) {
                                             } else {
                                                 echo "Coverage reports detected for ${cfg.imageName}: ${(lcovReports + genericCoverageReports).join(', ')}"
                                             }
-                                            sh "npx -y sonar-scanner -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} -Dsonar.sources=. ${sonarCoverageArgs} -Dsonar.token=\\$SONAR_TOKEN"
+                                            sh "npx -y sonar-scanner -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} ${sonarCoverageArgs} -Dsonar.token=\\$SONAR_TOKEN"
                                         }
                                         sonarAnalysisExecuted = true
                                     } else {

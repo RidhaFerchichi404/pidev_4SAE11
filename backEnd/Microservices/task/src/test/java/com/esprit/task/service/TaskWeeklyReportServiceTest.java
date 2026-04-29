@@ -65,7 +65,7 @@ class TaskWeeklyReportServiceTest {
 
         byte[] pdf = taskWeeklyReportService.buildWeeklyPdf(Optional.empty(), Optional.empty(), mon);
 
-        assertThat(pdf.length).isGreaterThan(200);
+        assertThat(pdf).hasSizeGreaterThan(200);
         assertThat(new String(pdf, 0, 4)).isEqualTo("%PDF");
     }
 
@@ -92,7 +92,7 @@ class TaskWeeklyReportServiceTest {
 
         byte[] pdf = taskWeeklyReportService.buildRollingPeriodPdf(Optional.of(1L), Optional.empty(), end, 7);
 
-        assertThat(pdf.length).isGreaterThan(200);
+        assertThat(pdf).hasSizeGreaterThan(200);
         assertThat(new String(pdf, 0, 4)).isEqualTo("%PDF");
     }
 }
