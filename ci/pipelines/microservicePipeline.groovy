@@ -6,7 +6,7 @@ def runMicroservicePipeline(Map cfg) {
 
     def servicePath = cfg.servicePath
     def githubCredsId = "GithubCredentials"
-    def dockerCredsId = "DockerHubCrendentials"
+    def dockerCredsId = (cfg.dockerCredentialsId ?: "").trim() ?: "DockerHubCrendentials"
     def sonarTokenCredentialsId = "SonarQubeToken"
     def sonarServerName = "SonarQube"
     def imageRepo = params.IMAGE_REPO
@@ -321,25 +321,45 @@ def runMicroservicePipeline(Map cfg) {
                 stage("Push Docker Image") {
                     withCredentials([usernamePassword(credentialsId: dockerCredsId, usernameVariable: "DH_USER", passwordVariable: "DH_PASS")]) {
                         sh """
-                          echo "\$DH_PASS" | docker login -u "\$DH_USER" --password-stdin
+                          echo "\$DH_PASS" | docker login docker.io -u "\$DH_USER" --password-stdin
                         """
-                        sh "docker push ${fullImage}"
+                        def pushTargets = [full: fullImage, base: dockerImage]
+                        script {
+                            def ir = (params.IMAGE_REPO ?: "").trim()
+                            def irLower = ir.toLowerCase()
+                            if (irLower.startsWith("docker.io/")) {
+                                def rest = ir.substring(ir.indexOf("/") + 1)
+                                def ns = rest.split("/")[0]?.trim()
+                                def u = env.DH_USER?.trim()
+                                if (ns && u && !ns.equalsIgnoreCase(u)) {
+                                    echo "IMAGE_REPO namespace '${ns}' does not match Docker Hub login '${u}'. Retagging to docker.io/${u}/${cfg.imageName} so the push matches credentials."
+                                    pushTargets.full = "docker.io/${u}/${cfg.imageName}:${tag}"
+                                    pushTargets.base = "docker.io/${u}/${cfg.imageName}"
+                                    sh """
+                                      docker tag '${fullImage}' '${pushTargets.full}'
+                                      docker tag '${dockerImage}:latest' '${pushTargets.base}:latest'
+                                    """
+                                }
+                            }
+                        }
+                        echo "Pushing Docker images: ${pushTargets.full} and ${pushTargets.base}:latest"
+                        sh "docker push ${pushTargets.full}"
                         def latestPushStatus = sh(script: """
                           set +e
-                          docker push ${dockerImage}:latest
+                          docker push ${pushTargets.base}:latest
                           status=\$?
                           if [ "\$status" -ne 0 ]; then
                             echo "Retrying latest push after re-login..."
-                            echo "\$DH_PASS" | docker login -u "\$DH_USER" --password-stdin
-                            docker push ${dockerImage}:latest
+                            echo "\$DH_PASS" | docker login docker.io -u "\$DH_USER" --password-stdin
+                            docker push ${pushTargets.base}:latest
                             status=\$?
                           fi
                           exit "\$status"
                         """, returnStatus: true)
                         if (latestPushStatus != 0) {
-                            unstable("Failed to push ${dockerImage}:latest, but versioned image ${fullImage} was pushed successfully.")
+                            unstable("Failed to push ${pushTargets.base}:latest, but versioned image ${pushTargets.full} was pushed successfully.")
                         }
-                        sh "docker logout || true"
+                        sh "docker logout docker.io || docker logout || true"
                     }
                 }
             }
