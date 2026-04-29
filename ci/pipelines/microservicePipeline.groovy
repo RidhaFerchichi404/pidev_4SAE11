@@ -108,7 +108,7 @@ def runMicroservicePipeline(Map cfg) {
                         }
                     }
                 }
-                junit allowEmptyResults: true, testResults: "${servicePath}/target/surefire-reports/*.xml, ${servicePath}/build/test-results/test/*.xml"
+                junit allowEmptyResults: true, testResults: "${servicePath}/target/surefire-reports/*.xml, ${servicePath}/build/test-results/test/*.xml, ${servicePath}/coverage/test-results/*.xml, ${servicePath}/test-results/**/*.xml"
             }
 
             stage("Package") {
@@ -136,17 +136,26 @@ def runMicroservicePipeline(Map cfg) {
                             withSonarQubeEnv(sonarServerName) {
                                 def sonarProjectKey = cfg.imageName.replaceAll("[^a-zA-Z0-9_.:-]", "-")
                                 def findCoverageReports = { List<String> globs ->
-                                    def reports = []
-                                    globs.each { g ->
-                                        def matches = sh(
-                                                script: "rg --files -g '${g}' || true",
-                                                returnStdout: true
-                                        ).trim()
-                                        if (matches) {
-                                            reports.addAll(matches.split("\\r?\\n").findAll { it?.trim() })
-                                        }
+                                    def fileNamePatterns = globs
+                                            .collect { it?.tokenize('/')?.last() }
+                                            .findAll { it?.trim() }
+                                            .unique()
+                                    if (!fileNamePatterns) {
+                                        return []
                                     }
-                                    reports.unique()
+                                    def nameExpr = fileNamePatterns.collect { p -> "-name '${p}'" }.join(" -o ")
+                                    def matches = sh(
+                                            script: "find . -type f \\( ${nameExpr} \\) -print 2>/dev/null || true",
+                                            returnStdout: true
+                                    ).trim()
+                                    if (!matches) {
+                                        return []
+                                    }
+                                    return matches
+                                            .split("\\r?\\n")
+                                            .collect { it?.trim()?.replaceFirst('^\\./', '') }
+                                            .findAll { it }
+                                            .unique()
                                 }
                                 if (buildTool == "maven") {
                                     sh """
@@ -226,7 +235,7 @@ def runMicroservicePipeline(Map cfg) {
                                             } else if (hasCoverageScript) {
                                                 sh "npm run coverage"
                                             } else if (hasCiTestScript) {
-                                                sh "npm run test:ci -- --coverage --watch=false || npm run test:ci"
+                                                sh "npm run test:ci"
                                             } else {
                                                 sh "npm test -- --coverage --watch=false || npm test -- --coverage || npm test || true"
                                             }

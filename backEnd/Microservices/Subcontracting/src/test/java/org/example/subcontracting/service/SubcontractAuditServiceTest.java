@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -99,5 +101,50 @@ class SubcontractAuditServiceTest {
         assertThat(history.getEventsByAction()).containsEntry("CREATED", 1L).containsEntry("ACCEPTED", 1L);
         assertThat(history.getTimeline()).hasSize(2);
         assertThat(history.getTimeline().get(0).getSubcontractTitle()).isEqualTo("Refactor module");
+    }
+
+    @Test
+    void getBySubcontract_mapsFallbackNamesAndSystemActor() {
+        SubcontractAudit audit = SubcontractAudit.builder()
+                .id(3L)
+                .subcontractId(999L)
+                .actorUserId(null)
+                .action("DELIVERABLE_REJECTED")
+                .createdAt(LocalDateTime.now())
+                .build();
+        when(auditRepo.findBySubcontractIdOrderByCreatedAtDesc(999L)).thenReturn(List.of(audit));
+        when(subcontractRepo.findById(999L)).thenReturn(Optional.empty());
+
+        var entries = subcontractAuditService.getBySubcontract(999L);
+
+        assertThat(entries).hasSize(1);
+        assertThat(entries.get(0).getSubcontractTitle()).isEqualTo("Sous-traitance #999");
+        assertThat(entries.get(0).getActorName()).isEqualTo("Système");
+        assertThat(entries.get(0).getIcon()).isEqualTo("x-circle");
+        assertThat(entries.get(0).getColor()).isEqualTo("#dc3545");
+    }
+
+    @Test
+    void getFreelancerHistory_usesFallbackUserNameWhenClientFails() {
+        SubcontractAudit audit = SubcontractAudit.builder()
+                .id(11L)
+                .subcontractId(500L)
+                .actorUserId(30L)
+                .action("AI_MEDIATED")
+                .createdAt(LocalDateTime.now())
+                .build();
+        when(auditRepo.findAllByFreelancerInvolved(30L)).thenReturn(List.of(audit));
+        when(subcontractRepo.countByMainFreelancerId(30L)).thenReturn(1L);
+        when(subcontractRepo.countBySubcontractorId(30L)).thenReturn(0L);
+        when(subcontractRepo.findById(anyLong())).thenReturn(Optional.empty());
+        doThrow(new RuntimeException("user down")).when(userClient).getUserById(30L);
+
+        FreelancerHistoryResponse history = subcontractAuditService.getFreelancerHistory(30L);
+
+        assertThat(history.getUserName()).isEqualTo("User #30");
+        assertThat(history.getTimeline()).hasSize(1);
+        assertThat(history.getTimeline().get(0).getActionLabel()).isEqualTo("Médiation IA");
+        assertThat(history.getTimeline().get(0).getColor()).isEqualTo("#6366f1");
+        assertThat(history.getTimeline().get(0).getIcon()).isEqualTo("cpu");
     }
 }

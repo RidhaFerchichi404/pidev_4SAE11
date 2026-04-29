@@ -85,4 +85,49 @@ describe('OfferService', () => {
     expect(req.request.method).toBe('GET');
     req.flush({ activeOffers: 0, pendingApplications: 0 } as any);
   });
+
+  it('covers additional offer/application helper endpoints', () => {
+    service.getOffersByFreelancer(11).subscribe((v) => expect(v).toEqual([]));
+    service.publishOffer(4, 11).subscribe((v) => expect(v).toBeNull());
+    service.changeOfferStatus(4, 'AVAILABLE', 11).subscribe((v) => expect(v).toBeNull());
+    service.getApplicationsByOffer(4, 2, 3).subscribe((v) => expect(v.size).toBe(3));
+    service.getApplicationsByClient(7, 1, 5).subscribe((v) => expect(v.number).toBe(1));
+    service.rejectApplication(9, 11, 'nope').subscribe();
+    service.translateTexts(['a', 'b'], 'fr').subscribe((v) => expect(v).toEqual(['x', 'y']));
+    service.getRecommendedOffers(20, 3).subscribe((v) => expect(v).toEqual([]));
+    service.recordOfferView(20, 30).subscribe((v) => expect(v).toBeUndefined());
+    service.getOfferQuestions(4).subscribe((v) => expect(v).toEqual([]));
+    service.addOfferQuestion(4, 20, 'q?').subscribe((v) => expect(v).toBeNull());
+    service.answerOfferQuestion(99, 11, 'a').subscribe((v) => expect(v).toBeNull());
+
+    const reqs = httpMock.match(() => true);
+    reqs.forEach((r) => {
+      const url = r.request.url;
+      if (url.endsWith('/freelancer/11')) {
+        r.flush([], { status: 500, statusText: 'err' });
+      } else if (url.includes('/publish')) {
+        r.flush('err', { status: 500, statusText: 'err' });
+      } else if (url.includes('/status')) {
+        r.flush('err', { status: 500, statusText: 'err' });
+      } else if (url.includes('/applications/offer/4')) {
+        r.flush('err', { status: 500, statusText: 'err' });
+      } else if (url.includes('/applications/client/7')) {
+        r.flush('err', { status: 500, statusText: 'err' });
+      } else if (url.includes('/reject')) {
+        r.flush({ id: 9, status: 'REJECTED' });
+      } else if (url.endsWith('/translate-texts')) {
+        r.flush({ translations: ['x', 'y'] });
+      } else if (url.includes('/recommendations/client/20')) {
+        r.flush('err', { status: 500, statusText: 'err' });
+      } else if (url.endsWith('/views')) {
+        r.flush('err', { status: 500, statusText: 'err' });
+      } else if (url.endsWith('/questions')) {
+        r.flush('err', { status: 500, statusText: 'err' });
+      } else if (url.includes('/questions/99/answer')) {
+        r.flush('err', { status: 500, statusText: 'err' });
+      } else {
+        r.flush('err', { status: 500, statusText: 'err' });
+      }
+    });
+  });
 });

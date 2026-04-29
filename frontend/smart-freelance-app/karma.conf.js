@@ -21,6 +21,7 @@ module.exports = function (config) {
       require('karma-chrome-launcher'),
       require('karma-jasmine-html-reporter'),
       require('karma-coverage'),
+      require('karma-junit-reporter'),
     ],
     client: {
       jasmine: {},
@@ -29,7 +30,17 @@ module.exports = function (config) {
     jasmineHtmlReporter: {
       suppressAll: true,
     },
-    reporters: ['progress', 'kjhtml'],
+    reporters: ['progress', 'kjhtml', 'coverage', 'junit'],
+    coverageReporter: {
+      dir: require('path').join(__dirname, './coverage/smart-freelance-app'),
+      subdir: '.',
+      reporters: [{ type: 'html' }, { type: 'lcovonly', file: 'lcov.info' }, { type: 'text-summary' }],
+    },
+    junitReporter: {
+      outputDir: require('path').join(__dirname, './coverage/test-results'),
+      outputFile: 'karma-junit.xml',
+      useBrowserName: false,
+    },
     browsers: ['Chrome'],
     customLaunchers: {
       ChromeHeadlessCI: {
