@@ -14,7 +14,7 @@ pipeline {
         string(name: "KUBE_CONTEXT", defaultValue: "kubernetes-admin@kubernetes", description: "Kubernetes context name from kubeconfig (required)")
         string(name: "KUBE_NAMESPACE", defaultValue: "smart-freelance-dev", description: "Application namespace to deploy")
         string(name: "MANIFEST_PATH", defaultValue: "k8s", description: "Path to app manifests in repo")
-        string(name: "IMAGE_REPO", defaultValue: "docker.io/ridhaferchichi", description: "Registry/repository prefix")
+        string(name: "IMAGE_REPO", defaultValue: "ridhaferchichi", description: "Registry/repository prefix (example: ridhaferchichi)")
         string(name: "IMAGE_TAG", defaultValue: "", description: "Immutable image tag to deploy (required)")
         booleanParam(name: "DEPLOY_MONITORING", defaultValue: true, description: "Deploy Prometheus and Grafana stack")
         string(name: "MONITORING_MANIFEST_PATH", defaultValue: "k8s/monitoring", description: "Path to monitoring manifests")
@@ -102,7 +102,13 @@ tag = "${params.IMAGE_TAG}".strip()
 namespace = "${params.KUBE_NAMESPACE}".strip()
 target = pathlib.Path("${env.RENDER_DIR}") / "app"
 
-pattern = re.compile(r"YOUR_DOCKERHUB_USERNAME/([A-Za-z0-9._-]+):latest")
+# Normalize Docker Hub prefixes so generated image names match common pull notation.
+if repo.startswith("docker.io/"):
+    repo = repo[len("docker.io/"):]
+elif repo.startswith("index.docker.io/"):
+    repo = repo[len("index.docker.io/"):]
+
+pattern = re.compile(r"YOUR_DOCKERHUB_USERNAME/([A-Za-z0-9._-]+)(?::[A-Za-z0-9._-]+)?")
 namespace_pattern = re.compile(r"^(\s*namespace:\s*)smart-freelance\s*$", re.MULTILINE)
 
 for file in target.rglob("*.y*ml"):
