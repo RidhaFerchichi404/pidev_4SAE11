@@ -22,6 +22,7 @@ pipeline {
         choice(name: "ENVIRONMENT", choices: ["dev", "staging", "prod"], description: "Deployment target environment")
         booleanParam(name: "ROLLBACK_ON_FAILURE", defaultValue: true, description: "Rollback Deployments when rollout verification fails")
         booleanParam(name: "DRY_RUN_ONLY", defaultValue: false, description: "Render/apply using server dry-run only")
+        string(name: "ROLLOUT_TIMEOUT_SECONDS", defaultValue: "600", description: "Timeout in seconds for each deployment rollout check")
     }
 
     environment {
@@ -120,7 +121,7 @@ for file in target.rglob("*.y*ml"):
     if updated != data:
         file.write_text(updated, encoding="utf-8")
 PY
-                  if [ -f "${env.RENDER_DIR}/app/02-secrets.yaml" ] && rg -n ':[[:space:]]*""[[:space:]]*(#.*)?' "${env.RENDER_DIR}/app/02-secrets.yaml" >/dev/null; then
+                  if [ -f "${env.RENDER_DIR}/app/02-secrets.yaml" ] && grep -nE ':[[:space:]]*""[[:space:]]*(#.*)?$' "${env.RENDER_DIR}/app/02-secrets.yaml" >/dev/null; then
                     echo "WARNING: Incomplete values detected in 02-secrets.yaml; skipping this manifest for this deploy."
                     mv "${env.RENDER_DIR}/app/02-secrets.yaml" "${env.RENDER_DIR}/app/02-secrets.yaml.skipped"
                   fi
@@ -215,7 +216,7 @@ PY
                       else
                         for d in \$deployments; do
                           echo "Waiting rollout for deployment/\$d"
-                          kubectl -n "${params.KUBE_NAMESPACE}" rollout status "deployment/\$d" --timeout=180s
+                          kubectl -n "${params.KUBE_NAMESPACE}" rollout status "deployment/\$d" --timeout="${params.ROLLOUT_TIMEOUT_SECONDS}s"
                         done
                       fi
                     """
@@ -265,7 +266,11 @@ PY
                           deployments=\$(kubectl -n "${params.KUBE_NAMESPACE}" get deploy -o jsonpath='{range .items[*]}{.metadata.name}{"\\n"}{end}')
                           for d in \$deployments; do
                             echo "Attempting rollback for deployment/\$d"
-                            kubectl -n "${params.KUBE_NAMESPACE}" rollout undo "deployment/\$d" || true
+                            if kubectl -n "${params.KUBE_NAMESPACE}" rollout history "deployment/\$d" >/dev/null 2>&1; then
+                              kubectl -n "${params.KUBE_NAMESPACE}" rollout undo "deployment/\$d" || true
+                            else
+                              echo "No rollout history for deployment/\$d; skipping rollback"
+                            fi
                           done
                         """
                     }
