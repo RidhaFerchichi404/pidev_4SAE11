@@ -109,14 +109,14 @@ elif repo.startswith("index.docker.io/"):
     repo = repo[len("index.docker.io/"):]
 
 pattern = re.compile(r"YOUR_DOCKERHUB_USERNAME/([A-Za-z0-9._-]+)(?::[A-Za-z0-9._-]+)?")
-namespace_pattern = re.compile(r"^(\s*namespace:\s*)smart-freelance\s*$", re.MULTILINE)
+namespace_pattern = re.compile(r"^(\\s*namespace:\\s*)smart-freelance\\s*$", re.MULTILINE)
 
 for file in target.rglob("*.y*ml"):
     data = file.read_text(encoding="utf-8")
     updated = pattern.sub(lambda m: f"{repo}/{m.group(1)}:{tag}", data)
     updated = namespace_pattern.sub(lambda m: f"{m.group(1)}{namespace}", updated)
     if file.name == "00-namespace.yaml":
-        updated = re.sub(r"^(\s*name:\s*)smart-freelance\s*$", lambda m: f"{m.group(1)}{namespace}", updated, flags=re.MULTILINE)
+        updated = re.sub(r"^(\\s*name:\\s*)smart-freelance\\s*$", lambda m: f"{m.group(1)}{namespace}", updated, flags=re.MULTILINE)
     if updated != data:
         file.write_text(updated, encoding="utf-8")
 PY
