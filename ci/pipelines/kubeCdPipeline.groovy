@@ -247,9 +247,10 @@ PY
                 sh """
                   set +e
                   export KUBECONFIG="\$KUBECONFIG_FILE"
-                  kubectl config use-context "${params.KUBE_CONTEXT}"
-                  kubectl -n "${params.KUBE_NAMESPACE}" get events --sort-by=.metadata.creationTimestamp > kube-events.log 2>/dev/null
-                  kubectl -n "${params.KUBE_NAMESPACE}" get pods -o wide > kube-pods.log 2>/dev/null
+                  kubectl config use-context "${params.KUBE_CONTEXT}" || true
+                  kubectl -n "${params.KUBE_NAMESPACE}" get events --sort-by=.metadata.creationTimestamp > kube-events.log 2>/dev/null || true
+                  kubectl -n "${params.KUBE_NAMESPACE}" get pods -o wide > kube-pods.log 2>/dev/null || true
+                  exit 0
                 """
             }
             archiveArtifacts allowEmptyArchive: true, artifacts: "kube-events.log,kube-pods.log"
