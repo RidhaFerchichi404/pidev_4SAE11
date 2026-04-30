@@ -75,7 +75,7 @@ pipeline {
                 withCredentials([file(credentialsId: params.KUBECONFIG_CREDENTIALS_ID, variable: "KUBECONFIG_FILE")]) {
                     sh """
                       set -e
-                      export KUBECONFIG="$KUBECONFIG_FILE"
+                      export KUBECONFIG="\$KUBECONFIG_FILE"
                       kubectl config use-context "${params.KUBE_CONTEXT}"
                       kubectl cluster-info
                       kubectl get nodes -o wide
@@ -109,18 +109,18 @@ elif repo.startswith("index.docker.io/"):
     repo = repo[len("index.docker.io/"):]
 
 pattern = re.compile(r"YOUR_DOCKERHUB_USERNAME/([A-Za-z0-9._-]+)(?::[A-Za-z0-9._-]+)?")
-namespace_pattern = re.compile(r"^(\\s*namespace:\\s*)smart-freelance\\s*$", re.MULTILINE)
+namespace_pattern = re.compile(r"^(\\s*namespace:\\s*)smart-freelance\\s*\$", re.MULTILINE)
 
 for file in target.rglob("*.y*ml"):
     data = file.read_text(encoding="utf-8")
     updated = pattern.sub(lambda m: f"{repo}/{m.group(1)}:{tag}", data)
     updated = namespace_pattern.sub(lambda m: f"{m.group(1)}{namespace}", updated)
     if file.name == "00-namespace.yaml":
-        updated = re.sub(r"^(\\s*name:\\s*)smart-freelance\\s*$", lambda m: f"{m.group(1)}{namespace}", updated, flags=re.MULTILINE)
+        updated = re.sub(r"^(\\s*name:\\s*)smart-freelance\\s*\$", lambda m: f"{m.group(1)}{namespace}", updated, flags=re.MULTILINE)
     if updated != data:
         file.write_text(updated, encoding="utf-8")
 PY
-                  if [ -f "${env.RENDER_DIR}/app/02-secrets.yaml" ] && rg -n ':\s*""\s*(#.*)?$' "${env.RENDER_DIR}/app/02-secrets.yaml" >/dev/null; then
+                  if [ -f "${env.RENDER_DIR}/app/02-secrets.yaml" ] && rg -n ':\s*""\s*(#.*)?\$' "${env.RENDER_DIR}/app/02-secrets.yaml" >/dev/null; then
                     echo "WARNING: Incomplete values detected in 02-secrets.yaml; skipping this manifest for this deploy."
                     mv "${env.RENDER_DIR}/app/02-secrets.yaml" "${env.RENDER_DIR}/app/02-secrets.yaml.skipped"
                   fi
@@ -160,7 +160,7 @@ PY
                 withCredentials([file(credentialsId: params.KUBECONFIG_CREDENTIALS_ID, variable: "KUBECONFIG_FILE")]) {
                     sh """
                       set -e
-                      export KUBECONFIG="$KUBECONFIG_FILE"
+                      export KUBECONFIG="\$KUBECONFIG_FILE"
                       kubectl config use-context "${params.KUBE_CONTEXT}"
                       kubectl create namespace "${params.KUBE_NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
 
@@ -182,7 +182,7 @@ PY
                 withCredentials([file(credentialsId: params.KUBECONFIG_CREDENTIALS_ID, variable: "KUBECONFIG_FILE")]) {
                     sh """
                       set -e
-                      export KUBECONFIG="$KUBECONFIG_FILE"
+                      export KUBECONFIG="\$KUBECONFIG_FILE"
                       kubectl config use-context "${params.KUBE_CONTEXT}"
                       test -d "${params.MONITORING_MANIFEST_PATH}" || { echo "Monitoring manifest path not found: ${params.MONITORING_MANIFEST_PATH}"; exit 1; }
                       test -d "${env.RENDER_DIR}/monitoring" || { echo "Rendered monitoring path not found: ${env.RENDER_DIR}/monitoring"; exit 1; }
@@ -205,16 +205,16 @@ PY
                 withCredentials([file(credentialsId: params.KUBECONFIG_CREDENTIALS_ID, variable: "KUBECONFIG_FILE")]) {
                     sh """
                       set -e
-                      export KUBECONFIG="$KUBECONFIG_FILE"
+                      export KUBECONFIG="\$KUBECONFIG_FILE"
                       kubectl config use-context "${params.KUBE_CONTEXT}"
 
-                      deployments=$(kubectl -n "${params.KUBE_NAMESPACE}" get deploy -o jsonpath='{range .items[*]}{.metadata.name}{"\\n"}{end}')
-                      if [ -z "$deployments" ]; then
+                      deployments=\$(kubectl -n "${params.KUBE_NAMESPACE}" get deploy -o jsonpath='{range .items[*]}{.metadata.name}{"\\n"}{end}')
+                      if [ -z "\$deployments" ]; then
                         echo "No deployments found in namespace ${params.KUBE_NAMESPACE}"
                       else
-                        for d in $deployments; do
-                          echo "Waiting rollout for deployment/$d"
-                          kubectl -n "${params.KUBE_NAMESPACE}" rollout status "deployment/$d" --timeout=180s
+                        for d in \$deployments; do
+                          echo "Waiting rollout for deployment/\$d"
+                          kubectl -n "${params.KUBE_NAMESPACE}" rollout status "deployment/\$d" --timeout=180s
                         done
                       fi
                     """
@@ -230,7 +230,7 @@ PY
                 withCredentials([file(credentialsId: params.KUBECONFIG_CREDENTIALS_ID, variable: "KUBECONFIG_FILE")]) {
                     sh """
                       set -e
-                      export KUBECONFIG="$KUBECONFIG_FILE"
+                      export KUBECONFIG="\$KUBECONFIG_FILE"
                       kubectl config use-context "${params.KUBE_CONTEXT}"
                       kubectl -n "${params.KUBE_NAMESPACE}" get pods -o wide
                       kubectl -n "${params.KUBE_NAMESPACE}" get svc
@@ -246,7 +246,7 @@ PY
             withCredentials([file(credentialsId: params.KUBECONFIG_CREDENTIALS_ID, variable: "KUBECONFIG_FILE")]) {
                 sh """
                   set +e
-                  export KUBECONFIG="$KUBECONFIG_FILE"
+                  export KUBECONFIG="\$KUBECONFIG_FILE"
                   kubectl config use-context "${params.KUBE_CONTEXT}"
                   kubectl -n "${params.KUBE_NAMESPACE}" get events --sort-by=.metadata.creationTimestamp > kube-events.log 2>/dev/null
                   kubectl -n "${params.KUBE_NAMESPACE}" get pods -o wide > kube-pods.log 2>/dev/null
@@ -258,12 +258,12 @@ PY
                     withCredentials([file(credentialsId: params.KUBECONFIG_CREDENTIALS_ID, variable: "KUBECONFIG_FILE")]) {
                         sh """
                           set +e
-                          export KUBECONFIG="$KUBECONFIG_FILE"
+                          export KUBECONFIG="\$KUBECONFIG_FILE"
                           kubectl config use-context "${params.KUBE_CONTEXT}"
-                          deployments=$(kubectl -n "${params.KUBE_NAMESPACE}" get deploy -o jsonpath='{range .items[*]}{.metadata.name}{"\\n"}{end}')
-                          for d in $deployments; do
-                            echo "Attempting rollback for deployment/$d"
-                            kubectl -n "${params.KUBE_NAMESPACE}" rollout undo "deployment/$d" || true
+                          deployments=\$(kubectl -n "${params.KUBE_NAMESPACE}" get deploy -o jsonpath='{range .items[*]}{.metadata.name}{"\\n"}{end}')
+                          for d in \$deployments; do
+                            echo "Attempting rollback for deployment/\$d"
+                            kubectl -n "${params.KUBE_NAMESPACE}" rollout undo "deployment/\$d" || true
                           done
                         """
                     }
