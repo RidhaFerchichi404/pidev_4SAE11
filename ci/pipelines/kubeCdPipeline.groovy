@@ -186,6 +186,7 @@ PY
                       kubectl config use-context "${params.KUBE_CONTEXT}"
                       test -d "${params.MONITORING_MANIFEST_PATH}" || { echo "Monitoring manifest path not found: ${params.MONITORING_MANIFEST_PATH}"; exit 1; }
                       test -d "${env.RENDER_DIR}/monitoring" || { echo "Rendered monitoring path not found: ${env.RENDER_DIR}/monitoring"; exit 1; }
+                      kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
 
                       if [ "${params.DRY_RUN_ONLY}" = "true" ]; then
                         kubectl apply --server-side --dry-run=server -f "${env.RENDER_DIR}/monitoring"
