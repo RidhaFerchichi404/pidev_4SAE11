@@ -120,7 +120,7 @@ for file in target.rglob("*.y*ml"):
     if updated != data:
         file.write_text(updated, encoding="utf-8")
 PY
-                  if [ -f "${env.RENDER_DIR}/app/02-secrets.yaml" ] && rg -n ':\s*""\s*(#.*)?\$' "${env.RENDER_DIR}/app/02-secrets.yaml" >/dev/null; then
+                  if [ -f "${env.RENDER_DIR}/app/02-secrets.yaml" ] && rg -n ':[[:space:]]*""[[:space:]]*(#.*)?$' "${env.RENDER_DIR}/app/02-secrets.yaml" >/dev/null; then
                     echo "WARNING: Incomplete values detected in 02-secrets.yaml; skipping this manifest for this deploy."
                     mv "${env.RENDER_DIR}/app/02-secrets.yaml" "${env.RENDER_DIR}/app/02-secrets.yaml.skipped"
                   fi
