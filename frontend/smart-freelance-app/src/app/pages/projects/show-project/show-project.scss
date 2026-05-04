@@ -6,7 +6,7 @@
 
 .project-details {
   padding: $spacing-3xl $spacing-lg;
-  max-width: 1000px;
+  max-width: 1180px;
   margin: 0 auto;
   font-family: $font-family;
 
@@ -37,11 +37,16 @@
   color: $error-700;
 }
 
-/* ============================= */
-/* Project Card                  */
-/* ============================= */
+.project-layout {
+  display: grid;
+  grid-template-columns: 1.75fr 1fr;
+  gap: $spacing-lg;
+  align-items: start;
+}
 
-.project-card {
+.project-main-card,
+.overview-card,
+.risk-panel {
   background: $white;
   border-radius: $radius-xl;
   border: 1px solid $neutral-200;
@@ -50,19 +55,20 @@
   transition: $transition-base;
 
   &:hover {
-    box-shadow: 0 8px 28px rgba($primary-500, 0.08);
-    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba($neutral-900, 0.04);
   }
 }
 
-/* ============================= */
-/* Header                        */
-/* ============================= */
+.project-aside {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
 
-.header {
+.project-hero {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: $spacing-lg;
 
   h1 {
@@ -70,6 +76,12 @@
     font-weight: $font-weight-bold;
     margin: 0;
     color: $neutral-900;
+  }
+
+  .project-subtitle {
+    margin-top: 6px;
+    color: $neutral-500;
+    font-size: 14px;
   }
 
   .status {
@@ -86,30 +98,361 @@
   .cancel   { background: $error-50;    color: $error-700; }
 }
 
-/* ============================= */
-/* Project Info                  */
-/* ============================= */
+.description p {
+  margin-top: 8px;
+  line-height: 1.6;
+  color: $neutral-700;
+}
 
-.project-card p {
-  margin: 8px 0;
-  color: $neutral-600;
+.description h3,
+.skills h3,
+.overview-card h3 {
+  margin: 0;
+  font-size: $font-size-base;
+  color: $neutral-800;
+}
 
-  strong {
-    color: $neutral-900;
+.skills {
+  margin-top: $spacing-lg;
+}
+
+.overview-card {
+  padding: $spacing-lg;
+}
+
+.overview-grid {
+  margin-top: $spacing-sm;
+  display: grid;
+  gap: 10px;
+}
+
+.overview-item {
+  display: flex;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px dashed $neutral-200;
+
+  &:last-child {
+    border-bottom: none;
   }
 }
 
-.description p {
-  margin-top: 6px;
-  line-height: 1.6;
+.overview-item .label {
+  color: $neutral-500;
+  font-size: 13px;
 }
 
-/* ============================= */
-/* Skills                        */
-/* ============================= */
+.overview-item .value {
+  color: $neutral-800;
+  font-weight: $font-weight-semibold;
+  text-align: right;
+}
 
-.skills {
-  margin-top: $spacing-md;
+.risk-panel {
+  padding: $spacing-md $spacing-lg;
+  border-radius: $radius-lg;
+  background: linear-gradient(180deg, rgba($neutral-50, 0.95) 0%, rgba($neutral-100, 0.72) 100%);
+  border: 1px solid rgba($neutral-300, 0.8);
+  color: $neutral-800;
+
+  .risk-loading {
+    font-weight: $font-weight-medium;
+    color: $neutral-600;
+  }
+
+  .risk-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .risk-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: $neutral-600;
+    font-weight: $font-weight-semibold;
+  }
+
+  .risk-tier {
+    font-size: 12px;
+    font-weight: $font-weight-semibold;
+    border-radius: $radius-full;
+    padding: 4px 10px;
+    border: 1px solid transparent;
+  }
+
+  .risk-tier.low {
+    color: $success-700;
+    background: rgba($success-500, 0.12);
+    border-color: rgba($success-500, 0.22);
+  }
+
+  .risk-tier.medium {
+    color: $warning-700;
+    background: rgba($warning-500, 0.12);
+    border-color: rgba($warning-500, 0.22);
+  }
+
+  .risk-tier.high {
+    color: $error-700;
+    background: rgba($error-500, 0.12);
+    border-color: rgba($error-500, 0.22);
+  }
+
+  .risk-metrics-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $spacing-md;
+    margin-bottom: 6px;
+  }
+
+  .risk-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+    border-radius: $radius-md;
+    background: rgba($white, 0.65);
+    border: 1px solid rgba($neutral-300, 0.5);
+  }
+
+  .risk-metric-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.35px;
+    color: $neutral-500;
+    font-weight: $font-weight-semibold;
+  }
+
+  .risk-metric-value {
+    font-weight: $font-weight-bold;
+    font-size: $font-size-xl;
+    line-height: 1.1;
+    color: $neutral-900;
+
+    &.success {
+      color: $success-700;
+    }
+
+    &.low {
+      color: $success-700;
+    }
+
+    &.medium {
+      color: $warning-700;
+    }
+
+    &.high {
+      color: $error-700;
+    }
+  }
+
+  .risk-subtitle {
+    color: $neutral-500;
+    font-size: 12px;
+    margin: 0 0 10px;
+    line-height: 1.4;
+  }
+
+  .risk-split-meter {
+    display: flex;
+    width: 100%;
+    height: 10px;
+    border-radius: $radius-full;
+    overflow: hidden;
+    border: 1px solid rgba($neutral-300, 0.7);
+    background: rgba($neutral-200, 0.35);
+    margin-bottom: 8px;
+  }
+
+  .risk-split-segment {
+    height: 100%;
+    transition: width 0.4s ease;
+    min-width: 0;
+    flex-shrink: 0;
+    box-sizing: border-box;
+  }
+
+  .risk-split-failure.low {
+    background: linear-gradient(90deg, $success-600 0%, $success-700 100%);
+  }
+
+  .risk-split-failure.medium {
+    background: linear-gradient(90deg, $warning-500 0%, $warning-700 100%);
+  }
+
+  .risk-split-failure.high {
+    background: linear-gradient(90deg, $error-500 0%, $error-700 100%);
+  }
+
+  .risk-split-success {
+    background: linear-gradient(90deg, $success-300 0%, $success-600 100%);
+  }
+
+  .risk-split-legend {
+    display: flex;
+    gap: $spacing-md;
+    margin-bottom: $spacing-md;
+    font-size: 11px;
+    color: $neutral-600;
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      display: inline-block;
+    }
+
+    .legend-failure .swatch {
+      background: linear-gradient(90deg, $neutral-500, $neutral-700);
+    }
+
+    .legend-success .swatch {
+      background: linear-gradient(90deg, $success-300, $success-600);
+    }
+  }
+
+  .risk-reasons {
+    margin-top: 6px;
+    padding-top: 10px;
+    border-top: 1px dashed rgba($neutral-300, 0.9);
+  }
+
+  .risk-reasons-title {
+    margin: 0 0 6px;
+    font-size: 13px;
+    font-weight: $font-weight-bold;
+    color: $neutral-800;
+  }
+
+  .risk-reasons-note {
+    margin: 0 0 10px;
+    font-size: 11px;
+    line-height: 1.45;
+    color: $neutral-500;
+  }
+
+  .risk-reasons-fallback {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.45;
+    color: $neutral-600;
+  }
+
+  .risk-reasons-list {
+    margin: 0;
+    padding-left: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: $neutral-700;
+  }
+
+  .reasons-toggle {
+    margin-top: 8px;
+    border: 1px solid rgba($neutral-300, 0.9);
+    border-radius: $radius-full;
+    background: $white;
+    color: $neutral-700;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: $font-weight-semibold;
+    cursor: pointer;
+    transition: $transition-fast;
+
+    &:hover {
+      background: $neutral-100;
+    }
+  }
+
+  .risk-hint {
+    display: block;
+    margin-top: 2px;
+    font-size: 12px;
+    color: $neutral-600;
+  }
+
+  .risk-unavailable {
+    color: $neutral-500;
+    font-size: 14px;
+  }
+}
+
+.satisfaction-panel {
+  .satisfaction-tier.excellent {
+    color: $success-700;
+    background: rgba($success-500, 0.12);
+    border-color: rgba($success-500, 0.22);
+  }
+
+  .satisfaction-tier.good {
+    color: $primary-600;
+    background: rgba($primary-500, 0.12);
+    border-color: rgba($primary-500, 0.22);
+  }
+
+  .satisfaction-tier.average {
+    color: $warning-700;
+    background: rgba($warning-500, 0.12);
+    border-color: rgba($warning-500, 0.22);
+  }
+
+  .satisfaction-tier.poor {
+    color: $error-700;
+    background: rgba($error-500, 0.12);
+    border-color: rgba($error-500, 0.22);
+  }
+
+  .satisfaction-metrics-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $spacing-md;
+    margin-bottom: 4px;
+  }
+
+  .satisfaction-meter {
+    height: 10px;
+    width: 100%;
+    border-radius: $radius-full;
+    border: 1px solid rgba($neutral-300, 0.7);
+    background: rgba($neutral-200, 0.35);
+    overflow: hidden;
+    margin-bottom: $spacing-md;
+  }
+
+  .satisfaction-meter-fill {
+    height: 100%;
+    transition: width 0.35s ease;
+    border-radius: inherit;
+  }
+
+  .satisfaction-meter-fill.excellent {
+    background: linear-gradient(90deg, $success-500 0%, $success-700 100%);
+  }
+
+  .satisfaction-meter-fill.good {
+    background: linear-gradient(90deg, $primary-500 0%, $primary-600 100%);
+  }
+
+  .satisfaction-meter-fill.average {
+    background: linear-gradient(90deg, $warning-500 0%, $warning-700 100%);
+  }
+
+  .satisfaction-meter-fill.poor {
+    background: linear-gradient(90deg, $error-500 0%, $error-700 100%);
+  }
 }
 
 .skills-list {
@@ -193,11 +536,24 @@
   padding-top: $spacing-xl;
   border-top: 2px solid $neutral-200;
 
-  h2 {
-    font-size: $font-size-xl;
-    margin-bottom: $spacing-lg;
-    color: $neutral-900;
-  }
+  h2 { font-size: $font-size-xl; margin: 0; color: $neutral-900; }
+}
+
+.applications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-lg;
+}
+
+.applications-count {
+  color: $neutral-600;
+  background: $neutral-100;
+  border: 1px solid $neutral-200;
+  border-radius: $radius-full;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: $font-weight-semibold;
 }
 
 .application-card {
@@ -215,11 +571,19 @@
 
   p {
     margin: 6px 0;
+    color: $neutral-700;
   }
 
   .pending   { color: #facc15; font-weight: 600; }
   .accepted  { color: $success-600; font-weight: 600; }
   .rejected  { color: $error-600; font-weight: 600; }
+}
+
+.application-top {
+  display: flex;
+  justify-content: space-between;
+  gap: $spacing-md;
+  align-items: flex-start;
 }
 
 /* ============================= */
@@ -275,7 +639,11 @@ button:disabled {
     padding: $spacing-xl $spacing-md;
   }
 
-  .header {
+  .project-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .project-hero {
     flex-direction: column;
     align-items: flex-start;
     gap: $spacing-sm;
@@ -287,5 +655,20 @@ button:disabled {
 
   .application-actions {
     flex-direction: column;
+  }
+
+  .application-top {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .risk-panel {
+    padding: $spacing-md;
+
+    .risk-metrics-row,
+    .satisfaction-metrics-row {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
   }
 }

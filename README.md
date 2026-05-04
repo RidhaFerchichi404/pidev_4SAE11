@@ -196,7 +196,7 @@ This repository now supports **Jenkins Seed Job + Job DSL** automation for micro
 
 - `jobs.groovy` creates:
   - `services/<service-name>` pipeline jobs (one per verified buildable service)
-  - `orchestration/full-stack-main` master pipeline
+  - `orchestration/full-stack-main` — single unified pipeline (CI for all services + optional Kubernetes deploy via root `Jenkinsfile`; no separate CD seed job)
 - Per-service Jenkinsfiles now follow one standardized flow:
   - Checkout -> Build -> Test -> Package -> Docker build/tag -> Docker push -> Kubernetes deploy -> rollout verify
   - Build tool autodetection: Maven, Gradle, Node
@@ -252,13 +252,35 @@ If Jenkins agents do not already have them, install these CLIs on the Jenkins VM
 - Images are built in each service directory and pushed to Docker Hub as:
   - `${IMAGE_REPO}/${service}:${BUILD_NUMBER}` and `:latest`
 - Deployments are updated with `kubectl set image` and validated via `kubectl rollout status`.
-- Full-stack orchestration applies manifests in order:
-  - `k8s/00-namespace.yaml` -> ... -> `k8s/10-ingress.yaml`
+- Full-stack orchestration applies manifests under `k8s/` (including optional Ingress and phpMyAdmin when enabled).
+
+### Browser access on the kubeadm VM (app, Keycloak, phpMyAdmin)
+
+You do **not** need to change the app manifests for a standard ingress-nginx bare-metal install: `k8s/10-ingress.yaml` already uses `ingressClassName: nginx`. Optionally customize **hostnames** in that file and match them in Jenkins (`PUBLIC_API_GATEWAY_URL`) and `/etc/hosts`.
+
+1. **Install ingress-nginx (bare-metal / kubeadm)** — official manifest (pin the version if you prefer):
+   ```bash
+   kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.15.1/deploy/static/provider/baremetal/deploy.yaml
+   ```
+   Wait for pods in `ingress-nginx` to be ready. HTTP is usually on a **NodePort**; get it with:
+   ```bash
+   kubectl get svc -n ingress-nginx ingress-nginx-controller -o wide
+   ```
+   Open the app as `http://<node-ip>:<http-nodeport>/` while the browser sends the correct `Host` header (via `/etc/hosts` mapping those names to `<node-ip>`).
+2. **Map hostnames on the VM** (e.g. `/etc/hosts`) to your **node IP** (same IP you use with the NodePort). Include at least:
+   - `smartfreelance.example.com` (Angular frontend)
+   - `api.smartfreelance.example.com` (API gateway; must match **`PUBLIC_API_GATEWAY_URL`** in the Jenkins job so the production bundle calls the right host)
+   - `auth.smartfreelance.example.com` (Keycloak; must match **`KC_HOSTNAME`** in `k8s/04-keycloak.yaml` and Ingress)
+   - `db.smartfreelance.example.com` (phpMyAdmin)
+3. **Pipeline / Job DSL:** leave **`DEPLOY_INGRESS`** enabled (default) so `k8s/10-ingress.yaml` is applied. Disable only if you have no Ingress controller.
+4. **Optional:** If JWT validation fails after logging in via the public auth hostname, see the comment block in `k8s/01-configmap.yaml` (issuer/JWKS vs in-cluster `keycloak` DNS).
+
+No extra Jenkins plugins are required for browser access.
 
 ### Full deploy vs single service deploy
 
-- **Full stack:** run `orchestration/full-stack-main`
-- **Single service:** run `services/<service-name>` directly (same parameters), optionally disabling `DEPLOY_TO_K8S`.
+- **Full stack (CI + CD):** run `orchestration/full-stack-main` (use `DEPLOY_TO_K8S` to toggle cluster deploy).
+- **Single service:** run `services/<service-name>` (per-service build/push only; no cluster deploy from that job).
 
 ### Adding a new service later
 

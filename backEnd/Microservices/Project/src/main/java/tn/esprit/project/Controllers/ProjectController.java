@@ -5,9 +5,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tn.esprit.project.Dto.response.JointProjectsResponse;
+import tn.esprit.project.Dto.response.ProjectClientSegmentResponse;
+import tn.esprit.project.Dto.response.ProjectRiskResponse;
+import tn.esprit.project.Dto.response.ProjectSegmentationOverviewResponse;
+import tn.esprit.project.Dto.response.ProjectSatisfactionResponse;
 import tn.esprit.project.Dto.response.ProjectResponse;
 import tn.esprit.project.Entities.Project;
 import tn.esprit.project.Services.IProjectService;
+import tn.esprit.project.Services.ProjectRiskService;
 
 import java.util.List;
 import java.util.Map;
@@ -18,6 +23,7 @@ import java.util.Map;
 public class ProjectController {
 
     private final IProjectService projectService;
+    private final ProjectRiskService projectRiskService;
     private ProjectResponse projectResponse;
 
     @Value("${welcome.message}")
@@ -74,6 +80,43 @@ public class ProjectController {
             @RequestParam Long clientId,
             @RequestParam Long freelancerId) {
         return projectService.getJointProjects(clientId, freelancerId);
+    }
+
+    /**
+     * ML-based failure risk (percentage) and success probability.
+     * Optional task/review aggregates are merged when enabled; other features use inference defaults.
+     */
+    @GetMapping("/{id}/risk")
+    public ResponseEntity<ProjectRiskResponse> getProjectRisk(@PathVariable Long id) {
+        ProjectRiskResponse risk = projectRiskService.getProjectRisk(id);
+        if (!risk.isAvailable() && "Project not found".equals(risk.getMessage())) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(risk);
+    }
+
+    @GetMapping("/{id}/satisfaction")
+    public ResponseEntity<ProjectSatisfactionResponse> getProjectSatisfaction(@PathVariable Long id) {
+        ProjectSatisfactionResponse satisfaction = projectRiskService.getProjectSatisfaction(id);
+        if (!satisfaction.isAvailable() && "Project not found".equals(satisfaction.getMessage())) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(satisfaction);
+    }
+
+    @GetMapping("/client/{clientId}/segment")
+    public ResponseEntity<ProjectClientSegmentResponse> getClientSegment(@PathVariable Long clientId) {
+        ProjectClientSegmentResponse segment = projectRiskService.getClientSegment(clientId);
+        if (!segment.isAvailable() && "Client not found".equals(segment.getMessage())) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(segment);
+    }
+
+    @GetMapping("/segmentation/overview")
+    public ResponseEntity<ProjectSegmentationOverviewResponse> getSegmentationOverview() {
+        ProjectSegmentationOverviewResponse overview = projectRiskService.getSegmentationOverview();
+        return ResponseEntity.ok(overview);
     }
 
     /** Single project by id (numeric only, so /client/14 is not matched here). */

@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
-import { ProjectService, Project } from '../../../core/services/project.service';
+import { ProjectService, Project, ClientSegment, SegmentationOverview } from '../../../core/services/project.service';
 import { UserService } from '../../../core/services/user.service';
 import { ContractService } from '../../../core/services/contract.service';
 import {
@@ -39,6 +39,8 @@ export class ClientHome implements OnInit {
   activeContractsCount = 0;
   isLoadingStats = true;
   gamificationLevel: GamificationUserLevel | null = null;
+  clientSegment: ClientSegment | null = null;
+  segmentationOverview: SegmentationOverview | null = null;
 
   // Feed state
   private allProjects = signal<ProjectFeed[]>([]);
@@ -97,17 +99,23 @@ export class ClientHome implements OnInit {
       projects: this.projectService.getByClientId(clientId).pipe(catchError(() => of([]))),
       contracts: this.contractService.getByClient(clientId).pipe(catchError(() => of([]))),
       gamification: this.gamificationService.getUserLevel(clientId).pipe(catchError(() => of(null))),
+      segment: this.projectService.getClientSegment(clientId).pipe(catchError(() => of(null))),
+      segmentationOverview: this.projectService.getSegmentationOverview().pipe(catchError(() => of(null))),
     }).subscribe({
-      next: ({ projects, contracts, gamification }) => {
+      next: ({ projects, contracts, gamification, segment, segmentationOverview }) => {
         this.myProjectsCount = projects?.length ?? 0;
         const active = contracts?.filter(c => c.status === 'ACTIVE' || c.status === 'PENDING_SIGNATURE') ?? [];
         this.activeContractsCount = active.length;
         this.gamificationLevel = gamification;
+        this.clientSegment = segment;
+        this.segmentationOverview = segmentationOverview;
         this.isLoadingStats = false;
         this.cdr.detectChanges();
       },
       error: () => {
         this.isLoadingStats = false;
+        this.clientSegment = null;
+        this.segmentationOverview = null;
         this.cdr.detectChanges();
       },
     });
@@ -175,6 +183,51 @@ export class ClientHome implements OnInit {
 
   gamificationTopFreelancer(): boolean {
     return isTopFreelancerFlag(this.gamificationLevel);
+  }
+
+  segmentationSummaryEntries(): Array<{ label: string; count: number }> {
+    const summary = this.segmentationOverview?.summaryCounts ?? {};
+    return Object.entries(summary)
+      .map(([label, count]) => ({ label, count: Number(count) || 0 }))
+      .sort((a, b) => b.count - a.count);
+  }
+
+  totalSegmentedClients(): number {
+    return this.segmentationSummaryEntries().reduce((acc, item) => acc + item.count, 0);
+  }
+
+  segmentShare(count: number): number {
+    const total = this.totalSegmentedClients();
+    if (total <= 0) return 0;
+    return (count / total) * 100;
+  }
+
+  confidencePercent(): number {
+    return Math.round((this.clientSegment?.confidence ?? 0) * 100);
+  }
+
+  confidenceLabel(): string {
+    const p = this.confidencePercent();
+    if (p >= 65) return 'High confidence';
+    if (p >= 35) return 'Medium confidence';
+    return 'Low confidence';
+  }
+
+  clientSegmentInterpretation(): string {
+    const label = (this.clientSegment?.segmentLabel ?? '').toLowerCase();
+    if (label.includes('reliable')) {
+      return 'Your projects usually show stable delivery patterns and lower execution friction.';
+    }
+    if (label.includes('needs support')) {
+      return 'Your portfolio shows signs of delivery friction; tighter planning and risk tracking can improve outcomes.';
+    }
+    if (label.includes('improving')) {
+      return 'Your execution trend is improving. Continue with consistent scope control and progress follow-up.';
+    }
+    if (label.includes('growth')) {
+      return 'Your profile is in a growth phase with mixed patterns across projects.';
+    }
+    return 'This segment summarizes your recent project patterns to help prioritize actions.';
   }
 
   private timeAgo(dateStr?: string): string {

@@ -8,6 +8,7 @@ import tn.esprit.project.Entities.Enums.ApplicationStatus;
 import tn.esprit.project.Entities.Enums.ProjectStatus;
 import tn.esprit.project.Entities.Project;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 
@@ -37,4 +38,10 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     List<Project> findByStatus(ProjectStatus status);
     long countByClientId(Long clientId);
+
+    @Query("SELECT COALESCE(AVG(p.budget), 0) FROM Project p WHERE p.clientId = :clientId")
+    BigDecimal averageBudgetByClientId(@Param("clientId") Long clientId);
+
+    @Query("SELECT DISTINCT p.clientId FROM Project p WHERE p.clientId IS NOT NULL")
+    List<Long> findDistinctClientIds();
 }

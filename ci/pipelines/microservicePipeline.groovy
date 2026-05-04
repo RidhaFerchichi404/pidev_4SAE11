@@ -1,8 +1,10 @@
 def runMicroservicePipeline(Map cfg) {
-    properties([
-        buildDiscarder(logRotator(numToKeepStr: "25", artifactNumToKeepStr: "10")),
-        disableConcurrentBuilds()
-    ])
+    if (cfg.applyJobProperties != false) {
+        properties([
+            buildDiscarder(logRotator(numToKeepStr: "25", artifactNumToKeepStr: "10")),
+            disableConcurrentBuilds()
+        ])
+    }
 
     def servicePath = cfg.servicePath
     def githubCredsId = "GithubCredentials"
@@ -33,12 +35,14 @@ def runMicroservicePipeline(Map cfg) {
 
     timestamps {
         try {
-            stage("Checkout") {
-                checkout([
-                    $class: "GitSCM",
-                    branches: [[name: "*/${params.BRANCH}"]],
-                    userRemoteConfigs: [[url: params.REPO_URL, credentialsId: githubCredsId]]
-                ])
+            if (cfg.skipCheckout != true) {
+                stage("Checkout") {
+                    checkout([
+                        $class: "GitSCM",
+                        branches: [[name: "*/${params.BRANCH}"]],
+                        userRemoteConfigs: [[url: params.REPO_URL, credentialsId: githubCredsId]]
+                    ])
+                }
             }
 
             stage("Detect Build Tool") {
@@ -313,7 +317,8 @@ def runMicroservicePipeline(Map cfg) {
 
             stage("Build Docker Image") {
                 dir(servicePath) {
-                    sh "docker build -t ${fullImage} -t ${dockerImage}:latest ."
+                    def dockerExtra = (cfg.dockerBuildArgs ?: "").trim()
+                    sh "docker build ${dockerExtra} -t ${fullImage} -t ${dockerImage}:latest ."
                 }
             }
 
@@ -379,7 +384,9 @@ def runMicroservicePipeline(Map cfg) {
                 }
             }
         } finally {
-            cleanWs(deleteDirs: true, disableDeferredWipeout: true)
+            if (cfg.skipCleanWs != true) {
+                cleanWs(deleteDirs: true, disableDeferredWipeout: true)
+            }
         }
     }
 }

@@ -14,6 +14,7 @@ import tn.esprit.project.Dto.response.JointProjectsResponse;
 import tn.esprit.project.Dto.response.ProjectResponse;
 import tn.esprit.project.Entities.Project;
 import tn.esprit.project.Services.IProjectService;
+import tn.esprit.project.Services.ProjectRiskService;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -40,6 +41,9 @@ class ProjectControllerTest {
 
     @MockitoBean
     private IProjectService projectService;
+
+    @MockitoBean
+    private ProjectRiskService projectRiskService;
 
     @Test
     void welcome_returnsMessage() throws Exception {

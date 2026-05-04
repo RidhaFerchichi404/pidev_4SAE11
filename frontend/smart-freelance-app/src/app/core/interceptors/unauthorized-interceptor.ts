@@ -1,7 +1,7 @@
 import { inject, Injector } from '@angular/core';
 import { HttpContextToken, HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { catchError, finalize, map, Observable, shareReplay, switchMap, throwError } from 'rxjs';
-import { AuthService } from '../services/auth.service';
+import { AuthService, readAccessTokenFromBody } from '../services/auth.service';
 
 /** Auth endpoints where 401 means "wrong credentials" — we should NOT logout/redirect. */
 const AUTH_ENDPOINTS = ['/token', '/refresh'];
@@ -59,7 +59,7 @@ export const unauthorizedInterceptor: HttpInterceptorFn = (req, next) => {
           const auth = injector.get(AuthService);
 
           refreshInFlight$ ??= auth.refreshToken().pipe(
-              map((res) => ('access_token' in res ? res.access_token : null)),
+              map((res) => readAccessTokenFromBody(res)),
               shareReplay(1),
               finalize(() => {
                 refreshInFlight$ = null;

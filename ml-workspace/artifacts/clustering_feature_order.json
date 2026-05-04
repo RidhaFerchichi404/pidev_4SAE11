@@ -1,0 +1,17 @@
+{
+  "features": [
+    "client_type",
+    "communication_score",
+    "strictness_score",
+    "payment_delay_days",
+    "repeat_hiring_rate",
+    "avg_budget_usd",
+    "project_count_history",
+    "mean_completion_ratio",
+    "mean_delay_days",
+    "project_success_rate",
+    "mean_budget_usd",
+    "avg_complexity",
+    "total_projects"
+  ]
+}

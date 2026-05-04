@@ -1,0 +1,26 @@
+{
+  "features": [
+    "client_id",
+    "category",
+    "budget_usd",
+    "deadline_days",
+    "created_day_index",
+    "complexity_score",
+    "task_count",
+    "task_completed_count",
+    "task_delayed_count",
+    "task_blocked_count",
+    "avg_task_delay_days",
+    "deadline_overrun_days",
+    "completion_ratio",
+    "client_type",
+    "communication_score",
+    "strictness_score",
+    "payment_delay_days",
+    "repeat_hiring_rate",
+    "avg_budget_usd",
+    "project_count_history",
+    "avg_review_rating",
+    "review_count"
+  ]
+}

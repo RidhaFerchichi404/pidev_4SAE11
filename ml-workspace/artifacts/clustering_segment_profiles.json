@@ -1,0 +1,36 @@
+{
+  "profiles": [
+    {
+      "segmentId": 0,
+      "size": 60,
+      "label": "Needs support",
+      "avg_completion_ratio": 0.697,
+      "avg_success_rate": 0.827,
+      "avg_delay_days": 10.77
+    },
+    {
+      "segmentId": 1,
+      "size": 52,
+      "label": "Execution improving",
+      "avg_completion_ratio": 0.688,
+      "avg_success_rate": 0.963,
+      "avg_delay_days": 8.92
+    },
+    {
+      "segmentId": 2,
+      "size": 35,
+      "label": "Needs support",
+      "avg_completion_ratio": 0.574,
+      "avg_success_rate": 0.459,
+      "avg_delay_days": 10.79
+    },
+    {
+      "segmentId": 3,
+      "size": 73,
+      "label": "Needs support",
+      "avg_completion_ratio": 0.683,
+      "avg_success_rate": 0.875,
+      "avg_delay_days": 10.9
+    }
+  ]
+}

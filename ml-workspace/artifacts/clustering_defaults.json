@@ -1,0 +1,15 @@
+{
+  "client_type": "startup",
+  "communication_score": 6.875,
+  "strictness_score": 5.38,
+  "payment_delay_days": 7.05,
+  "repeat_hiring_rate": 0.6305000000000001,
+  "avg_budget_usd": 5894.09,
+  "project_count_history": 19.0,
+  "mean_completion_ratio": 0.6697500000000001,
+  "mean_delay_days": 10.402000000000001,
+  "project_success_rate": 0.8571428571428571,
+  "mean_budget_usd": 6069.08875,
+  "avg_complexity": 0.819875,
+  "total_projects": 4.0
+}

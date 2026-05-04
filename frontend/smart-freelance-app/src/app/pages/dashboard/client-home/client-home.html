@@ -48,6 +48,67 @@
     </div>
   </section>
 
+  <section class="segmentation-section" *ngIf="!isLoadingStats">
+    <div class="segmentation-grid">
+      <article class="segment-card" *ngIf="clientSegment?.available; else segmentUnavailable">
+        <header class="segment-header">
+          <h3>Your delivery profile</h3>
+          <span class="segment-badge">{{ clientSegment?.segmentLabel }}</span>
+        </header>
+        <p class="segment-meta">This profile groups clients with similar project behavior patterns.</p>
+        <div class="segment-kpis">
+          <div class="segment-kpi">
+            <span class="kpi-label">Confidence</span>
+            <span class="kpi-value">{{ confidenceLabel() }} ({{ confidencePercent() }}%)</span>
+          </div>
+          <div class="segment-kpi">
+            <span class="kpi-label">Profile ID</span>
+            <span class="kpi-value">#{{ clientSegment?.segmentId }}</span>
+          </div>
+        </div>
+        <p class="segment-meaning">{{ clientSegmentInterpretation() }}</p>
+        <ul class="segment-reasons" *ngIf="(clientSegment?.reasons?.length ?? 0) > 0">
+          <li *ngFor="let line of (clientSegment?.reasons ?? []).slice(0, 2)">{{ line }}</li>
+        </ul>
+      </article>
+      <ng-template #segmentUnavailable>
+        <article class="segment-card segment-card--muted">
+          <header class="segment-header">
+            <h3>Your delivery profile</h3>
+            <span class="segment-badge muted">Unavailable</span>
+          </header>
+          <p class="segment-meta">Profile insights are not ready yet for your account.</p>
+          <p class="segment-meaning">
+            This usually means not enough project history is available yet, or the analytics service is still warming up.
+          </p>
+        </article>
+      </ng-template>
+
+      <article class="segment-overview-card" *ngIf="segmentationOverview?.available; else overviewUnavailable">
+        <header class="segment-header">
+          <h3>Client landscape</h3>
+          <span class="segment-badge light">{{ totalSegmentedClients() }} clients</span>
+        </header>
+        <p class="segment-meta">How clients are distributed across profiles in the platform.</p>
+        <div class="segment-overview-list">
+          <div class="segment-overview-item" *ngFor="let item of segmentationSummaryEntries().slice(0, 4)">
+            <span>{{ item.label }}</span>
+            <strong>{{ item.count }} <small>({{ segmentShare(item.count) | number:'1.0-0' }}%)</small></strong>
+          </div>
+        </div>
+      </article>
+      <ng-template #overviewUnavailable>
+        <article class="segment-overview-card segment-card--muted">
+          <header class="segment-header">
+            <h3>Client landscape</h3>
+          </header>
+          <p class="segment-meta">Landscape analytics are not available yet.</p>
+          <p class="segment-meaning">The system could not load global segmentation data at this time.</p>
+        </article>
+      </ng-template>
+    </div>
+  </section>
+
   <!-- Quick Actions -->
   <section class="quick-actions">
     <h2 class="section-label">Quick actions</h2>

@@ -10,10 +10,15 @@ data:
   # Spring profiles — activates application-docker.yml routes in gateway
   SPRING_PROFILES_ACTIVE: "docker"
 
-  # Keycloak (internal DNS name within cluster)
+  # Keycloak: server URL is in-cluster; JWT issuer/JWKS use the same so microservices can validate without extra DNS.
+  # If browser logins issue tokens with a different iss (e.g. http://auth.smartfreelance.example.com), align these URLs
+  # and ensure pods resolve that host (CoreDNS hosts map to the keycloak Service ClusterIP) or use a single hostname strategy.
   KEYCLOAK_SERVER_URL: "http://keycloak:8080"
   KEYCLOAK_REALM: "smart-freelance"
   SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: "http://keycloak:8080/realms/smart-freelance"
+  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "http://keycloak:8080/realms/smart-freelance/protocol/openid-connect/certs"
+  KEYCLOAK_ISSUER_URI: "http://keycloak:8080/realms/smart-freelance"
+  KEYCLOAK_JWKS_URI: "http://keycloak:8080/realms/smart-freelance/protocol/openid-connect/certs"
 
   # Config Server
   SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8888"

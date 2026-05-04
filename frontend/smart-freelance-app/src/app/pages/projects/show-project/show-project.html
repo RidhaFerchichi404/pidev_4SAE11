@@ -1,102 +1,208 @@
 <section class="project-details">
+  <div *ngIf="isLoading" class="loading">Loading project details...</div>
 
-  <!-- LOADING -->
-  <div *ngIf="isLoading" class="loading">
-    Loading project details...
-  </div>
+  <div *ngIf="errorMessage && !isLoading" class="error">{{ errorMessage }}</div>
 
-  <!-- ERROR -->
-  <div *ngIf="errorMessage && !isLoading" class="error">
-    {{ errorMessage }}
-  </div>
-
-  <!-- CONTENT -->
-  <div *ngIf="!isLoading && project" class="project-card">
-
-    <div class="header">
-      <h1>{{ project.title }}</h1>
-      <span class="status"
-        [ngClass]="{
-          'open': project.status === 'OPEN',
-          'progress': project.status === 'IN_PROGRESS',
-          'done': project.status === 'COMPLETED',
-          'cancel': project.status === 'CANCELLED'
-        }">
-        {{ project.status }}
-      </span>
-    </div>
-
-    <p class="category">
-      <strong>Category:</strong>
-      {{ project.category || 'Not specified' }}
-    </p>
-
-    <p class="budget">
-      <strong>Budget:</strong>
-      ${{ project.budget }}
-    </p>
-
-    <p class="deadline">
-      <strong>Deadline:</strong>
-      {{ project.deadline | date:'longDate' }}
-    </p>
-
-    <div class="description">
-      <strong>Description:</strong>
-      <p>{{ project.description }}</p>
-    </div>
-
-    <div class="skills">
-      <strong>Skills Required:</strong>
-
-      <div class="skills-list" *ngIf="getSkills().length > 0; else noSkills">
-        <span class="skill" *ngFor="let skill of getSkills()">
-          {{ skill }}
+  <div *ngIf="!isLoading && project" class="project-layout">
+    <article class="project-main-card">
+      <header class="project-hero">
+        <div>
+          <h1>{{ project.title }}</h1>
+          <p class="project-subtitle">Project overview and delivery context</p>
+        </div>
+        <span
+          class="status"
+          [ngClass]="{
+            'open': project.status === 'OPEN',
+            'progress': project.status === 'IN_PROGRESS',
+            'done': project.status === 'COMPLETED',
+            'cancel': project.status === 'CANCELLED'
+          }"
+        >
+          {{ project.status }}
         </span>
-      </div>
+      </header>
 
-      <ng-template #noSkills>
-        <span class="no-skills">No skills specified</span>
-      </ng-template>
-    </div>
+      <section class="description">
+        <h3>Description</h3>
+        <p>{{ project.description }}</p>
+      </section>
 
-    <!-- Actions: Back + Edit -->
-    <div class="actions">
-      <a routerLink="../.." class="btn-back">← Back to projects</a>
-      <a class="btn-edit" 
-        *ngIf="userRole === 'FREELANCER'" 
-        [routerLink]="['/dashboard/my-applications/add', project.id]">
+      <section class="skills">
+        <h3>Required skills</h3>
+        <div class="skills-list" *ngIf="getSkills().length > 0; else noSkills">
+          <span class="skill" *ngFor="let skill of getSkills()">{{ skill }}</span>
+        </div>
+        <ng-template #noSkills><span class="no-skills">No skills specified</span></ng-template>
+      </section>
+
+      <div class="actions">
+        <a routerLink="../.." class="btn-back">← Back to projects</a>
+        <a class="btn-edit" *ngIf="userRole === 'FREELANCER'" [routerLink]="['/dashboard/my-applications/add', project.id]">
           Apply
-      </a>
-    </div>
+        </a>
+      </div>
+    </article>
 
+    <aside class="project-aside">
+      <section class="overview-card">
+        <h3>Project details</h3>
+        <div class="overview-grid">
+          <div class="overview-item">
+            <span class="label">Category</span>
+            <span class="value">{{ project.category || 'Not specified' }}</span>
+          </div>
+          <div class="overview-item">
+            <span class="label">Budget</span>
+            <span class="value">${{ project.budget }}</span>
+          </div>
+          <div class="overview-item">
+            <span class="label">Deadline</span>
+            <span class="value">{{ project.deadline | date:'longDate' }}</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="risk-panel" *ngIf="riskLoading || projectRisk">
+        <ng-container *ngIf="riskLoading">
+          <div class="risk-loading">Loading risk estimate...</div>
+        </ng-container>
+        <ng-container *ngIf="!riskLoading && projectRisk?.available">
+          <div class="risk-header">
+            <span class="risk-title">Delivery outlook</span>
+            <span class="risk-tier" [ngClass]="riskToneClass">{{ riskTierLabel }}</span>
+          </div>
+          <div class="risk-metrics-row">
+            <div class="risk-metric risk-metric-failure">
+              <span class="risk-metric-label">Failure risk</span>
+              <span class="risk-metric-value" [ngClass]="riskToneClass">{{ riskPercent | number:'1.0-1' }}%</span>
+            </div>
+            <div class="risk-metric risk-metric-success">
+              <span class="risk-metric-label">Success likelihood</span>
+              <span class="risk-metric-value success">{{ successLikelihoodPercent | number:'1.0-1' }}%</span>
+            </div>
+          </div>
+          <p class="risk-subtitle">Single bar: failure share vs success share of the model estimate.</p>
+          <div class="risk-split-meter" [attr.aria-label]="'Failure ' + riskPercent + ' percent, success ' + successLikelihoodPercent + ' percent'">
+            <div
+              class="risk-split-segment risk-split-failure"
+              [ngClass]="riskToneClass"
+              [style.width.%]="riskPercent"
+            ></div>
+            <div
+              class="risk-split-segment risk-split-success"
+              [style.width.%]="successBarPercent"
+            ></div>
+          </div>
+          <div class="risk-split-legend">
+            <span class="legend-item legend-failure"><span class="swatch"></span> Failure</span>
+            <span class="legend-item legend-success"><span class="swatch"></span> Success</span>
+          </div>
+          <div class="risk-reasons">
+            <h4 class="risk-reasons-title">What is driving this estimate</h4>
+            <p class="risk-reasons-note" *ngIf="riskReasons.length > 0">
+              Each point compares your project’s inputs with typical values the model learned from training data (not guaranteed causes).
+            </p>
+            <ul class="risk-reasons-list" *ngIf="riskReasons.length > 0">
+              <li *ngFor="let line of visibleRiskReasons">{{ line }}</li>
+            </ul>
+            <button
+              type="button"
+              class="reasons-toggle"
+              *ngIf="hasMoreRiskReasons"
+              (click)="toggleRiskReasons()"
+            >
+              {{ showRiskReasons ? 'Show less' : 'Show all reasons' }}
+            </button>
+            <p class="risk-reasons-fallback" *ngIf="riskReasons.length === 0">
+              No factor list was included in the API response. The percentages still reflect the model. Redeploy the Project service and ensure the ML predict endpoint returns a reasons list.
+            </p>
+          </div>
+          <span class="risk-hint" *ngIf="projectRisk!.aggregatesUsed">
+            Includes task/review signals when available.
+          </span>
+        </ng-container>
+        <ng-container *ngIf="!riskLoading && projectRisk && !projectRisk.available">
+          <span class="risk-unavailable">Risk estimate unavailable{{ projectRisk.message ? ' — ' + projectRisk.message : '' }}.</span>
+        </ng-container>
+      </section>
+
+      <section class="risk-panel satisfaction-panel" *ngIf="satisfactionLoading || projectSatisfaction">
+        <ng-container *ngIf="satisfactionLoading">
+          <div class="risk-loading">Loading satisfaction estimate...</div>
+        </ng-container>
+        <ng-container *ngIf="!satisfactionLoading && projectSatisfaction?.available">
+          <div class="risk-header">
+            <span class="risk-title">Satisfaction outlook</span>
+            <span class="risk-tier satisfaction-tier" [ngClass]="satisfactionToneClass">{{ satisfactionTierLabel }}</span>
+          </div>
+          <div class="satisfaction-metrics-row">
+            <div class="risk-metric">
+              <span class="risk-metric-label">Predicted score</span>
+              <span class="risk-metric-value">{{ satisfactionScore | number:'1.1-2' }}/10</span>
+            </div>
+            <div class="risk-metric">
+              <span class="risk-metric-label">Equivalent percentage</span>
+              <span class="risk-metric-value">{{ satisfactionPercent | number:'1.0-1' }}%</span>
+            </div>
+          </div>
+          <p class="risk-subtitle">Estimated client satisfaction based on project + optional progress signals.</p>
+          <div class="satisfaction-meter" [attr.aria-label]="'Predicted satisfaction ' + satisfactionPercent + ' percent'">
+            <div class="satisfaction-meter-fill" [ngClass]="satisfactionToneClass" [style.width.%]="satisfactionPercent"></div>
+          </div>
+          <div class="risk-reasons" *ngIf="satisfactionReasons.length > 0">
+            <h4 class="risk-reasons-title">Why this satisfaction level</h4>
+            <p class="risk-reasons-note">
+              Each reason shows how a factor shifts the model compared with typical baseline values (interpretation, not causality).
+            </p>
+            <ul class="risk-reasons-list">
+              <li *ngFor="let line of visibleSatisfactionReasons">{{ line }}</li>
+            </ul>
+            <button
+              type="button"
+              class="reasons-toggle"
+              *ngIf="hasMoreSatisfactionReasons"
+              (click)="toggleSatisfactionReasons()"
+            >
+              {{ showSatisfactionReasons ? 'Show less' : 'Show all reasons' }}
+            </button>
+          </div>
+          <span class="risk-hint" *ngIf="projectSatisfaction!.aggregatesUsed">
+            Includes task/review signals when available.
+          </span>
+        </ng-container>
+        <ng-container *ngIf="!satisfactionLoading && projectSatisfaction && !projectSatisfaction.available">
+          <span class="risk-unavailable">
+            Satisfaction estimate unavailable{{ projectSatisfaction.message ? ' — ' + projectSatisfaction.message : '' }}.
+          </span>
+        </ng-container>
+      </section>
+    </aside>
   </div>
-
 </section>
 
-
 <section *ngIf="userRole === 'CLIENT' || userRole === 'ADMIN'" class="applications-section">
-  <h2>Applications for this Project</h2>
-
-  <div *ngIf="isLoadingApplications" class="loading">
-    Loading applications...
+  <div class="applications-header">
+    <h2>Applications</h2>
+    <span class="applications-count">{{ applications.length }} candidate(s)</span>
   </div>
+
+  <div *ngIf="isLoadingApplications" class="loading">Loading applications...</div>
 
   <div *ngIf="!isLoadingApplications && applications.length === 0" class="no-applications">
     No applications yet.
   </div>
 
   <div *ngFor="let app of applications" class="application-card">
-    <p><strong>Freelancer:</strong> {{ usersMap[app.freelanceId]?.firstName }} {{ usersMap[app.freelanceId]?.lastName }}</p>
+    <div class="application-top">
+      <p><strong>Freelancer:</strong> {{ usersMap[app.freelanceId]?.firstName }} {{ usersMap[app.freelanceId]?.lastName }}</p>
+      <p><strong>Status:</strong> <span [ngClass]="app.status?.toLowerCase()">{{ app.status }}</span></p>
+    </div>
     <p><strong>Proposed Price:</strong> ${{ app.proposedPrice }}</p>
     <p><strong>Proposed Duration:</strong> {{ app.proposedDuration }} day(s)</p>
     <p><strong>Cover Letter:</strong> {{ app.coverLetter }}</p>
-    <p><strong>Status:</strong> <span [ngClass]="app.status?.toLowerCase()">{{ app.status }}</span></p>
-    <p *ngIf="app.respondedAt">
-      <strong>Responded At:</strong>
-      {{ app.respondedAt | date:'yyyy-MM-dd HH:mm' }}
-    </p>
-    
+    <p *ngIf="app.respondedAt"><strong>Responded At:</strong> {{ app.respondedAt | date:'yyyy-MM-dd HH:mm' }}</p>
+
     <div class="application-actions" *ngIf="userRole === 'CLIENT'">
       <button class="btn-accept" (click)="changeApplicationStatus(app, 'ACCEPTED')" [disabled]="app.status !== 'PENDING'">Accept</button>
       <button class="btn-reject" (click)="changeApplicationStatus(app, 'REJECTED')" [disabled]="app.status !== 'PENDING'">Reject</button>

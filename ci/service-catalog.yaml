@@ -175,3 +175,5 @@ services:
 excludedServices:
   - id: vendor
     reason: "Excluded from automation until build metadata is fixed (missing pom.xml in backEnd/Microservices/Vendor)."
+  - id: aimodel-node
+    reason: "Excluded from unified CI; use Java AImodel service (backEnd/Microservices/AImodel) in the orchestration pipeline."

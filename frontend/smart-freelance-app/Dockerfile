@@ -6,8 +6,10 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --prefer-offline
 
-# Build production bundle
+# Build production bundle (public API URL for browser; override with --build-arg)
 COPY . .
+ARG API_GATEWAY_PUBLIC_URL=http://api.smartfreelance.example.com
+RUN sed -i "s|__API_GATEWAY_PUBLIC_URL__|${API_GATEWAY_PUBLIC_URL}|g" src/environments/environment.production.ts
 RUN npm run build -- --configuration production
 
 # Stage 2: Serve with Nginx

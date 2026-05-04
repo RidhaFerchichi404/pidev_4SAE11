@@ -1,20 +1,38 @@
+// Unified CI (build/test/push all services) + optional CD (kubectl apply from k8s/).
+// Requires agent with Docker, Git, kubectl, python3. Credentials: GithubCredentials, DockerHubCrendentials, kubeconfig file, optional Sonar.
+
 pipeline {
     agent any
     options {
         timestamps()
         disableConcurrentBuilds()
-        buildDiscarder(logRotator(numToKeepStr: "25", artifactNumToKeepStr: "10"))
+        buildDiscarder(logRotator(numToKeepStr: "30", artifactNumToKeepStr: "20"))
     }
     parameters {
         string(name: "REPO_URL", defaultValue: "https://github.com/YOUR_ORG/YOUR_REPO.git", description: "Git repository URL")
-        string(name: "BRANCH", defaultValue: "main", description: "Branch to build")
-        string(name: "IMAGE_REPO", defaultValue: "docker.io/YOUR_DOCKERHUB_USERNAME", description: "Registry/repo prefix")
-        string(name: "IMAGE_TAG", defaultValue: "", description: "Optional tag override")
+        string(name: "BRANCH", defaultValue: "main", description: "Branch to build and deploy")
+        string(name: "IMAGE_REPO", defaultValue: "docker.io/YOUR_DOCKERHUB_USERNAME", description: "Registry/repo prefix for images and manifest rendering")
+        string(name: "IMAGE_TAG", defaultValue: "", description: "Optional immutable tag; if empty, BUILD_NUMBER is used for build and deploy")
         booleanParam(name: "PUSH_IMAGE", defaultValue: true, description: "Push images to Docker Hub")
-        booleanParam(name: "RUN_SONARQUBE", defaultValue: true, description: "Run SonarQube analysis in child jobs")
+        booleanParam(name: "RUN_SONARQUBE", defaultValue: true, description: "Run SonarQube analysis per service")
+        booleanParam(name: "DEPLOY_TO_K8S", defaultValue: true, description: "After successful CI, render manifests and deploy to Kubernetes")
+
+        string(name: "KUBECONFIG_CREDENTIALS_ID", defaultValue: "kubeconfig", description: "Jenkins secret file credential ID for kubeconfig")
+        string(name: "KUBE_CONTEXT", defaultValue: "kubernetes-admin@kubernetes", description: "Kubernetes context name from kubeconfig")
+        string(name: "KUBE_NAMESPACE", defaultValue: "smart-freelance-dev", description: "Application namespace to deploy")
+        string(name: "MANIFEST_PATH", defaultValue: "k8s", description: "Path to app manifests in repo")
+        booleanParam(name: "DEPLOY_MONITORING", defaultValue: true, description: "Deploy Prometheus and Grafana stack")
+        string(name: "MONITORING_MANIFEST_PATH", defaultValue: "k8s/monitoring", description: "Path to monitoring manifests")
+        booleanParam(name: "REQUIRE_PROD_APPROVAL", defaultValue: true, description: "Ask for manual approval when ENVIRONMENT=prod")
+        choice(name: "ENVIRONMENT", choices: ["dev", "staging", "prod"], description: "Deployment target environment")
+        booleanParam(name: "ROLLBACK_ON_FAILURE", defaultValue: true, description: "Rollback Deployments when rollout verification fails")
+        booleanParam(name: "DRY_RUN_ONLY", defaultValue: false, description: "Render/apply using server dry-run only (no live rollout checks)")
+        string(name: "ROLLOUT_TIMEOUT_SECONDS", defaultValue: "600", description: "Timeout in seconds for each deployment rollout check")
+        booleanParam(name: "DEPLOY_INGRESS", defaultValue: true, description: "Apply k8s/10-ingress.yaml (requires ingress-nginx controller on cluster)")
+        string(name: "PUBLIC_API_GATEWAY_URL", defaultValue: "http://api.smartfreelance.example.com", description: "Browser-reachable API URL baked into Angular production build")
     }
     environment {
-        ORCH_TAG = "${params.IMAGE_TAG?.trim() ? params.IMAGE_TAG.trim() : env.BUILD_NUMBER}"
+        EFFECTIVE_IMAGE_TAG = "${params.IMAGE_TAG?.trim() ? params.IMAGE_TAG.trim() : env.BUILD_NUMBER}"
         GITHUB_CREDS_ID = "GithubCredentials"
     }
     stages {
@@ -27,12 +45,19 @@ pipeline {
                 ])
             }
         }
+        stage("Keycloak server image") {
+            steps {
+                script {
+                    buildAndPushKeycloakServerImage()
+                }
+            }
+        }
         stage("Infrastructure Order") {
             steps {
                 script {
-                    runService("services/eureka")
-                    runService("services/config-server")
-                    runService("services/keycloak-auth")
+                    runMs("backEnd/Eureka", "eureka")
+                    runMs("backEnd/ConfigServer", "config-server")
+                    runMs("backEnd/KeyCloak", "keycloak-auth")
                 }
             }
         }
@@ -40,32 +65,30 @@ pipeline {
             steps {
                 script {
                     parallel(
-                        user: { runService("services/user") },
-                        project: { runService("services/project") },
-                        notification: { runService("services/notification") },
-                        contract: { runService("services/contract") },
-                        portfolio: { runService("services/portfolio") },
-                        chat: { runService("services/chat") },
-                        meeting: { runService("services/meeting") },
-                        freelanciaJob: { runService("services/freelancia-job") }
+                        user: { runMs("backEnd/Microservices/user", "user") },
+                        project: { runMs("backEnd/Microservices/Project", "project") },
+                        notification: { runMs("backEnd/Microservices/Notification", "notification") },
+                        contract: { runMs("backEnd/Microservices/Contract", "contract") },
+                        portfolio: { runMs("backEnd/Microservices/Portfolio", "portfolio") },
+                        chat: { runMs("backEnd/Microservices/Chat", "chat") },
+                        meeting: { runMs("backEnd/Microservices/Meeting", "meeting") },
+                        freelanciaJob: { runMs("backEnd/Microservices/FreelanciaJob", "freelancia-job") }
                     )
-                    // Run AImodel after the parallel wave: avoids ABORTED from sibling parallel branches
-                    // when another service fails, and reduces executor/memory contention with other Maven builds.
-                    runService("services/aimodel")
+                    runMs("backEnd/Microservices/AImodel", "aimodel")
                 }
             }
         }
         stage("Dependent Services") {
             steps {
                 script {
-                    runService("services/planning")
-                    runService("services/task")
+                    runMs("backEnd/Microservices/planning", "planning")
+                    runMs("backEnd/Microservices/task", "task")
                     parallel(
-                        review: { runService("services/review") },
-                        offer: { runService("services/offer") },
-                        gamification: { runService("services/gamification") },
-                        ticketService: { runService("services/ticket-service") },
-                        subcontracting: { runService("services/subcontracting") }
+                        review: { runMs("backEnd/Microservices/review", "review") },
+                        offer: { runMs("backEnd/Microservices/Offer", "offer") },
+                        gamification: { runMs("backEnd/Microservices/gamification", "gamification") },
+                        ticketService: { runMs("backEnd/Microservices/ticket-service", "ticket-service") },
+                        subcontracting: { runMs("backEnd/Microservices/Subcontracting", "subcontracting") }
                     )
                 }
             }
@@ -73,8 +96,39 @@ pipeline {
         stage("Gateway Then Frontend") {
             steps {
                 script {
-                    runService("services/api-gateway")
-                    runService("services/frontend")
+                    runMs("backEnd/apiGateway", "api-gateway")
+                    runMs("frontend/smart-freelance-app", "frontend", [
+                        dockerBuildArgs: "--build-arg API_GATEWAY_PUBLIC_URL=${(params.PUBLIC_API_GATEWAY_URL ?: 'http://api.smartfreelance.example.com').trim()}"
+                    ])
+                }
+            }
+        }
+        stage("Deploy Kubernetes") {
+            when {
+                expression { return params.DEPLOY_TO_K8S }
+            }
+            steps {
+                script {
+                    if (!params.KUBE_CONTEXT?.trim()) {
+                        error("KUBE_CONTEXT is required when DEPLOY_TO_K8S is enabled")
+                    }
+                    def kd = load("ci/pipelines/kubeDeployLib.groovy")
+                    kd.runKubernetesDeploy([
+                        kubeContext              : params.KUBE_CONTEXT.trim(),
+                        kubeNamespace            : params.KUBE_NAMESPACE.trim(),
+                        manifestPath             : params.MANIFEST_PATH.trim(),
+                        imageRepo                : params.IMAGE_REPO.trim(),
+                        imageTag                 : env.EFFECTIVE_IMAGE_TAG,
+                        kubeconfigCredentialsId  : params.KUBECONFIG_CREDENTIALS_ID.trim(),
+                        deployMonitoring         : params.DEPLOY_MONITORING,
+                        monitoringManifestPath   : params.MONITORING_MANIFEST_PATH.trim(),
+                        deployEnvironment        : params.ENVIRONMENT,
+                        requireProdApproval      : params.REQUIRE_PROD_APPROVAL,
+                        dryRunOnly               : params.DRY_RUN_ONLY,
+                        rollbackOnFailure        : params.ROLLBACK_ON_FAILURE,
+                        rolloutTimeoutSeconds    : (params.ROLLOUT_TIMEOUT_SECONDS ?: "600").toString().trim(),
+                        deployIngress            : params.DEPLOY_INGRESS
+                    ])
                 }
             }
         }
@@ -86,22 +140,83 @@ pipeline {
     }
 }
 
-def runService(String jobName) {
-    def child = build job: jobName, wait: true, propagate: false, parameters: [
-        string(name: "REPO_URL", value: params.REPO_URL),
-        string(name: "BRANCH", value: params.BRANCH),
-        string(name: "IMAGE_REPO", value: params.IMAGE_REPO),
-        string(name: "IMAGE_TAG", value: ORCH_TAG),
-        booleanParam(name: "PUSH_IMAGE", value: params.PUSH_IMAGE),
-        booleanParam(name: "RUN_SONARQUBE", value: params.RUN_SONARQUBE),
-        booleanParam(name: "TRIGGER_DOWNSTREAM", value: false)
-    ]
-
-    if (child.result == "FAILURE" || child.result == "ABORTED") {
-        error("${jobName} finished with result ${child.result}")
+def microRunnerOnce() {
+    if (!binding.hasVariable("microRunner")) {
+        microRunner = load("ci/pipelines/microservicePipeline.groovy")
     }
+    return microRunner
+}
 
-    if (child.result == "UNSTABLE") {
-        unstable("${jobName} finished UNSTABLE")
+def runMs(String servicePath, String imageName, Map opts = [:]) {
+    def m = [
+        servicePath        : servicePath,
+        imageName          : imageName,
+        skipCheckout       : true,
+        skipCleanWs        : true,
+        applyJobProperties : false
+    ]
+    if (opts) {
+        m.putAll(opts)
+    }
+    microRunnerOnce().runMicroservicePipeline(m)
+}
+
+/**
+ * Same image as docker-compose keycloak service: keycloak-start/Dockerfile (realm import + conf).
+ * Must run before deploy so k8s can pull YOUR_REPO/keycloak:<tag>.
+ */
+def buildAndPushKeycloakServerImage() {
+    def dockerCredsId = "DockerHubCrendentials"
+    def imageRepo = params.IMAGE_REPO
+    def tag = (params.IMAGE_TAG?.trim()) ? params.IMAGE_TAG.trim() : env.BUILD_NUMBER
+    def dockerImage = "${imageRepo}/keycloak"
+    def fullImage = "${dockerImage}:${tag}"
+    sh """
+      docker build -f keycloak-start/Dockerfile -t '${fullImage}' -t '${dockerImage}:latest' .
+    """
+    if (!params.PUSH_IMAGE) {
+        echo "Skipping Keycloak image push (PUSH_IMAGE is false)."
+        return
+    }
+    withCredentials([usernamePassword(credentialsId: dockerCredsId, usernameVariable: "DH_USER", passwordVariable: "DH_PASS")]) {
+        sh """
+          echo "\$DH_PASS" | docker login docker.io -u "\$DH_USER" --password-stdin
+        """
+        def pushTargets = [full: fullImage, base: dockerImage]
+        script {
+            def ir = (params.IMAGE_REPO ?: "").trim()
+            def irLower = ir.toLowerCase()
+            if (irLower.startsWith("docker.io/")) {
+                def rest = ir.substring(ir.indexOf("/") + 1)
+                def ns = rest.split("/")[0]?.trim()
+                def u = env.DH_USER?.trim()
+                if (ns && u && !ns.equalsIgnoreCase(u)) {
+                    echo "IMAGE_REPO namespace '${ns}' does not match Docker Hub login '${u}'. Retagging keycloak image."
+                    pushTargets.full = "docker.io/${u}/keycloak:${tag}"
+                    pushTargets.base = "docker.io/${u}/keycloak"
+                    sh """
+                      docker tag '${fullImage}' '${pushTargets.full}'
+                      docker tag '${dockerImage}:latest' '${pushTargets.base}:latest'
+                    """
+                }
+            }
+        }
+        sh "docker push ${pushTargets.full}"
+        def latestPushStatus = sh(script: """
+          set +e
+          docker push ${pushTargets.base}:latest
+          status=\$?
+          if [ "\$status" -ne 0 ]; then
+            echo "Retrying latest push after re-login..."
+            echo "\$DH_PASS" | docker login docker.io -u "\$DH_USER" --password-stdin
+            docker push ${pushTargets.base}:latest
+            status=\$?
+          fi
+          exit "\$status"
+        """, returnStatus: true)
+        if (latestPushStatus != 0) {
+            unstable("Failed to push ${pushTargets.base}:latest; versioned image ${pushTargets.full} was pushed.")
+        }
+        sh "docker logout docker.io || docker logout || true"
     }
 }

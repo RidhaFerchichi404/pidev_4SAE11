@@ -27,6 +27,7 @@ MySQL hosts use `localhost:3307` in repo configs — align your MySQL install wi
 | Microservices/Vendor | VENDOR | 8093 | `vendor` | MySQL `gestion_vendor_db` (Config Server) |
 | Microservices/ticket-service | ticket | 8094 | `ticket` | MySQL `ticketdb` |
 | Microservices/Subcontracting | SUBCONTRACTING | 8110 | `subcontracting` | MySQL `gestion_subcontracting_db` (Config Server) |
+| `ml-workspace` (Python) | — | **8102** | — | scikit-learn `success_classifier.joblib` — **server-to-server only** (Project MS); see `ml-workspace/serve_success_risk.py` and `Dockerfile.inference` |
 
 **Gateway routing notes**
 

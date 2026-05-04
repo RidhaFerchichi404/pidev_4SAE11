@@ -2,7 +2,7 @@ import { Component, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService, readAccessTokenFromBody } from '../../core/services/auth.service';
 import { finalize } from 'rxjs';
 
 @Component({
@@ -66,7 +66,7 @@ export class LoginComponent {
       })
     ).subscribe({
       next: (res) => {
-        if (res && 'access_token' in res && res.access_token) {
+        if (readAccessTokenFromBody(res)) {
           const role = this.auth.getUserRole();
           if (role === 'ADMIN') {
             this.router.navigate(['/admin']);

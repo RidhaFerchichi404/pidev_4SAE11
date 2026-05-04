@@ -1,3 +1,5 @@
+# Keycloak server image is built from keycloak-start/Dockerfile (realm import + conf), same as docker-compose.
+# CI builds/pushes YOUR_DOCKERHUB_USERNAME/keycloak:<tag> before deploy; do not use stock quay.io image here.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15,8 +17,8 @@ spec:
     spec:
       containers:
         - name: keycloak
-          image: quay.io/keycloak/keycloak:25.0
-          args: ["start-dev"]
+          image: YOUR_DOCKERHUB_USERNAME/keycloak:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           env:
@@ -46,10 +48,15 @@ spec:
                   key: SPRING_DATASOURCE_PASSWORD
             - name: KC_HTTP_PORT
               value: "8080"
+            # Public hostname must match Ingress host auth.smartfreelance.example.com (see 10-ingress.yaml).
+            - name: KC_HOSTNAME
+              value: "auth.smartfreelance.example.com"
             - name: KC_HOSTNAME_STRICT
               value: "false"
             - name: KC_HOSTNAME_STRICT_HTTPS
               value: "false"
+            - name: KC_PROXY
+              value: "edge"
           resources:
             requests:
               cpu: 250m

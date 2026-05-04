@@ -8,6 +8,9 @@ spring:
     max-in-memory-size: 10MB
   cloud:
     gateway:
+      # Microservices reject direct access unless this header is set (GatewayOnlyFilter). Matches application-docker.yml.
+      default-filters:
+        - SetRequestHeader=X-Internal-Gateway,true
       # Global Netty timeouts (Duration for response; ms for connect). Very long for slow local LLM (Task→AImodel→Ollama).
       httpclient:
         response-timeout: 4h
@@ -59,7 +62,6 @@ spring:
             - Path=/user/**
           filters:
             - StripPrefix=1
-            - SetRequestHeader=X-Internal-Gateway,true
 
         # Portfolio: URL directe (port 8086) — évite 503 « Unable to find instance for PORTFOLIO »
         # si Eureka n’est pas démarré ou si le service n’est pas enregistré.
@@ -81,7 +83,6 @@ spring:
             - Path=/planning/**
           filters:
             - StripPrefix=1
-            - SetRequestHeader=X-Internal-Gateway,true
           metadata:
             response-timeout: 30000
             connect-timeout: 5000
@@ -180,7 +181,6 @@ spring:
             - Path=/task/api/tasks/ai/**
           filters:
             - StripPrefix=1
-            - SetRequestHeader=X-Internal-Gateway,true
           metadata:
             response-timeout: 14400000
             connect-timeout: 30000
@@ -192,7 +192,6 @@ spring:
             - Path=/task/**
           filters:
             - StripPrefix=1
-            - SetRequestHeader=X-Internal-Gateway,true
 
         # AImodel (local IntelliJ default 8095; use lb://AIMODEL if you prefer Eureka-only)
         - id: aimodel

@@ -1,3 +1,5 @@
+// CD-only Jenkins Pipeline: checkout repo then delegate to kubeDeployLib (same deploy logic as unified root Jenkinsfile).
+
 pipeline {
     agent any
 
@@ -15,7 +17,7 @@ pipeline {
         string(name: "KUBE_NAMESPACE", defaultValue: "smart-freelance-dev", description: "Application namespace to deploy")
         string(name: "MANIFEST_PATH", defaultValue: "k8s", description: "Path to app manifests in repo")
         string(name: "IMAGE_REPO", defaultValue: "ridhaferchichi", description: "Registry/repository prefix (example: ridhaferchichi)")
-        string(name: "IMAGE_TAG", defaultValue: "", description: "Immutable image tag to deploy (required)")
+        string(name: "IMAGE_TAG", defaultValue: "", description: "Immutable image tag; if empty, BUILD_NUMBER is used")
         booleanParam(name: "DEPLOY_MONITORING", defaultValue: true, description: "Deploy Prometheus and Grafana stack")
         string(name: "MONITORING_MANIFEST_PATH", defaultValue: "k8s/monitoring", description: "Path to monitoring manifests")
         booleanParam(name: "REQUIRE_PROD_APPROVAL", defaultValue: true, description: "Ask for manual approval when ENVIRONMENT=prod")
@@ -23,11 +25,12 @@ pipeline {
         booleanParam(name: "ROLLBACK_ON_FAILURE", defaultValue: true, description: "Rollback Deployments when rollout verification fails")
         booleanParam(name: "DRY_RUN_ONLY", defaultValue: false, description: "Render/apply using server dry-run only")
         string(name: "ROLLOUT_TIMEOUT_SECONDS", defaultValue: "600", description: "Timeout in seconds for each deployment rollout check")
+        booleanParam(name: "DEPLOY_INGRESS", defaultValue: true, description: "Apply k8s Ingress (requires ingress-nginx)")
     }
 
     environment {
         GITHUB_CREDS_ID = "GithubCredentials"
-        RENDER_DIR = ".cd-rendered"
+        EFFECTIVE_IMAGE_TAG = "${params.IMAGE_TAG?.trim() ? params.IMAGE_TAG.trim() : env.BUILD_NUMBER}"
     }
 
     stages {
@@ -47,9 +50,6 @@ pipeline {
                     if (!params.KUBE_CONTEXT?.trim()) {
                         error("KUBE_CONTEXT is required")
                     }
-                    if (!params.IMAGE_TAG?.trim()) {
-                        error("IMAGE_TAG is required for immutable releases")
-                    }
                 }
                 sh """
                   set -e
@@ -60,223 +60,32 @@ pipeline {
             }
         }
 
-        stage("Production Approval") {
-            when {
-                expression { return params.ENVIRONMENT == "prod" && params.REQUIRE_PROD_APPROVAL }
-            }
+        stage("Deploy Kubernetes") {
             steps {
-                timeout(time: 20, unit: "MINUTES") {
-                    input message: "Approve production deployment for tag ${params.IMAGE_TAG}?"
-                }
-            }
-        }
-
-        stage("Cluster Connectivity") {
-            steps {
-                withCredentials([file(credentialsId: params.KUBECONFIG_CREDENTIALS_ID, variable: "KUBECONFIG_FILE")]) {
-                    sh """
-                      set -e
-                      export KUBECONFIG="\$KUBECONFIG_FILE"
-                      kubectl config use-context "${params.KUBE_CONTEXT}"
-                      kubectl cluster-info
-                      kubectl get nodes -o wide
-                    """
-                }
-            }
-        }
-
-        stage("Render App Manifests") {
-            steps {
-                sh """
-                  set -e
-                  rm -rf "${env.RENDER_DIR}"
-                  mkdir -p "${env.RENDER_DIR}/app"
-                  cp -R "${params.MANIFEST_PATH}/." "${env.RENDER_DIR}/app/"
-                  rm -rf "${env.RENDER_DIR}/app/monitoring"
-                  rm -f "${env.RENDER_DIR}/app/10-ingress.yaml"
-                  python3 - <<'PY'
-import pathlib
-import re
-
-repo = "${params.IMAGE_REPO}".strip().rstrip("/")
-tag = "${params.IMAGE_TAG}".strip()
-namespace = "${params.KUBE_NAMESPACE}".strip()
-target = pathlib.Path("${env.RENDER_DIR}") / "app"
-
-# Normalize Docker Hub prefixes so generated image names match common pull notation.
-if repo.startswith("docker.io/"):
-    repo = repo[len("docker.io/"):]
-elif repo.startswith("index.docker.io/"):
-    repo = repo[len("index.docker.io/"):]
-
-pattern = re.compile(r"YOUR_DOCKERHUB_USERNAME/([A-Za-z0-9._-]+)(?::[A-Za-z0-9._-]+)?")
-namespace_pattern = re.compile(r"^(\\s*namespace:\\s*)smart-freelance\\s*(\\r?\\n|\\Z)", re.MULTILINE)
-
-for file in target.rglob("*.y*ml"):
-    data = file.read_text(encoding="utf-8")
-    updated = pattern.sub(lambda m: f"{repo}/{m.group(1)}:{tag}", data)
-    updated = namespace_pattern.sub(lambda m: f"{m.group(1)}{namespace}{m.group(2)}", updated)
-    if file.name == "00-namespace.yaml":
-        updated = re.sub(r"^(\\s*name:\\s*)smart-freelance\\s*(\\r?\\n|\\Z)", lambda m: f"{m.group(1)}{namespace}{m.group(2)}", updated, flags=re.MULTILINE)
-    if updated != data:
-        file.write_text(updated, encoding="utf-8")
-PY
-                  if [ -f "${env.RENDER_DIR}/app/02-secrets.yaml" ] && grep -nE ':[[:space:]]*""[[:space:]]*(#.*)?' "${env.RENDER_DIR}/app/02-secrets.yaml" >/dev/null; then
-                    echo "WARNING: Incomplete values detected in 02-secrets.yaml; skipping this manifest for this deploy."
-                    mv "${env.RENDER_DIR}/app/02-secrets.yaml" "${env.RENDER_DIR}/app/02-secrets.yaml.skipped"
-                  fi
-                """
-            }
-        }
-
-        stage("Render Monitoring Manifests") {
-            when {
-                expression { return params.DEPLOY_MONITORING }
-            }
-            steps {
-                sh """
-                  set -e
-                  rm -rf "${env.RENDER_DIR}/monitoring"
-                  mkdir -p "${env.RENDER_DIR}/monitoring"
-                  cp -R "${params.MONITORING_MANIFEST_PATH}/." "${env.RENDER_DIR}/monitoring/"
-                  python3 - <<'PY'
-import pathlib
-import re
-
-app_namespace = "${params.KUBE_NAMESPACE}".strip()
-target = pathlib.Path("${env.RENDER_DIR}") / "monitoring"
-
-for file in target.rglob("*.y*ml"):
-    data = file.read_text(encoding="utf-8")
-    updated = re.sub(r"smart-freelance-dev", app_namespace, data)
-    if updated != data:
-        file.write_text(updated, encoding="utf-8")
-PY
-                """
-            }
-        }
-
-        stage("Deploy Application") {
-            steps {
-                withCredentials([file(credentialsId: params.KUBECONFIG_CREDENTIALS_ID, variable: "KUBECONFIG_FILE")]) {
-                    sh """
-                      set -e
-                      export KUBECONFIG="\$KUBECONFIG_FILE"
-                      kubectl config use-context "${params.KUBE_CONTEXT}"
-                      kubectl create namespace "${params.KUBE_NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
-
-                      if [ "${params.DRY_RUN_ONLY}" = "true" ]; then
-                        kubectl apply --server-side --dry-run=server -f "${env.RENDER_DIR}/app"
-                      else
-                        kubectl apply -f "${env.RENDER_DIR}/app"
-                      fi
-                    """
-                }
-            }
-        }
-
-        stage("Deploy Monitoring Stack") {
-            when {
-                expression { return params.DEPLOY_MONITORING }
-            }
-            steps {
-                withCredentials([file(credentialsId: params.KUBECONFIG_CREDENTIALS_ID, variable: "KUBECONFIG_FILE")]) {
-                    sh """
-                      set -e
-                      export KUBECONFIG="\$KUBECONFIG_FILE"
-                      kubectl config use-context "${params.KUBE_CONTEXT}"
-                      test -d "${params.MONITORING_MANIFEST_PATH}" || { echo "Monitoring manifest path not found: ${params.MONITORING_MANIFEST_PATH}"; exit 1; }
-                      test -d "${env.RENDER_DIR}/monitoring" || { echo "Rendered monitoring path not found: ${env.RENDER_DIR}/monitoring"; exit 1; }
-                      kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
-
-                      if [ "${params.DRY_RUN_ONLY}" = "true" ]; then
-                        kubectl apply --server-side --dry-run=server -f "${env.RENDER_DIR}/monitoring"
-                      else
-                        kubectl apply -f "${env.RENDER_DIR}/monitoring"
-                      fi
-                    """
-                }
-            }
-        }
-
-        stage("Rollout Verification") {
-            when {
-                expression { return !params.DRY_RUN_ONLY }
-            }
-            steps {
-                withCredentials([file(credentialsId: params.KUBECONFIG_CREDENTIALS_ID, variable: "KUBECONFIG_FILE")]) {
-                    sh """
-                      set -e
-                      export KUBECONFIG="\$KUBECONFIG_FILE"
-                      kubectl config use-context "${params.KUBE_CONTEXT}"
-
-                      deployments=\$(kubectl -n "${params.KUBE_NAMESPACE}" get deploy -o jsonpath='{range .items[*]}{.metadata.name}{"\\n"}{end}')
-                      if [ -z "\$deployments" ]; then
-                        echo "No deployments found in namespace ${params.KUBE_NAMESPACE}"
-                      else
-                        for d in \$deployments; do
-                          echo "Waiting rollout for deployment/\$d"
-                          kubectl -n "${params.KUBE_NAMESPACE}" rollout status "deployment/\$d" --timeout="${params.ROLLOUT_TIMEOUT_SECONDS}s"
-                        done
-                      fi
-                    """
-                }
-            }
-        }
-
-        stage("Post Deploy Smoke Checks") {
-            when {
-                expression { return !params.DRY_RUN_ONLY }
-            }
-            steps {
-                withCredentials([file(credentialsId: params.KUBECONFIG_CREDENTIALS_ID, variable: "KUBECONFIG_FILE")]) {
-                    sh """
-                      set -e
-                      export KUBECONFIG="\$KUBECONFIG_FILE"
-                      kubectl config use-context "${params.KUBE_CONTEXT}"
-                      kubectl -n "${params.KUBE_NAMESPACE}" get pods -o wide
-                      kubectl -n "${params.KUBE_NAMESPACE}" get svc
-                      kubectl -n monitoring get pods,svc || true
-                    """
+                script {
+                    def kd = load("ci/pipelines/kubeDeployLib.groovy")
+                    kd.runKubernetesDeploy([
+                        kubeContext              : params.KUBE_CONTEXT.trim(),
+                        kubeNamespace            : params.KUBE_NAMESPACE.trim(),
+                        manifestPath             : params.MANIFEST_PATH.trim(),
+                        imageRepo                : params.IMAGE_REPO.trim(),
+                        imageTag                 : env.EFFECTIVE_IMAGE_TAG,
+                        kubeconfigCredentialsId  : params.KUBECONFIG_CREDENTIALS_ID.trim(),
+                        deployMonitoring         : params.DEPLOY_MONITORING,
+                        monitoringManifestPath   : params.MONITORING_MANIFEST_PATH.trim(),
+                        deployEnvironment        : params.ENVIRONMENT,
+                        requireProdApproval      : params.REQUIRE_PROD_APPROVAL,
+                        dryRunOnly               : params.DRY_RUN_ONLY,
+                        rollbackOnFailure        : params.ROLLBACK_ON_FAILURE,
+                        rolloutTimeoutSeconds    : (params.ROLLOUT_TIMEOUT_SECONDS ?: "600").toString().trim(),
+                        deployIngress            : params.DEPLOY_INGRESS
+                    ])
                 }
             }
         }
     }
 
     post {
-        unsuccessful {
-            withCredentials([file(credentialsId: params.KUBECONFIG_CREDENTIALS_ID, variable: "KUBECONFIG_FILE")]) {
-                sh """
-                  set +e
-                  export KUBECONFIG="\$KUBECONFIG_FILE"
-                  kubectl config use-context "${params.KUBE_CONTEXT}" || true
-                  kubectl -n "${params.KUBE_NAMESPACE}" get events --sort-by=.metadata.creationTimestamp > kube-events.log 2>/dev/null || true
-                  kubectl -n "${params.KUBE_NAMESPACE}" get pods -o wide > kube-pods.log 2>/dev/null || true
-                  exit 0
-                """
-            }
-            archiveArtifacts allowEmptyArchive: true, artifacts: "kube-events.log,kube-pods.log"
-            script {
-                if (!params.DRY_RUN_ONLY && params.ROLLBACK_ON_FAILURE) {
-                    withCredentials([file(credentialsId: params.KUBECONFIG_CREDENTIALS_ID, variable: "KUBECONFIG_FILE")]) {
-                        sh """
-                          set +e
-                          export KUBECONFIG="\$KUBECONFIG_FILE"
-                          kubectl config use-context "${params.KUBE_CONTEXT}"
-                          deployments=\$(kubectl -n "${params.KUBE_NAMESPACE}" get deploy -o jsonpath='{range .items[*]}{.metadata.name}{"\\n"}{end}')
-                          for d in \$deployments; do
-                            echo "Attempting rollback for deployment/\$d"
-                            if kubectl -n "${params.KUBE_NAMESPACE}" rollout history "deployment/\$d" >/dev/null 2>&1; then
-                              kubectl -n "${params.KUBE_NAMESPACE}" rollout undo "deployment/\$d" || true
-                            else
-                              echo "No rollout history for deployment/\$d; skipping rollback"
-                            fi
-                          done
-                        """
-                    }
-                }
-            }
-        }
         always {
             cleanWs(deleteDirs: true, disableDeferredWipeout: true)
         }

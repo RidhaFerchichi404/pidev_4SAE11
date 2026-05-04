@@ -8,6 +8,27 @@ const TOKEN_KEY         = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_ID_KEY       = 'user_id';
 
+/** Keycloak + Spring may return snake_case or camelCase; normalize so login/refresh never store empty tokens. */
+export function readAccessTokenFromBody(body: unknown): string | null {
+  if (!body || typeof body !== 'object') return null;
+  const o = body as Record<string, unknown>;
+  const snake = o['access_token'];
+  const camel = o['accessToken'];
+  if (typeof snake === 'string' && snake.length > 0) return snake;
+  if (typeof camel === 'string' && camel.length > 0) return camel;
+  return null;
+}
+
+function readRefreshTokenFromBody(body: unknown): string | null {
+  if (!body || typeof body !== 'object') return null;
+  const o = body as Record<string, unknown>;
+  const snake = o['refresh_token'];
+  const camel = o['refreshToken'];
+  if (typeof snake === 'string' && snake.length > 0) return snake;
+  if (typeof camel === 'string' && camel.length > 0) return camel;
+  return null;
+}
+
 /** 15 minutes of inactivity → auto-logout (when "stay signed in" is unchecked) */
 const INACTIVITY_MS = 15 * 60 * 1000;
 
@@ -245,7 +266,9 @@ export class AuthService {
       .post<LoginResponse>(`${this.baseUrl}/token`, { username: email, password } as LoginRequest)
       .pipe(
         tap((res) => {
-          if (res?.access_token) {
+          const access = readAccessTokenFromBody(res);
+          const refresh = readRefreshTokenFromBody(res);
+          if (access) {
             this.storage = rememberMe ? localStorage : sessionStorage;
             this.useInactivityTimer = !rememberMe;
             // Clear the other storage to avoid stale tokens
@@ -253,21 +276,21 @@ export class AuthService {
             other.removeItem(TOKEN_KEY);
             other.removeItem(REFRESH_TOKEN_KEY);
             other.removeItem(USER_ID_KEY);
-            this.storage.setItem(TOKEN_KEY, res.access_token);
-            this.tokenSignal.set(res.access_token);
+            this.storage.setItem(TOKEN_KEY, access);
+            this.tokenSignal.set(access);
           }
-          if (res?.refresh_token) {
-            this.storage.setItem(REFRESH_TOKEN_KEY, res.refresh_token);
+          if (refresh) {
+            this.storage.setItem(REFRESH_TOKEN_KEY, refresh);
           }
         }),
         switchMap((res) => {
-          if (res?.access_token) {
+          if (readAccessTokenFromBody(res)) {
             return this.fetchUserProfile().pipe(map(() => res));
           }
           return of(res);
         }),
         tap((res) => {
-          if ((res as LoginResponse)?.access_token) {
+          if (readAccessTokenFromBody(res)) {
             this.scheduleTokenRefresh();
             if (this.useInactivityTimer) {
               this.startInactivityTimer();
@@ -290,12 +313,14 @@ export class AuthService {
       .post<LoginResponse>(`${this.baseUrl}/refresh`, { refresh_token: rt })
       .pipe(
         tap((res) => {
-          if (res?.access_token) {
-            this.storage.setItem(TOKEN_KEY, res.access_token);
-            this.tokenSignal.set(res.access_token);
+          const access = readAccessTokenFromBody(res);
+          const refresh = readRefreshTokenFromBody(res);
+          if (access) {
+            this.storage.setItem(TOKEN_KEY, access);
+            this.tokenSignal.set(access);
           }
-          if (res?.refresh_token) {
-            this.storage.setItem(REFRESH_TOKEN_KEY, res.refresh_token);
+          if (refresh) {
+            this.storage.setItem(REFRESH_TOKEN_KEY, refresh);
           }
           this.scheduleTokenRefresh();
         }),
