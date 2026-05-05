@@ -3,6 +3,8 @@ package tn.esprit.project.Controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
+import org.springframework.boot.security.oauth2.server.resource.autoconfigure.servlet.OAuth2ResourceServerAutoConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
@@ -29,7 +31,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Unit tests for ProjectController.
  */
-@WebMvcTest(ProjectController.class)
+@WebMvcTest(
+        value = ProjectController.class,
+        excludeAutoConfiguration = {
+                SecurityAutoConfiguration.class,
+                OAuth2ResourceServerAutoConfiguration.class
+        }
+)
 @TestPropertySource(properties = "welcome.message=Welcome to Project Service")
 class ProjectControllerTest {
 

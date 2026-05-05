@@ -9,6 +9,7 @@ import org.example.contract.service.ContractPdfService;
 import org.example.contract.service.ContractService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -34,7 +35,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = ContractController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@WebMvcTest(
+        controllers = ContractController.class,
+        excludeAutoConfiguration = {
+                SecurityAutoConfiguration.class,
+                OAuth2ResourceServerAutoConfiguration.class
+        })
 @TestPropertySource(properties = "welcome.message=HelloContract")
 class ContractControllerTest {
 
@@ -166,7 +172,7 @@ class ContractControllerTest {
     void patchStatusDelegatesToService() throws Exception {
         Contract updated = new Contract();
         updated.setId(2L);
-        when(contractService.updateStatus(eq(2L), eq(ContractStatus.ACTIVE))).thenReturn(updated);
+        when(contractService.updateStatus(2L, ContractStatus.ACTIVE)).thenReturn(updated);
         mockMvc.perform(patch("/api/contracts/2/status").param("status", "ACTIVE"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(2));

@@ -1,16 +1,22 @@
 package com.esprit.configserver;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.NONE,
+        properties = {
+                "spring.cloud.discovery.enabled=false",
+                "eureka.client.enabled=false",
+                "eureka.client.register-with-eureka=false",
+                "eureka.client.fetch-registry=false"
+        }
+)
+@ActiveProfiles({"test", "native"})
 class ConfigServerApplicationTests {
 
     @Test
-    void mainRunsWithoutThrowing() {
-        assertDoesNotThrow(() -> ConfigServerApplication.main(new String[]{
-            "--spring.main.web-application-type=none",
-            "--spring.cloud.config.server.bootstrap=false"
-        }));
+    void contextLoads() {
     }
 }

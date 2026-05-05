@@ -5,6 +5,7 @@ import org.example.contract.entity.Comment;
 import org.example.contract.service.CommentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -25,7 +26,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = CommentController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@WebMvcTest(
+        controllers = CommentController.class,
+        excludeAutoConfiguration = {
+                SecurityAutoConfiguration.class,
+                OAuth2ResourceServerAutoConfiguration.class
+        })
 class CommentControllerTest {
 
     @Autowired
@@ -64,7 +70,7 @@ class CommentControllerTest {
         updated.setId(3L);
         Map<String, String> body = new HashMap<>();
         body.put("content", "hello");
-        when(commentService.update(eq(3L), eq("hello"))).thenReturn(updated);
+        when(commentService.update(3L, "hello")).thenReturn(updated);
         mockMvc.perform(put("/api/comments/3")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(body)))
