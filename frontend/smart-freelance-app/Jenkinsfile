@@ -1,11 +1,9 @@
 node {
     checkout scm
-    def runner = load('ci/pipelines/microservicePipeline.groovy')
-    runner.runMicroservicePipeline([
-    serviceName: 'frontend',
-    servicePath: 'frontend/smart-freelance-app',
-    imageName: 'frontend',
-    deploymentName: 'frontend',
-    repoUrl: 'https://github.com/YOUR_ORG/YOUR_REPO.git'
-])
+    def apiUrl = (params.PUBLIC_API_GATEWAY_URL?.toString()?.trim()) ?: 'http://api.smartfreelance.example.com'
+    load('ci/pipelines/microservicePipeline.groovy').runMicroservicePipeline([
+        servicePath: 'frontend/smart-freelance-app',
+        imageName: 'frontend',
+        dockerBuildArgs: "--build-arg API_GATEWAY_PUBLIC_URL=${apiUrl}"
+    ])
 }

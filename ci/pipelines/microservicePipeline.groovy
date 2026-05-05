@@ -11,7 +11,9 @@ def runMicroservicePipeline(Map cfg) {
     def dockerCredsId = (cfg.dockerCredentialsId ?: "").trim() ?: "DockerHubCrendentials"
     def sonarTokenCredentialsId = "SonarQubeToken"
     def sonarServerName = "SonarQube"
-    def imageRepo = params.IMAGE_REPO
+    def imageRepo = (params.IMAGE_REPO?.toString()?.trim()) ?: "docker.io/ridhaferchichi"
+    def repoUrlEff = (params.REPO_URL?.toString()?.trim()) ?: "https://github.com/RidhaFerchichi404/pidev_4SAE11.git"
+    def branchEff = (params.BRANCH?.toString()?.trim()) ?: "main"
     def tag = (params.IMAGE_TAG?.trim()) ? params.IMAGE_TAG.trim() : env.BUILD_NUMBER
     def dockerImage = "${imageRepo}/${cfg.imageName}"
     def fullImage = "${dockerImage}:${tag}"
@@ -39,8 +41,8 @@ def runMicroservicePipeline(Map cfg) {
                 stage("Checkout") {
                     checkout([
                         $class: "GitSCM",
-                        branches: [[name: "*/${params.BRANCH}"]],
-                        userRemoteConfigs: [[url: params.REPO_URL, credentialsId: githubCredsId]]
+                        branches: [[name: "*/${branchEff}"]],
+                        userRemoteConfigs: [[url: repoUrlEff, credentialsId: githubCredsId]]
                     ])
                 }
             }
@@ -133,7 +135,7 @@ def runMicroservicePipeline(Map cfg) {
                 }
             }
 
-            if (params.RUN_SONARQUBE) {
+            if (params.RUN_SONARQUBE != false) {
                 stage("SonarQube Analysis") {
                     dir(servicePath) {
                         withCredentials([string(credentialsId: sonarTokenCredentialsId, variable: "SONAR_TOKEN")]) {
@@ -176,28 +178,18 @@ def runMicroservicePipeline(Map cfg) {
                                             .unique()
                                 }
                                 if (buildTool == "maven") {
+                                    // Single Maven session: a separate `sonar:sonar` run re-executes the lifecycle and can
+                                    // leave Surefire XML paths stale; directory paths avoid per-file mismatches.
+                                    def mavenSonarTestPaths = "target/surefire-reports,target/failsafe-reports"
                                     sh """
                                       if [ -f mvnw ]; then
-                                        ./mvnw -B verify jacoco:report
+                                        ./mvnw -B verify jacoco:report sonar:sonar -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml -Dsonar.junit.reportPaths=${mavenSonarTestPaths} -Dsonar.token=\$SONAR_TOKEN
                                       else
-                                        mvn -B verify jacoco:report
+                                        mvn -B verify jacoco:report sonar:sonar -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml -Dsonar.junit.reportPaths=${mavenSonarTestPaths} -Dsonar.token=\$SONAR_TOKEN
                                       fi
                                     """
                                     def jacocoReports = findCoverageReports(["**/jacoco.xml", "**/jacoco-*.xml", "**/jacoco*.xml"])
                                     def genericCoverageReports = findCoverageReports(["**/coverage*.xml", "**/cobertura*.xml"])
-                                    def junitReports = findJUnitReports()
-                                    def sonarCoverageArgs = jacocoReports ? "-Dsonar.coverage.jacoco.xmlReportPaths=${jacocoReports.join(',')}" : ""
-                                    def sonarTestArgs = junitReports ? "-Dsonar.junit.reportPaths=${junitReports.join(',')}" : ""
-                                    if (genericCoverageReports) {
-                                        sonarCoverageArgs = "${sonarCoverageArgs} -Dsonar.coverageReportPaths=${genericCoverageReports.join(',')}".trim()
-                                    }
-                                    sh """
-                                      if [ -f mvnw ]; then
-                                        ./mvnw -B sonar:sonar -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} ${sonarCoverageArgs} ${sonarTestArgs} -Dsonar.token=\$SONAR_TOKEN
-                                      else
-                                        mvn -B sonar:sonar -Dsonar.projectKey=${sonarProjectKey} -Dsonar.projectName=${cfg.imageName} ${sonarCoverageArgs} ${sonarTestArgs} -Dsonar.token=\$SONAR_TOKEN
-                                      fi
-                                    """
                                     if (!skipCoverageForService && !jacocoReports && !genericCoverageReports) {
                                         unstable("No coverage report detected for ${cfg.imageName}. Searched jacoco.xml/jacoco*.xml/coverage*.xml/cobertura*.xml under ${servicePath}; Sonar analysis continues without coverage.")
                                     } else if (skipCoverageForService) {
@@ -330,7 +322,7 @@ def runMicroservicePipeline(Map cfg) {
                         """
                         def pushTargets = [full: fullImage, base: dockerImage]
                         script {
-                            def ir = (params.IMAGE_REPO ?: "").trim()
+                            def ir = (imageRepo ?: "").trim()
                             def irLower = ir.toLowerCase()
                             if (irLower.startsWith("docker.io/")) {
                                 def rest = ir.substring(ir.indexOf("/") + 1)
@@ -371,14 +363,21 @@ def runMicroservicePipeline(Map cfg) {
 
             if (params.TRIGGER_DOWNSTREAM && params.DOWNSTREAM_JOBS?.trim()) {
                 stage("Trigger Downstream") {
+                    def dsImageTag = params.IMAGE_TAG?.toString() ?: ""
+                    def dsGitCreds = params.GIT_CREDENTIALS_ID?.toString() ?: "GithubCredentials"
+                    def dsDockerCreds = params.DOCKER_CREDENTIALS_ID?.toString() ?: "DockerHubCrendentials"
                     params.DOWNSTREAM_JOBS.split(",").collect { it.trim() }.findAll { it }.each { nextJob ->
+                        // Only pass repo-wide parameters; each downstream job keeps its own SERVICE_PATH / IMAGE_NAME defaults.
                         build job: nextJob, wait: false, parameters: [
-                            string(name: "REPO_URL", value: params.REPO_URL),
-                            string(name: "BRANCH", value: params.BRANCH),
-                            string(name: "IMAGE_REPO", value: params.IMAGE_REPO),
-                            string(name: "IMAGE_TAG", value: params.IMAGE_TAG),
+                            string(name: "REPO_URL", value: repoUrlEff),
+                            string(name: "BRANCH", value: branchEff),
+                            string(name: "IMAGE_REPO", value: imageRepo),
+                            string(name: "IMAGE_TAG", value: dsImageTag),
                             booleanParam(name: "PUSH_IMAGE", value: params.PUSH_IMAGE),
-                            booleanParam(name: "RUN_SONARQUBE", value: params.RUN_SONARQUBE)
+                            booleanParam(name: "RUN_SONARQUBE", value: params.RUN_SONARQUBE),
+                            string(name: "GIT_CREDENTIALS_ID", value: dsGitCreds),
+                            string(name: "DOCKER_CREDENTIALS_ID", value: dsDockerCreds),
+                            booleanParam(name: "TRIGGER_DOWNSTREAM", value: false)
                         ]
                     }
                 }

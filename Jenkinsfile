@@ -59,7 +59,13 @@ pipeline {
             steps {
                 script {
                     runInIsolatedWorkspace("keycloak-image") {
-                        buildAndPushKeycloakServerImage()
+                        def kc = load("ci/pipelines/keycloakServerImage.groovy")
+                        kc.buildAndPushKeycloakServerImage([
+                            dockerCredentialsId: (params.DOCKER_CREDENTIALS_ID ?: "DockerHubCrendentials").trim(),
+                            imageRepo            : params.IMAGE_REPO,
+                            imageTag             : (params.IMAGE_TAG?.trim()) ? params.IMAGE_TAG.trim() : env.BUILD_NUMBER,
+                            pushImage            : params.PUSH_IMAGE
+                        ])
                     }
                 }
             }
@@ -77,6 +83,7 @@ pipeline {
                     }
                 }
                 stage("config+keycloak") {
+                    failFast false
                     parallel {
                         stage("config-server") {
                             agent any
@@ -105,6 +112,7 @@ pipeline {
         stage("Core Services Parallel") {
             stages {
                 stage("parallel-core") {
+                    failFast false
                     parallel {
                         stage("user") {
                             agent any
@@ -213,6 +221,7 @@ pipeline {
                     }
                 }
                 stage("parallel-dependent") {
+                    failFast false
                     parallel {
                         stage("task") {
                             agent any
@@ -280,6 +289,7 @@ pipeline {
             }
         }
         stage("Gateway and Frontend Parallel") {
+            failFast false
             parallel {
                 stage("api-gateway") {
                     agent any
@@ -382,62 +392,3 @@ def runMs(String servicePath, String imageName, Map opts = [:]) {
     microRunnerOnce().runMicroservicePipeline(m)
 }
 
-/**
- * Same image as docker-compose keycloak service: keycloak-start/Dockerfile (realm import + conf).
- * Must run before deploy so k8s can pull YOUR_REPO/keycloak:<tag>.
- */
-def buildAndPushKeycloakServerImage() {
-    def dockerCredsId = (params.DOCKER_CREDENTIALS_ID ?: "DockerHubCrendentials").trim()
-    def imageRepo = params.IMAGE_REPO
-    def tag = (params.IMAGE_TAG?.trim()) ? params.IMAGE_TAG.trim() : env.BUILD_NUMBER
-    def dockerImage = "${imageRepo}/keycloak"
-    def fullImage = "${dockerImage}:${tag}"
-    sh """
-      docker build -f keycloak-start/Dockerfile -t '${fullImage}' -t '${dockerImage}:latest' .
-    """
-    if (!params.PUSH_IMAGE) {
-        echo "Skipping Keycloak image push (PUSH_IMAGE is false)."
-        return
-    }
-    withCredentials([usernamePassword(credentialsId: dockerCredsId, usernameVariable: "DH_USER", passwordVariable: "DH_PASS")]) {
-        sh """
-          echo "\$DH_PASS" | docker login docker.io -u "\$DH_USER" --password-stdin
-        """
-        def pushTargets = [full: fullImage, base: dockerImage]
-        script {
-            def ir = (params.IMAGE_REPO ?: "").trim()
-            def irLower = ir.toLowerCase()
-            if (irLower.startsWith("docker.io/")) {
-                def rest = ir.substring(ir.indexOf("/") + 1)
-                def ns = rest.split("/")[0]?.trim()
-                def u = env.DH_USER?.trim()
-                if (ns && u && !ns.equalsIgnoreCase(u)) {
-                    echo "IMAGE_REPO namespace '${ns}' does not match Docker Hub login '${u}'. Retagging keycloak image."
-                    pushTargets.full = "docker.io/${u}/keycloak:${tag}"
-                    pushTargets.base = "docker.io/${u}/keycloak"
-                    sh """
-                      docker tag '${fullImage}' '${pushTargets.full}'
-                      docker tag '${dockerImage}:latest' '${pushTargets.base}:latest'
-                    """
-                }
-            }
-        }
-        sh "docker push ${pushTargets.full}"
-        def latestPushStatus = sh(script: """
-          set +e
-          docker push ${pushTargets.base}:latest
-          status=\$?
-          if [ "\$status" -ne 0 ]; then
-            echo "Retrying latest push after re-login..."
-            echo "\$DH_PASS" | docker login docker.io -u "\$DH_USER" --password-stdin
-            docker push ${pushTargets.base}:latest
-            status=\$?
-          fi
-          exit "\$status"
-        """, returnStatus: true)
-        if (latestPushStatus != 0) {
-            unstable("Failed to push ${pushTargets.base}:latest; versioned image ${pushTargets.full} was pushed.")
-        }
-        sh "docker logout docker.io || docker logout || true"
-    }
-}

@@ -1,15 +1,7 @@
-// Docker Hub "denied: requested access to the resource is denied" on push:
-// - Jenkins credential must be Docker Hub username (not email) + PAT with Read, Write, & Delete (or classic access token with write).
-// - Job parameter IMAGE_REPO (e.g. docker.io/ridhaferchichi) must match that username; the shared pipeline logs in to docker.io explicitly and retags if namespace and login user differ.
-// - If your credential id is not DockerHubCrendentials, pass dockerCredentialsId: 'YourJenkinsCredId' in the map below.
 node {
     checkout scm
-    def runner = load('ci/pipelines/microservicePipeline.groovy')
-    runner.runMicroservicePipeline([
-    serviceName: 'subcontracting',
-    servicePath: 'backEnd/Microservices/Subcontracting',
-    imageName: 'subcontracting',
-    deploymentName: '',
-    repoUrl: 'https://github.com/YOUR_ORG/YOUR_REPO.git'
-])
+    load('ci/pipelines/microservicePipeline.groovy').runMicroservicePipeline([
+        servicePath: 'backEnd/Microservices/Subcontracting',
+        imageName: 'subcontracting'
+    ])
 }

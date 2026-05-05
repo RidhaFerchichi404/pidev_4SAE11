@@ -1,11 +1,7 @@
 node {
     checkout scm
-    def runner = load('ci/pipelines/microservicePipeline.groovy')
-    runner.runMicroservicePipeline([
-    serviceName: 'meeting',
-    servicePath: 'backEnd/Microservices/Meeting',
-    imageName: 'meeting',
-    deploymentName: 'meeting',
-    repoUrl: 'https://github.com/YOUR_ORG/YOUR_REPO.git'
-])
+    load('ci/pipelines/microservicePipeline.groovy').runMicroservicePipeline([
+        servicePath: 'backEnd/Microservices/Meeting',
+        imageName: 'meeting'
+    ])
 }
