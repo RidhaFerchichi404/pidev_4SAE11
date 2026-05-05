@@ -2,7 +2,7 @@
 // Requires agent with Docker, Git, kubectl, python3. Credentials: GithubCredentials, DockerHubCrendentials, kubeconfig file, optional Sonar.
 
 pipeline {
-    agent any
+    agent none
     options {
         timestamps()
         disableConcurrentBuilds()
@@ -44,85 +44,275 @@ pipeline {
     }
     stages {
         stage("Checkout") {
+            agent any
             steps {
                 checkout([
                     $class: "GitSCM",
                     branches: [[name: "*/${params.BRANCH}"]],
                     userRemoteConfigs: [[url: params.REPO_URL, credentialsId: (params.GIT_CREDENTIALS_ID?.trim() ?: "GithubCredentials")]]
                 ])
+                stash name: "repo-source", includes: "**/*", useDefaultExcludes: false
             }
         }
         stage("Keycloak server image") {
+            agent any
             steps {
                 script {
-                    buildAndPushKeycloakServerImage()
+                    runInIsolatedWorkspace("keycloak-image") {
+                        buildAndPushKeycloakServerImage()
+                    }
                 }
             }
         }
         stage("Infrastructure Foundation") {
-            steps {
-                script {
-                    runMs("backEnd/Eureka", "eureka")
-                    parallel(
-                        configServer: { runMs("backEnd/ConfigServer", "config-server") },
-                        keycloakAuth: { runMs("backEnd/KeyCloak", "keycloak-auth") }
-                    )
+            stages {
+                stage("eureka") {
+                    agent any
+                    steps {
+                        script {
+                            runInIsolatedWorkspace("eureka") {
+                                runMs("backEnd/Eureka", "eureka")
+                            }
+                        }
+                    }
+                }
+                stage("config+keycloak") {
+                    parallel {
+                        stage("config-server") {
+                            agent any
+                            steps {
+                                script {
+                                    runInIsolatedWorkspace("config-server") {
+                                        runMs("backEnd/ConfigServer", "config-server")
+                                    }
+                                }
+                            }
+                        }
+                        stage("keycloak-auth") {
+                            agent any
+                            steps {
+                                script {
+                                    runInIsolatedWorkspace("keycloak-auth") {
+                                        runMs("backEnd/KeyCloak", "keycloak-auth")
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
         stage("Core Services Parallel") {
-            steps {
-                script {
-                    parallel(
-                        user: { runMs("backEnd/Microservices/user", "user") },
-                        project: { runMs("backEnd/Microservices/Project", "project") },
-                        notification: { runMs("backEnd/Microservices/Notification", "notification") },
-                        contract: { runMs("backEnd/Microservices/Contract", "contract") },
-                        portfolio: { runMs("backEnd/Microservices/Portfolio", "portfolio") },
-                        chat: { runMs("backEnd/Microservices/Chat", "chat") },
-                        meeting: { runMs("backEnd/Microservices/Meeting", "meeting") },
-                        freelanciaJob: { runMs("backEnd/Microservices/FreelanciaJob", "freelancia-job") }
-                    )
-                    runMs("backEnd/Microservices/AImodel", "aimodel")
+            stages {
+                stage("parallel-core") {
+                    parallel {
+                        stage("user") {
+                            agent any
+                            steps {
+                                script {
+                                    runInIsolatedWorkspace("user") {
+                                        runMs("backEnd/Microservices/user", "user")
+                                    }
+                                }
+                            }
+                        }
+                        stage("project") {
+                            agent any
+                            steps {
+                                script {
+                                    runInIsolatedWorkspace("project") {
+                                        runMs("backEnd/Microservices/Project", "project")
+                                    }
+                                }
+                            }
+                        }
+                        stage("notification") {
+                            agent any
+                            steps {
+                                script {
+                                    runInIsolatedWorkspace("notification") {
+                                        runMs("backEnd/Microservices/Notification", "notification")
+                                    }
+                                }
+                            }
+                        }
+                        stage("contract") {
+                            agent any
+                            steps {
+                                script {
+                                    runInIsolatedWorkspace("contract") {
+                                        runMs("backEnd/Microservices/Contract", "contract")
+                                    }
+                                }
+                            }
+                        }
+                        stage("portfolio") {
+                            agent any
+                            steps {
+                                script {
+                                    runInIsolatedWorkspace("portfolio") {
+                                        runMs("backEnd/Microservices/Portfolio", "portfolio")
+                                    }
+                                }
+                            }
+                        }
+                        stage("chat") {
+                            agent any
+                            steps {
+                                script {
+                                    runInIsolatedWorkspace("chat") {
+                                        runMs("backEnd/Microservices/Chat", "chat")
+                                    }
+                                }
+                            }
+                        }
+                        stage("meeting") {
+                            agent any
+                            steps {
+                                script {
+                                    runInIsolatedWorkspace("meeting") {
+                                        runMs("backEnd/Microservices/Meeting", "meeting")
+                                    }
+                                }
+                            }
+                        }
+                        stage("freelancia-job") {
+                            agent any
+                            steps {
+                                script {
+                                    runInIsolatedWorkspace("freelancia-job") {
+                                        runMs("backEnd/Microservices/FreelanciaJob", "freelancia-job")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                stage("aimodel") {
+                    agent any
+                    steps {
+                        script {
+                            runInIsolatedWorkspace("aimodel") {
+                                runMs("backEnd/Microservices/AImodel", "aimodel")
+                            }
+                        }
+                    }
                 }
             }
         }
         stage("Dependent Services") {
-            steps {
-                script {
-                    runMs("backEnd/Microservices/planning", "planning")
-                    parallel(
-                        // task depends on planning + aimodel; other services do not require task.
-                        task: { runMs("backEnd/Microservices/task", "task") },
-                        review: { runMs("backEnd/Microservices/review", "review") },
-                        offer: { runMs("backEnd/Microservices/Offer", "offer") },
-                        gamification: { runMs("backEnd/Microservices/gamification", "gamification") },
-                        ticketService: { runMs("backEnd/Microservices/ticket-service", "ticket-service") },
-                        subcontracting: { runMs("backEnd/Microservices/Subcontracting", "subcontracting") }
-                    )
+            stages {
+                stage("planning") {
+                    agent any
+                    steps {
+                        script {
+                            runInIsolatedWorkspace("planning") {
+                                runMs("backEnd/Microservices/planning", "planning")
+                            }
+                        }
+                    }
+                }
+                stage("parallel-dependent") {
+                    parallel {
+                        stage("task") {
+                            agent any
+                            steps {
+                                script {
+                                    runInIsolatedWorkspace("task") {
+                                        // task depends on planning + aimodel; stage order keeps this safe.
+                                        runMs("backEnd/Microservices/task", "task")
+                                    }
+                                }
+                            }
+                        }
+                        stage("review") {
+                            agent any
+                            steps {
+                                script {
+                                    runInIsolatedWorkspace("review") {
+                                        runMs("backEnd/Microservices/review", "review")
+                                    }
+                                }
+                            }
+                        }
+                        stage("offer") {
+                            agent any
+                            steps {
+                                script {
+                                    runInIsolatedWorkspace("offer") {
+                                        runMs("backEnd/Microservices/Offer", "offer")
+                                    }
+                                }
+                            }
+                        }
+                        stage("gamification") {
+                            agent any
+                            steps {
+                                script {
+                                    runInIsolatedWorkspace("gamification") {
+                                        runMs("backEnd/Microservices/gamification", "gamification")
+                                    }
+                                }
+                            }
+                        }
+                        stage("ticket-service") {
+                            agent any
+                            steps {
+                                script {
+                                    runInIsolatedWorkspace("ticket-service") {
+                                        runMs("backEnd/Microservices/ticket-service", "ticket-service")
+                                    }
+                                }
+                            }
+                        }
+                        stage("subcontracting") {
+                            agent any
+                            steps {
+                                script {
+                                    runInIsolatedWorkspace("subcontracting") {
+                                        runMs("backEnd/Microservices/Subcontracting", "subcontracting")
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
         stage("Gateway and Frontend Parallel") {
-            steps {
-                script {
-                    parallel(
-                        apiGateway: { runMs("backEnd/apiGateway", "api-gateway") },
-                        frontend: {
-                            runMs("frontend/smart-freelance-app", "frontend", [
-                                dockerBuildArgs: "--build-arg API_GATEWAY_PUBLIC_URL=${(params.PUBLIC_API_GATEWAY_URL ?: 'http://api.smartfreelance.example.com').trim()}"
-                            ])
+            parallel {
+                stage("api-gateway") {
+                    agent any
+                    steps {
+                        script {
+                            runInIsolatedWorkspace("api-gateway") {
+                                runMs("backEnd/apiGateway", "api-gateway")
+                            }
                         }
-                    )
+                    }
+                }
+                stage("frontend") {
+                    agent any
+                    steps {
+                        script {
+                            runInIsolatedWorkspace("frontend") {
+                                runMs("frontend/smart-freelance-app", "frontend", [
+                                    dockerBuildArgs: "--build-arg API_GATEWAY_PUBLIC_URL=${(params.PUBLIC_API_GATEWAY_URL ?: 'http://api.smartfreelance.example.com').trim()}"
+                                ])
+                            }
+                        }
+                    }
                 }
             }
         }
         stage("Deploy Kubernetes") {
+            agent any
             when {
                 expression { return params.DEPLOY_TO_K8S }
             }
             steps {
                 script {
+                    runInIsolatedWorkspace("deploy") {
                     if (!params.KUBE_CONTEXT?.trim()) {
                         error("KUBE_CONTEXT is required when DEPLOY_TO_K8S is enabled")
                     }
@@ -149,22 +339,32 @@ pipeline {
                         planningCalendarCredentialsId: params.PLANNING_CALENDAR_CREDENTIALS_ID?.trim(),
                         meetingCalendarCredentialsId : params.MEETING_CALENDAR_CREDENTIALS_ID?.trim()
                     ])
+                    }
                 }
             }
         }
     }
     post {
         always {
-            cleanWs(deleteDirs: true, disableDeferredWipeout: true)
+            script {
+                node {
+                    cleanWs(deleteDirs: true, disableDeferredWipeout: true)
+                }
+            }
         }
     }
 }
 
 def microRunnerOnce() {
-    if (!binding.hasVariable("microRunner")) {
-        microRunner = load("ci/pipelines/microservicePipeline.groovy")
+    return load("ci/pipelines/microservicePipeline.groovy")
+}
+
+def runInIsolatedWorkspace(String workspaceSuffix, Closure body) {
+    ws("${env.WORKSPACE}@${workspaceSuffix}") {
+        deleteDir()
+        unstash "repo-source"
+        body()
     }
-    return microRunner
 }
 
 def runMs(String servicePath, String imageName, Map opts = [:]) {
