@@ -6,6 +6,7 @@
 #   DOCKERHUB_USERNAME  — your Docker Hub username
 #   DOCKERHUB_TOKEN     — Docker Hub access token (not password)
 #   KUBECONFIG_DATA     — base64-encoded kubeconfig (for K8s deploy step)
+#   PLANNING_GITHUB_TOKEN — PAT used by Planning GitHub integration
 ###############################################################################
 name: CI/CD Pipeline
 
@@ -109,8 +110,8 @@ jobs:
             context: backEnd/Microservices/Meeting
           - service: freelancia-job
             context: backEnd/Microservices/FreelanciaJob
-          - service: vendor
-            context: backEnd/Microservices/Vendor
+          - service: aimodel
+            context: backEnd/Microservices/AImodel
           # Frontend
           - service: frontend
             context: frontend/smart-freelance-app
@@ -176,16 +177,27 @@ jobs:
         id: tag
         run: echo "sha=sha-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
+      - name: Render Kubernetes secrets from mdp/env
+        env:
+          GITHUB_TOKEN: ${{ secrets.PLANNING_GITHUB_TOKEN }}
+        run: |
+          python3 scripts/render-k8s-secrets.py \
+            --repo-root . \
+            --mdp-file mdp.local \
+            --output k8s/02-secrets.generated.yaml \
+            --namespace smart-freelance
+
       - name: Apply K8s manifests
         run: |
           kubectl apply -f k8s/00-namespace.yaml
           kubectl apply -f k8s/01-configmap.yaml
-          kubectl apply -f k8s/02-secrets.yaml
+          kubectl apply -f k8s/02-secrets.generated.yaml
           kubectl apply -f k8s/03-mysql.yaml
           kubectl apply -f k8s/04-keycloak.yaml
           kubectl apply -f k8s/05-eureka.yaml
           kubectl apply -f k8s/06-config-server.yaml
           kubectl apply -f k8s/07-api-gateway.yaml
+          kubectl apply -f k8s/12-ollama.yaml
           kubectl apply -f k8s/08-microservices.yaml
           kubectl apply -f k8s/09-frontend.yaml
           kubectl apply -f k8s/10-ingress.yaml
@@ -199,7 +211,7 @@ jobs:
           for svc in eureka config-server api-gateway keycloak-auth \
                      user project offer contract portfolio review \
                      planning task notification gamification chat \
-                     meeting freelancia-job vendor frontend; do
+                     meeting freelancia-job aimodel frontend; do
             kubectl set image deployment/$svc $svc=$HUB/$svc:$TAG -n $NS || true
           done
 

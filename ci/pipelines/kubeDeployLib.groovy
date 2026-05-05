@@ -2,7 +2,12 @@
  * Kubernetes deploy steps (no checkout). Caller must have the repo workspace at the job root.
  * cfg keys: kubeContext, kubeNamespace, manifestPath, imageRepo, imageTag, kubeconfigCredentialsId,
  *   deployMonitoring, monitoringManifestPath, deployEnvironment, requireProdApproval, dryRunOnly,
- *   rollbackOnFailure, rolloutTimeoutSeconds, renderDir (optional), deployIngress (optional, default true)
+ *   rollbackOnFailure, rolloutTimeoutSeconds, renderDir (optional), deployIngress (optional, default true),
+ *   githubTokenCredentialsId (optional Jenkins secret text credential ID),
+ *   mdpFileCredentialsId (optional Jenkins secret file; mounted as mdp.local source),
+ *   firebaseCredentialsId (optional Jenkins secret file),
+ *   planningCalendarCredentialsId (optional Jenkins secret file),
+ *   meetingCalendarCredentialsId (optional Jenkins secret file)
  */
 def runKubernetesDeploy(Map cfg) {
     def renderDir = (cfg.renderDir ?: ".cd-rendered").toString()
@@ -13,6 +18,11 @@ def runKubernetesDeploy(Map cfg) {
     def imageTag = cfg.imageTag?.toString()?.trim() ?: error("imageTag is required")
     def kubeconfigCredentialsId = cfg.kubeconfigCredentialsId?.trim() ?: "kubeconfig"
     def deployIngress = cfg.deployIngress != false
+    def githubTokenCredentialsId = cfg.githubTokenCredentialsId?.toString()?.trim()
+    def mdpFileCredentialsId = cfg.mdpFileCredentialsId?.toString()?.trim()
+    def firebaseCredentialsId = cfg.firebaseCredentialsId?.toString()?.trim()
+    def planningCalendarCredentialsId = cfg.planningCalendarCredentialsId?.toString()?.trim()
+    def meetingCalendarCredentialsId = cfg.meetingCalendarCredentialsId?.toString()?.trim()
     def deployMonitoring = cfg.deployMonitoring != false
     def monitoringManifestPath = cfg.monitoringManifestPath?.trim() ?: "k8s/monitoring"
     def deployEnvironment = (cfg.deployEnvironment ?: "dev").toString()
@@ -54,14 +64,15 @@ def runKubernetesDeploy(Map cfg) {
         }
 
         stage("Render App Manifests") {
-            withEnv([
+            def renderEnv = [
                 "KD_IMAGE_REPO=${imageRepo}",
                 "KD_IMAGE_TAG=${imageTag}",
                 "KD_KUBE_NAMESPACE=${kubeNamespace}",
                 "KD_RENDER_DIR=${renderDir}",
-                "KD_DEPLOY_INGRESS=${deployIngress ? 'true' : 'false'}"
-            ]) {
-                sh """
+                "KD_DEPLOY_INGRESS=${deployIngress ? 'true' : 'false'}",
+                "KD_MDP_FILE=mdp.local"
+            ]
+            def renderScript = """
                   set -e
                   rm -rf "${renderDir}"
                   mkdir -p "${renderDir}/app"
@@ -70,6 +81,12 @@ def runKubernetesDeploy(Map cfg) {
                   if [ "\$KD_DEPLOY_INGRESS" != "true" ]; then
                     rm -f "${renderDir}/app/10-ingress.yaml"
                   fi
+                  python3 scripts/render-k8s-secrets.py \
+                    --repo-root . \
+                    --mdp-file "\$KD_MDP_FILE" \
+                    --output "${renderDir}/app/02-secrets.generated.yaml" \
+                    --namespace "${kubeNamespace}"
+                  rm -f "${renderDir}/app/02-secrets.yaml"
                   python3 - <<'PY'
 import pathlib
 import re
@@ -97,11 +114,37 @@ for file in target.rglob("*.y*ml"):
     if updated != data:
         file.write_text(updated, encoding="utf-8")
 PY
-                  if [ -f "${renderDir}/app/02-secrets.yaml" ] && grep -nE ':[[:space:]]*""[[:space:]]*(#.*)?' "${renderDir}/app/02-secrets.yaml" >/dev/null; then
-                    echo "WARNING: Incomplete values detected in 02-secrets.yaml; skipping this manifest for this deploy."
-                    mv "${renderDir}/app/02-secrets.yaml" "${renderDir}/app/02-secrets.yaml.skipped"
+                  if [ -f "${renderDir}/app/02-secrets.generated.yaml" ] && grep -nE ':[[:space:]]*""[[:space:]]*(#.*)?' "${renderDir}/app/02-secrets.generated.yaml" >/dev/null; then
+                    echo "WARNING: Incomplete values detected in generated secrets; deployment will continue with empty entries where applicable."
                   fi
                 """
+            def credentialBindings = []
+            if (githubTokenCredentialsId) {
+                credentialBindings << string(credentialsId: githubTokenCredentialsId, variable: "GITHUB_TOKEN")
+            }
+            if (mdpFileCredentialsId) {
+                credentialBindings << file(credentialsId: mdpFileCredentialsId, variable: "KD_MDP_FILE")
+            }
+            if (firebaseCredentialsId) {
+                credentialBindings << file(credentialsId: firebaseCredentialsId, variable: "FIREBASE_CREDENTIALS_PATH")
+            }
+            if (planningCalendarCredentialsId) {
+                credentialBindings << file(credentialsId: planningCalendarCredentialsId, variable: "PLANNING_CALENDAR_CREDENTIALS_PATH")
+            }
+            if (meetingCalendarCredentialsId) {
+                credentialBindings << file(credentialsId: meetingCalendarCredentialsId, variable: "MEETING_CALENDAR_CREDENTIALS_PATH")
+            }
+
+            if (credentialBindings) {
+                withCredentials(credentialBindings) {
+                    withEnv(renderEnv) {
+                        sh renderScript
+                    }
+                }
+            } else {
+                withEnv(renderEnv) {
+                    sh renderScript
+                }
             }
         }
 
@@ -185,7 +228,20 @@ PY
                       if [ -z "\$deployments" ]; then
                         echo "No deployments found in namespace ${kubeNamespace}"
                       else
+                        # Auth bootstrap order first, then remaining deployments.
+                        ordered=""
+                        for p in keycloak keycloak-auth eureka config-server api-gateway frontend; do
+                          if echo "\$deployments" | grep -qx "\$p"; then
+                            ordered="\$ordered \$p"
+                          fi
+                        done
                         for d in \$deployments; do
+                          case " \$ordered " in
+                            *" \$d "*) ;;
+                            *) ordered="\$ordered \$d" ;;
+                          esac
+                        done
+                        for d in \$ordered; do
                           echo "Waiting rollout for deployment/\$d"
                           kubectl -n "${kubeNamespace}" rollout status "deployment/\$d" --timeout="${rolloutTimeoutSeconds}s"
                         done

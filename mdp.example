@@ -1,0 +1,31 @@
+# Local debug credentials for kubeadm deployment.
+# Copy to mdp.local (gitignored) and fill values as needed.
+
+# Core infra credentials
+MYSQL_ROOT_PASSWORD=change_me_mysql_root
+MYSQL_APP_USERNAME=root
+MYSQL_APP_PASSWORD=change_me_mysql_app
+KEYCLOAK_ADMIN=admin
+KEYCLOAK_ADMIN_PASSWORD=change_me_keycloak_admin
+KEYCLOAK_ADMIN_USERNAME=admin
+KEYCLOAK_ADMIN_CLIENT_SECRET=change_me_keycloak_client_secret
+KEYCLOAK_CLIENT_SECRET=change_me_keycloak_backend_client_secret
+
+# Optional SMTP secret for review service
+SPRING_MAIL_USERNAME=
+SPRING_MAIL_PASSWORD=
+
+# External API tokens
+GITHUB_TOKEN=
+GITHUB_TOKEN_FILE=githubToken.txt
+AI_API_KEY=
+
+# Feature flags and Ollama model
+NOTIFICATION_FIREBASE_ENABLED=true
+GOOGLE_CALENDAR_ENABLED=true
+OLLAMA_MODEL=gemma2:2b
+
+# Credential file paths (relative to repo root or absolute)
+FIREBASE_CREDENTIALS_PATH=firebase-credentials/firebase-credentials.json
+PLANNING_CALENDAR_CREDENTIALS_PATH=credentials/calendar-service-account.json
+MEETING_CALENDAR_CREDENTIALS_PATH=credentials/meeting-service-account.json

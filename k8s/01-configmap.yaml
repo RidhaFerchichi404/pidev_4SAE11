@@ -14,7 +14,9 @@ data:
   # If browser logins issue tokens with a different iss (e.g. http://auth.smartfreelance.example.com), align these URLs
   # and ensure pods resolve that host (CoreDNS hosts map to the keycloak Service ClusterIP) or use a single hostname strategy.
   KEYCLOAK_SERVER_URL: "http://keycloak:8080"
+  KEYCLOAK_AUTH_SERVER_URL: "http://keycloak:8080"
   KEYCLOAK_REALM: "smart-freelance"
+  KEYCLOAK_CLIENT_ID: "smart-freelance-backend"
   SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: "http://keycloak:8080/realms/smart-freelance"
   SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "http://keycloak:8080/realms/smart-freelance/protocol/openid-connect/certs"
   KEYCLOAK_ISSUER_URI: "http://keycloak:8080/realms/smart-freelance"
@@ -30,3 +32,7 @@ data:
   NOTIFICATION_SERVICE_URL: "http://notification:8087"
   USER_SERVICE_URL: "http://user:8090"
   KEYCLOAK_AUTH_SERVICE_URL: "http://keycloak-auth:8079"
+  OLLAMA_BASE_URL: "http://ollama:11434"
+  OLLAMA_MODEL: "gemma2:2b"
+  NOTIFICATION_FIREBASE_ENABLED: "true"
+  GOOGLE_CALENDAR_ENABLED: "true"

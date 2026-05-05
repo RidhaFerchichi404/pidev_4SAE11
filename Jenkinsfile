@@ -9,13 +9,15 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: "30", artifactNumToKeepStr: "20"))
     }
     parameters {
-        string(name: "REPO_URL", defaultValue: "https://github.com/YOUR_ORG/YOUR_REPO.git", description: "Git repository URL")
+        string(name: "REPO_URL", defaultValue: "https://github.com/RidhaFerchichi404/pidev_4SAE11.git", description: "Git repository URL")
         string(name: "BRANCH", defaultValue: "main", description: "Branch to build and deploy")
-        string(name: "IMAGE_REPO", defaultValue: "docker.io/YOUR_DOCKERHUB_USERNAME", description: "Registry/repo prefix for images and manifest rendering")
+        string(name: "IMAGE_REPO", defaultValue: "docker.io/ridhaferchichi", description: "Registry/repo prefix for images and manifest rendering")
         string(name: "IMAGE_TAG", defaultValue: "", description: "Optional immutable tag; if empty, BUILD_NUMBER is used for build and deploy")
         booleanParam(name: "PUSH_IMAGE", defaultValue: true, description: "Push images to Docker Hub")
         booleanParam(name: "RUN_SONARQUBE", defaultValue: true, description: "Run SonarQube analysis per service")
         booleanParam(name: "DEPLOY_TO_K8S", defaultValue: true, description: "After successful CI, render manifests and deploy to Kubernetes")
+        string(name: "GIT_CREDENTIALS_ID", defaultValue: "GithubCredentials", description: "Jenkins credentials ID used for Git checkout")
+        string(name: "DOCKER_CREDENTIALS_ID", defaultValue: "DockerHubCrendentials", description: "Jenkins username/password credentials ID for Docker Hub")
 
         string(name: "KUBECONFIG_CREDENTIALS_ID", defaultValue: "kubeconfig", description: "Jenkins secret file credential ID for kubeconfig")
         string(name: "KUBE_CONTEXT", defaultValue: "kubernetes-admin@kubernetes", description: "Kubernetes context name from kubeconfig")
@@ -30,10 +32,14 @@ pipeline {
         string(name: "ROLLOUT_TIMEOUT_SECONDS", defaultValue: "600", description: "Timeout in seconds for each deployment rollout check")
         booleanParam(name: "DEPLOY_INGRESS", defaultValue: true, description: "Apply k8s/10-ingress.yaml (requires ingress-nginx controller on cluster)")
         string(name: "PUBLIC_API_GATEWAY_URL", defaultValue: "http://api.smartfreelance.example.com", description: "Browser-reachable API URL baked into Angular production build")
+        string(name: "GITHUB_TOKEN_CREDENTIALS_ID", defaultValue: "", description: "Optional Jenkins secret text credential ID to export GITHUB_TOKEN during secrets rendering")
+        string(name: "MDP_FILE_CREDENTIALS_ID", defaultValue: "", description: "Optional Jenkins secret file credential ID for mdp.local contents")
+        string(name: "FIREBASE_CREDENTIALS_ID", defaultValue: "", description: "Optional Jenkins secret file credential ID for firebase admin JSON")
+        string(name: "PLANNING_CALENDAR_CREDENTIALS_ID", defaultValue: "", description: "Optional Jenkins secret file credential ID for planning calendar service account JSON")
+        string(name: "MEETING_CALENDAR_CREDENTIALS_ID", defaultValue: "", description: "Optional Jenkins secret file credential ID for meeting calendar service account JSON")
     }
     environment {
         EFFECTIVE_IMAGE_TAG = "${params.IMAGE_TAG?.trim() ? params.IMAGE_TAG.trim() : env.BUILD_NUMBER}"
-        GITHUB_CREDS_ID = "GithubCredentials"
     }
     stages {
         stage("Checkout") {
@@ -41,7 +47,7 @@ pipeline {
                 checkout([
                     $class: "GitSCM",
                     branches: [[name: "*/${params.BRANCH}"]],
-                    userRemoteConfigs: [[url: params.REPO_URL, credentialsId: env.GITHUB_CREDS_ID]]
+                    userRemoteConfigs: [[url: params.REPO_URL, credentialsId: (params.GIT_CREDENTIALS_ID?.trim() ?: "GithubCredentials")]]
                 ])
             }
         }
@@ -52,12 +58,14 @@ pipeline {
                 }
             }
         }
-        stage("Infrastructure Order") {
+        stage("Infrastructure Foundation") {
             steps {
                 script {
                     runMs("backEnd/Eureka", "eureka")
-                    runMs("backEnd/ConfigServer", "config-server")
-                    runMs("backEnd/KeyCloak", "keycloak-auth")
+                    parallel(
+                        configServer: { runMs("backEnd/ConfigServer", "config-server") },
+                        keycloakAuth: { runMs("backEnd/KeyCloak", "keycloak-auth") }
+                    )
                 }
             }
         }
@@ -82,8 +90,9 @@ pipeline {
             steps {
                 script {
                     runMs("backEnd/Microservices/planning", "planning")
-                    runMs("backEnd/Microservices/task", "task")
                     parallel(
+                        // task depends on planning + aimodel; other services do not require task.
+                        task: { runMs("backEnd/Microservices/task", "task") },
                         review: { runMs("backEnd/Microservices/review", "review") },
                         offer: { runMs("backEnd/Microservices/Offer", "offer") },
                         gamification: { runMs("backEnd/Microservices/gamification", "gamification") },
@@ -93,13 +102,17 @@ pipeline {
                 }
             }
         }
-        stage("Gateway Then Frontend") {
+        stage("Gateway and Frontend Parallel") {
             steps {
                 script {
-                    runMs("backEnd/apiGateway", "api-gateway")
-                    runMs("frontend/smart-freelance-app", "frontend", [
-                        dockerBuildArgs: "--build-arg API_GATEWAY_PUBLIC_URL=${(params.PUBLIC_API_GATEWAY_URL ?: 'http://api.smartfreelance.example.com').trim()}"
-                    ])
+                    parallel(
+                        apiGateway: { runMs("backEnd/apiGateway", "api-gateway") },
+                        frontend: {
+                            runMs("frontend/smart-freelance-app", "frontend", [
+                                dockerBuildArgs: "--build-arg API_GATEWAY_PUBLIC_URL=${(params.PUBLIC_API_GATEWAY_URL ?: 'http://api.smartfreelance.example.com').trim()}"
+                            ])
+                        }
+                    )
                 }
             }
         }
@@ -127,7 +140,12 @@ pipeline {
                         dryRunOnly               : params.DRY_RUN_ONLY,
                         rollbackOnFailure        : params.ROLLBACK_ON_FAILURE,
                         rolloutTimeoutSeconds    : (params.ROLLOUT_TIMEOUT_SECONDS ?: "600").toString().trim(),
-                        deployIngress            : params.DEPLOY_INGRESS
+                        deployIngress            : params.DEPLOY_INGRESS,
+                        githubTokenCredentialsId : params.GITHUB_TOKEN_CREDENTIALS_ID?.trim(),
+                        mdpFileCredentialsId     : params.MDP_FILE_CREDENTIALS_ID?.trim(),
+                        firebaseCredentialsId    : params.FIREBASE_CREDENTIALS_ID?.trim(),
+                        planningCalendarCredentialsId: params.PLANNING_CALENDAR_CREDENTIALS_ID?.trim(),
+                        meetingCalendarCredentialsId : params.MEETING_CALENDAR_CREDENTIALS_ID?.trim()
                     ])
                 }
             }
@@ -153,7 +171,8 @@ def runMs(String servicePath, String imageName, Map opts = [:]) {
         imageName          : imageName,
         skipCheckout       : true,
         skipCleanWs        : true,
-        applyJobProperties : false
+        applyJobProperties : false,
+        dockerCredentialsId: (params.DOCKER_CREDENTIALS_ID ?: "DockerHubCrendentials").trim()
     ]
     if (opts) {
         m.putAll(opts)
@@ -166,7 +185,7 @@ def runMs(String servicePath, String imageName, Map opts = [:]) {
  * Must run before deploy so k8s can pull YOUR_REPO/keycloak:<tag>.
  */
 def buildAndPushKeycloakServerImage() {
-    def dockerCredsId = "DockerHubCrendentials"
+    def dockerCredsId = (params.DOCKER_CREDENTIALS_ID ?: "DockerHubCrendentials").trim()
     def imageRepo = params.IMAGE_REPO
     def tag = (params.IMAGE_TAG?.trim()) ? params.IMAGE_TAG.trim() : env.BUILD_NUMBER
     def dockerImage = "${imageRepo}/keycloak"

@@ -83,6 +83,8 @@ pipelineJob('orchestration/full-stack-main') {
     booleanParam('PUSH_IMAGE', true, 'Push images to Docker Hub')
     booleanParam('RUN_SONARQUBE', true, 'Run SonarQube analysis per service')
     booleanParam('DEPLOY_TO_K8S', true, 'After successful CI, deploy to Kubernetes')
+    stringParam('GIT_CREDENTIALS_ID', 'GithubCredentials', 'Jenkins credentials ID used for Git checkout')
+    stringParam('DOCKER_CREDENTIALS_ID', 'DockerHubCrendentials', 'Jenkins username/password credentials ID for Docker Hub')
 
     stringParam('KUBECONFIG_CREDENTIALS_ID', 'kubeconfig', 'Jenkins secret file credential ID for kubeconfig')
     stringParam('KUBE_CONTEXT', 'kubernetes-admin@kubernetes', 'Kubernetes context name from kubeconfig')
@@ -97,6 +99,11 @@ pipelineJob('orchestration/full-stack-main') {
     stringParam('ROLLOUT_TIMEOUT_SECONDS', '600', 'Rollout timeout per deployment (seconds)')
     booleanParam('DEPLOY_INGRESS', true, 'Apply k8s Ingress (requires ingress-nginx)')
     stringParam('PUBLIC_API_GATEWAY_URL', 'http://api.smartfreelance.example.com', 'Public API URL for Angular production build')
+    stringParam('GITHUB_TOKEN_CREDENTIALS_ID', '', 'Optional Jenkins secret text credential ID to export GITHUB_TOKEN during secrets rendering')
+    stringParam('MDP_FILE_CREDENTIALS_ID', '', 'Optional Jenkins secret file credential ID for mdp.local contents')
+    stringParam('FIREBASE_CREDENTIALS_ID', '', 'Optional Jenkins secret file credential ID for firebase admin JSON')
+    stringParam('PLANNING_CALENDAR_CREDENTIALS_ID', '', 'Optional Jenkins secret file credential ID for planning calendar service account JSON')
+    stringParam('MEETING_CALENDAR_CREDENTIALS_ID', '', 'Optional Jenkins secret file credential ID for meeting calendar service account JSON')
   }
   definition {
     cpsScm {

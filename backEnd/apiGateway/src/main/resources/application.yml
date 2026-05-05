@@ -126,9 +126,9 @@ spring:
           filters:
             - StripPrefix=1
 
-        # Notification (Firestore): direct URL (port 8087)
+        # Notification (Firestore): direct URL (local default port 8098)
         - id: notification
-          uri: http://localhost:8087
+          uri: http://localhost:8098
           predicates:
             - Path=/notification/**
           filters:

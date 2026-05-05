@@ -48,9 +48,10 @@ spec:
                   key: SPRING_DATASOURCE_PASSWORD
             - name: KC_HTTP_PORT
               value: "8080"
-            # Public hostname must match Ingress host auth.smartfreelance.example.com (see 10-ingress.yaml).
+            # Keep issuer stable with app-config KEYCLOAK_ISSUER_URI/JWKS (http://keycloak:8080/...).
+            # If you switch to public-hostname issuer, update all resource-server issuer/jwks vars consistently.
             - name: KC_HOSTNAME
-              value: "auth.smartfreelance.example.com"
+              value: "keycloak"
             - name: KC_HOSTNAME_STRICT
               value: "false"
             - name: KC_HOSTNAME_STRICT_HTTPS

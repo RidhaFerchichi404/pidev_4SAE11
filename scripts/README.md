@@ -34,6 +34,48 @@ Then either export the token for the shell session or configure Planning’s `ap
 
 ---
 
+## init-mdp-local.ps1
+
+Creates `mdp.local` from `mdp.example` for local debug credentials used by deployment automation.
+
+```powershell
+.\scripts\init-mdp-local.ps1
+```
+
+`mdp.local` is gitignored. Do not commit real passwords/secrets.
+
+---
+
+## render-k8s-secrets.py
+
+Builds `k8s/02-secrets.generated.yaml` non-interactively from `mdp.local`, environment variables, GitHub token file fallback (`GITHUB_TOKEN_FILE` or `githubToken.txt`), and local credential JSON files.
+
+```powershell
+python scripts/render-k8s-secrets.py --repo-root . --mdp-file mdp.local --output k8s/02-secrets.generated.yaml --namespace smart-freelance
+```
+
+---
+
+## verify-cicd.ps1
+
+Runs local CI/CD readiness checks for kubeadm path (secrets render + Kubernetes manifest dry checks + optional Maven compile checks for key services).
+
+```powershell
+.\scripts\verify-cicd.ps1 -Namespace smart-freelance
+```
+
+---
+
+## deploy-kubeadm.ps1
+
+Runs local end-to-end deploy flow to kubeadm (renders secrets, rewrites image placeholders, applies manifests in order including Ollama + AImodel).
+
+```powershell
+.\scripts\deploy-kubeadm.ps1 -Namespace smart-freelance -ImageRepo docker.io/<dockerhub-user> -ImageTag latest
+```
+
+---
+
 ## seed-databases.sql
 
 Inserts **10 coherent rows** into each main table across all 7 microservice databases so you can test the platform end-to-end.

@@ -5,6 +5,9 @@ CLAUDE.md
 .env.local
 .env.*.local
 *.env
+mdp.local
+mdp.secrets
+mdp.debug
 
 # Local config overrides (API keys, DB passwords, Keycloak secrets, etc.)
 **/application-local.properties
@@ -23,6 +26,8 @@ githubToken.txt
 # Credentials folder – Calendar, GitHub, etc. (never commit)
 credentials/*.json
 credentials/*.txt
+!credentials/*.example
+k8s/02-secrets.generated.yaml
 
 # MCP config (may contain SonarQube token and other secrets)
 .cursor/mcp.json

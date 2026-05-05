@@ -105,9 +105,9 @@ A microservices-based platform connecting freelancers and clients for project co
 1. MySQL  
 2. **Eureka** → `backEnd/Eureka`  
 3. **Config Server** → `backEnd/ConfigServer` *(required for **Offer**, **Vendor**, **Subcontracting**, **Task**, and **Planning**; optional for others)*  
-4. **API Gateway** → `backEnd/apiGateway`  
-5. **Keycloak** (standalone) — [see Keycloak setup](backEnd/KeyCloak/README.md)  
-6. **Keycloak Auth** → `backEnd/KeyCloak`  
+4. **Keycloak server** (`keycloak-start` image/deployment)  
+5. **Keycloak Auth** → `backEnd/KeyCloak`  
+6. **API Gateway** → `backEnd/apiGateway`  
 7. **Microservices** — User, Project, Offer, Contract, Portfolio, Review, Planning, Notification, Task, Gamification, Vendor, Ticket, Subcontracting, FreelanciaJob, Chat, Meeting, **AImodel** (Spring + Ollama if using AI)  
 
 ### Run the Backend
@@ -220,11 +220,18 @@ If Jenkins agents do not already have them, install these CLIs on the Jenkins VM
 - `kubectl`
 - Java + Maven + Node/npm (according to jobs you run)
 
-### One-time Jenkins UI bootstrap
+### One-time Jenkins UI bootstrap (single pipeline)
 
-1. **Create credentials** (`Manage Jenkins` -> `Credentials`):
-   - `dockerhub-credentials-id` (Username with password/token)
-   - `kubeconfig-file-credential-id` (Secret file containing kubeconfig for your kubeadm cluster context)
+1. **Create credentials** (`Manage Jenkins` -> `Credentials`) using these IDs (or set custom IDs in job params):
+   - `GithubCredentials` (**Username with password** or PAT) for Git checkout.
+   - `DockerHubCrendentials` (**Username with password/token**) for image push.
+   - `kubeconfig` (**Secret file**) containing kubeconfig with context `kubernetes-admin@kubernetes`.
+   - Optional integrations:
+     - `github-token` (**Secret text**) -> set `GITHUB_TOKEN_CREDENTIALS_ID=github-token`.
+     - `mdp-local` (**Secret file**) -> set `MDP_FILE_CREDENTIALS_ID=mdp-local`.
+     - `firebase-admin-json` (**Secret file**) -> set `FIREBASE_CREDENTIALS_ID=firebase-admin-json`.
+     - `planning-calendar-json` (**Secret file**) -> set `PLANNING_CALENDAR_CREDENTIALS_ID=planning-calendar-json`.
+     - `meeting-calendar-json` (**Secret file**) -> set `MEETING_CALENDAR_CREDENTIALS_ID=meeting-calendar-json`.
 2. **Install Job DSL plugin** if missing.
 3. **Create Seed job**:
    - New Item -> Freestyle -> name: `seed-jobs`
@@ -234,11 +241,15 @@ If Jenkins agents do not already have them, install these CLIs on the Jenkins VM
    - DSL scripts: `jobs.groovy`
    - Save
 4. **Run `seed-jobs` once** to generate all pipeline jobs.
-5. Open generated `orchestration/full-stack-main` and run with:
-   - `REPO_URL`: your actual repository URL
-   - `IMAGE_REPO`: `docker.io/<your-dockerhub-username>`
-   - `DOCKERHUB_CREDENTIALS_ID`: `dockerhub-credentials-id`
-   - `KUBECONFIG_CREDENTIALS_ID`: `kubeconfig-file-credential-id`
+5. Open generated `orchestration/full-stack-main` and click **Build with Parameters**:
+   - Keep defaults for one-click run (`BRANCH=main`, `PUSH_IMAGE=true`, `DEPLOY_TO_K8S=true`).
+   - Set only project-specific values if needed: `REPO_URL`, `IMAGE_REPO`, `PUBLIC_API_GATEWAY_URL`.
+   - If you used custom credential IDs, override the corresponding `*_CREDENTIALS_ID` parameters.
+   - Optional CD-only dry test: set `DRY_RUN_ONLY=true`.
+   - Keep Keycloak values consistent across secrets and auth service config:
+     - `KEYCLOAK_CLIENT_SECRET` (realm client `smart-freelance-backend`)
+     - `KEYCLOAK_ADMIN_USERNAME` / `KEYCLOAK_ADMIN_PASSWORD`
+     - `KEYCLOAK_AUTH_SERVER_URL` (defaults to in-cluster `http://keycloak:8080`)
 
 ### How Jenkins connects to kubeadm securely
 
@@ -279,7 +290,9 @@ No extra Jenkins plugins are required for browser access.
 
 ### Full deploy vs single service deploy
 
-- **Full stack (CI + CD):** run `orchestration/full-stack-main` (use `DEPLOY_TO_K8S` to toggle cluster deploy).
+- **Full stack (single entrypoint):** run `orchestration/full-stack-main`.
+  - Pipeline flow: Checkout -> Build/Test/Package -> Docker Build/Push (all deployable services; excludes `vendor` and `aimodel-node`) -> Render Secrets/Manifests (includes `ollama`, Firebase/Calendar/GitHub integrations) -> Apply -> Rollout checks.
+  - No manual step is required for `dev`/`staging`; `prod` requires approval only when `REQUIRE_PROD_APPROVAL=true`.
 - **Single service:** run `services/<service-name>` (per-service build/push only; no cluster deploy from that job).
 
 ### Adding a new service later
@@ -291,7 +304,17 @@ No extra Jenkins plugins are required for browser access.
 
 ### Current scope note
 
-- `vendor` is intentionally excluded from seed-generated CI/CD because `backEnd/Microservices/Vendor` is not currently verified buildable (missing `pom.xml`).
+- `vendor` and `aimodel-node` are intentionally excluded from CI/CD orchestration.
+- `aimodel` (Spring Boot) is deployed with in-cluster `ollama` (`k8s/12-ollama.yaml`).
+- Notification and Planning credentials are auto-rendered to `k8s/02-secrets.generated.yaml` by `scripts/render-k8s-secrets.py` using `mdp.local` + local credential files.
+
+### Local kubeadm deploy (non-interactive)
+
+```powershell
+.\scripts\init-mdp-local.ps1
+.\scripts\verify-cicd.ps1 -Namespace smart-freelance
+.\scripts\deploy-kubeadm.ps1 -Namespace smart-freelance -ImageRepo docker.io/<dockerhub-user> -ImageTag latest
+```
 
 ---
 

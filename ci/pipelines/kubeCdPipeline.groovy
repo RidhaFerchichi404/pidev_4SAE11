@@ -12,6 +12,7 @@ pipeline {
     parameters {
         string(name: "REPO_URL", defaultValue: "https://github.com/RidhaFerchichi404/pidev_4SAE11.git", description: "Git repository URL containing Kubernetes manifests")
         string(name: "BRANCH", defaultValue: "main", description: "Branch to deploy from")
+        string(name: "GIT_CREDENTIALS_ID", defaultValue: "GithubCredentials", description: "Jenkins credentials ID used for Git checkout")
         string(name: "KUBECONFIG_CREDENTIALS_ID", defaultValue: "kubeconfig", description: "Jenkins secret file credential ID for kubeconfig")
         string(name: "KUBE_CONTEXT", defaultValue: "kubernetes-admin@kubernetes", description: "Kubernetes context name from kubeconfig (required)")
         string(name: "KUBE_NAMESPACE", defaultValue: "smart-freelance-dev", description: "Application namespace to deploy")
@@ -26,6 +27,11 @@ pipeline {
         booleanParam(name: "DRY_RUN_ONLY", defaultValue: false, description: "Render/apply using server dry-run only")
         string(name: "ROLLOUT_TIMEOUT_SECONDS", defaultValue: "600", description: "Timeout in seconds for each deployment rollout check")
         booleanParam(name: "DEPLOY_INGRESS", defaultValue: true, description: "Apply k8s Ingress (requires ingress-nginx)")
+        string(name: "GITHUB_TOKEN_CREDENTIALS_ID", defaultValue: "", description: "Optional Jenkins secret text credential ID for Planning GitHub PAT (exports GITHUB_TOKEN)")
+        string(name: "MDP_FILE_CREDENTIALS_ID", defaultValue: "", description: "Optional Jenkins secret file credential ID for mdp.local contents")
+        string(name: "FIREBASE_CREDENTIALS_ID", defaultValue: "", description: "Optional Jenkins secret file credential ID for firebase admin JSON")
+        string(name: "PLANNING_CALENDAR_CREDENTIALS_ID", defaultValue: "", description: "Optional Jenkins secret file credential ID for planning calendar service account JSON")
+        string(name: "MEETING_CALENDAR_CREDENTIALS_ID", defaultValue: "", description: "Optional Jenkins secret file credential ID for meeting calendar service account JSON")
     }
 
     environment {
@@ -39,7 +45,7 @@ pipeline {
                 checkout([
                     $class: "GitSCM",
                     branches: [[name: "*/${params.BRANCH}"]],
-                    userRemoteConfigs: [[url: params.REPO_URL, credentialsId: env.GITHUB_CREDS_ID]]
+                    userRemoteConfigs: [[url: params.REPO_URL, credentialsId: (params.GIT_CREDENTIALS_ID?.trim() ?: env.GITHUB_CREDS_ID)]]
                 ])
             }
         }
@@ -78,7 +84,12 @@ pipeline {
                         dryRunOnly               : params.DRY_RUN_ONLY,
                         rollbackOnFailure        : params.ROLLBACK_ON_FAILURE,
                         rolloutTimeoutSeconds    : (params.ROLLOUT_TIMEOUT_SECONDS ?: "600").toString().trim(),
-                        deployIngress            : params.DEPLOY_INGRESS
+                        deployIngress            : params.DEPLOY_INGRESS,
+                        githubTokenCredentialsId : params.GITHUB_TOKEN_CREDENTIALS_ID?.trim(),
+                        mdpFileCredentialsId     : params.MDP_FILE_CREDENTIALS_ID?.trim(),
+                        firebaseCredentialsId    : params.FIREBASE_CREDENTIALS_ID?.trim(),
+                        planningCalendarCredentialsId: params.PLANNING_CALENDAR_CREDENTIALS_ID?.trim(),
+                        meetingCalendarCredentialsId : params.MEETING_CALENDAR_CREDENTIALS_ID?.trim()
                     ])
                 }
             }

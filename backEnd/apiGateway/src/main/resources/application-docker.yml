@@ -74,11 +74,6 @@ spring:
           predicates: [Path=/contract/**]
           filters: [StripPrefix=1]
 
-        - id: subcontracting
-          uri: lb://SUBCONTRACTING
-          predicates: [Path=/subcontracting/**]
-          filters: [StripPrefix=1]
-
         - id: notification
           uri: lb://NOTIFICATION
           predicates: [Path=/notification/**]
@@ -109,17 +104,6 @@ spring:
         - id: chat
           uri: lb://CHAT
           predicates: [Path=/chat/**]
-          filters: [StripPrefix=1]
-
-        - id: vendor
-          uri: lb://vendor
-          predicates: [Path=/vendor/**]
-          filters: [StripPrefix=1]
-          metadata: {response-timeout: 14400000, connect-timeout: 30000}
-
-        - id: ticket
-          uri: lb://TICKET-SERVICE
-          predicates: [Path=/ticket/**]
           filters: [StripPrefix=1]
 
         - id: aimodel
