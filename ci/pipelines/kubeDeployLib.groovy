@@ -30,6 +30,8 @@ def runKubernetesDeploy(Map cfg) {
     def dryRunOnly = cfg.dryRunOnly == true
     def rollbackOnFailure = cfg.rollbackOnFailure != false
     def rolloutTimeoutSeconds = (cfg.rolloutTimeoutSeconds ?: "600").toString()
+    def deployUnitsRaw = cfg.deployUnits?.toString()
+    def unitRenderDir = "${renderDir}/app-units"
 
     def dryShell = dryRunOnly ? "true" : "false"
 
@@ -148,6 +150,126 @@ PY
             }
         }
 
+        stage("Prepare Deployment Units") {
+            withEnv([
+                "KD_RENDER_DIR=${renderDir}",
+                "KD_UNIT_RENDER_DIR=${unitRenderDir}"
+            ]) {
+                sh '''
+                  set -e
+                  mkdir -p "$KD_UNIT_RENDER_DIR"
+                  python3 - <<'PY'
+import os
+import pathlib
+import re
+
+render_dir = pathlib.Path(os.environ["KD_RENDER_DIR"]).resolve()
+app_dir = render_dir / "app"
+unit_dir = pathlib.Path(os.environ["KD_UNIT_RENDER_DIR"]).resolve()
+unit_dir.mkdir(parents=True, exist_ok=True)
+
+units = {
+    "foundation": [],
+    "shared": [],
+    "keycloak": [],
+    "eureka": [],
+    "config-server": [],
+    "keycloak-auth": [],
+    "user": [],
+    "project": [],
+    "offer": [],
+    "contract": [],
+    "portfolio": [],
+    "review": [],
+    "planning": [],
+    "task": [],
+    "notification": [],
+    "gamification": [],
+    "chat": [],
+    "meeting": [],
+    "freelancia-job": [],
+    "aimodel": [],
+    "api-gateway": [],
+    "frontend": [],
+    "ingress": [],
+    "phpmyadmin": [],
+    "ollama": [],
+}
+
+file_unit_map = {
+    "00-namespace.yaml": "foundation",
+    "01-configmap.yaml": "foundation",
+    "02-secrets.generated.yaml": "foundation",
+    "03-mysql.yaml": "foundation",
+    "04-keycloak.yaml": "keycloak",
+    "05-eureka.yaml": "eureka",
+    "06-config-server.yaml": "config-server",
+    "07-api-gateway.yaml": "api-gateway",
+    "09-frontend.yaml": "frontend",
+    "10-ingress.yaml": "ingress",
+    "11-phpmyadmin.yaml": "phpmyadmin",
+    "12-ollama.yaml": "ollama",
+}
+
+ms_name_to_unit = {
+    "keycloak-auth": "keycloak-auth",
+    "user": "user",
+    "user-uploads-pvc": "user",
+    "project": "project",
+    "offer": "offer",
+    "contract": "contract",
+    "portfolio": "portfolio",
+    "review": "review",
+    "planning": "planning",
+    "task": "task",
+    "notification": "notification",
+    "gamification": "gamification",
+    "chat": "chat",
+    "meeting": "meeting",
+    "freelancia-job": "freelancia-job",
+    "aimodel": "aimodel",
+}
+
+name_re = re.compile(r"^\\s*name:\\s*([^\\s#]+)\\s*$", re.MULTILINE)
+kind_re = re.compile(r"^\\s*kind:\\s*([^\\s#]+)\\s*$", re.MULTILINE)
+
+for file_path in sorted(app_dir.glob("*.y*ml")):
+    base = file_path.name
+    content = file_path.read_text(encoding="utf-8")
+    if not content.strip():
+        continue
+    mapped = file_unit_map.get(base)
+    if mapped:
+        units[mapped].append(content.rstrip() + "\\n")
+        continue
+    if base != "08-microservices.yaml":
+        units["shared"].append(content.rstrip() + "\\n")
+        continue
+
+    docs = re.split(r"(?m)^---\\s*$", content)
+    for doc in docs:
+        if not doc.strip():
+            continue
+        kind_match = kind_re.search(doc)
+        name_match = name_re.search(doc)
+        name = name_match.group(1).strip() if name_match else ""
+        unit_name = ms_name_to_unit.get(name, "shared")
+        normalized_doc = doc.strip() + "\\n"
+        if kind_match and kind_match.group(1).strip() in ("Service", "Deployment", "PersistentVolumeClaim"):
+            units[unit_name].append(normalized_doc)
+        else:
+            units["shared"].append(normalized_doc)
+
+for unit_name, docs in units.items():
+    if not docs:
+        continue
+    out_file = unit_dir / f"{unit_name}.yaml"
+    out_file.write_text("---\\n".join(docs).strip() + "\\n", encoding="utf-8")
+PY
+                '''
+            }
+        }
+
         if (deployMonitoring) {
             stage("Render Monitoring Manifests") {
                 withEnv([
@@ -178,20 +300,126 @@ PY
             }
         }
 
-        stage("Deploy Application") {
-            withCredentials([file(credentialsId: kubeconfigCredentialsId, variable: "KUBECONFIG_FILE")]) {
-                sh """
-                  set -e
-                  export KUBECONFIG="\$KUBECONFIG_FILE"
-                  kubectl config use-context "${kubeContext}"
-                  kubectl create namespace "${kubeNamespace}" --dry-run=client -o yaml | kubectl apply -f -
+        def unitDefs = [
+            [name: "foundation", deployments: []],
+            [name: "shared", deployments: []],
+            [name: "keycloak", deployments: ["keycloak"]],
+            [name: "eureka", deployments: ["eureka"]],
+            [name: "config-server", deployments: ["config-server"]],
+            [name: "keycloak-auth", deployments: ["keycloak-auth"]],
+            [name: "user", deployments: ["user"]],
+            [name: "project", deployments: ["project"]],
+            [name: "offer", deployments: ["offer"]],
+            [name: "contract", deployments: ["contract"]],
+            [name: "portfolio", deployments: ["portfolio"]],
+            [name: "review", deployments: ["review"]],
+            [name: "planning", deployments: ["planning"]],
+            [name: "task", deployments: ["task"]],
+            [name: "notification", deployments: ["notification"]],
+            [name: "gamification", deployments: ["gamification"]],
+            [name: "chat", deployments: ["chat"]],
+            [name: "meeting", deployments: ["meeting"]],
+            [name: "freelancia-job", deployments: ["freelancia-job"]],
+            [name: "aimodel", deployments: ["aimodel"]],
+            [name: "api-gateway", deployments: ["api-gateway"]],
+            [name: "frontend", deployments: ["frontend"]],
+            [name: "ingress", deployments: []],
+            [name: "phpmyadmin", deployments: ["phpmyadmin"]],
+            [name: "ollama", deployments: ["ollama"]]
+        ]
+        def allowedUnits = unitDefs.collect { it.name } as Set
+        def selectedUnits = selectDeployUnits(deployUnitsRaw, allowedUnits)
 
-                  if [ "${dryShell}" = "true" ]; then
-                    kubectl apply --server-side --dry-run=server -f "${renderDir}/app"
-                  else
-                    kubectl apply -f "${renderDir}/app"
-                  fi
-                """
+        def shouldDeployUnit = { String unitName ->
+            if (selectedUnits.contains("all")) {
+                return true
+            }
+            if (unitName == "foundation") {
+                return true
+            }
+            if (unitName == "ingress" && !deployIngress) {
+                return false
+            }
+            return selectedUnits.contains(unitName)
+        }
+
+        def deployUnit = { Map unit ->
+            def unitName = unit.name
+            def unitFile = "${unitRenderDir}/${unitName}.yaml"
+            stage("Deploy ${unitName}") {
+                if (!fileExists(unitFile)) {
+                    echo "Skipping ${unitName}: rendered manifest file not found (${unitFile})."
+                    return
+                }
+                withCredentials([file(credentialsId: kubeconfigCredentialsId, variable: "KUBECONFIG_FILE")]) {
+                    sh """
+                      set -e
+                      export KUBECONFIG="\$KUBECONFIG_FILE"
+                      kubectl config use-context "${kubeContext}"
+                      kubectl create namespace "${kubeNamespace}" --dry-run=client -o yaml | kubectl apply -f -
+
+                      if [ "${dryShell}" = "true" ]; then
+                        kubectl apply --server-side --dry-run=server -f "${unitFile}"
+                      else
+                        kubectl apply -f "${unitFile}"
+                      fi
+                    """
+                    if (!dryRunOnly && unit.deployments) {
+                        unit.deployments.each { dep ->
+                            sh """
+                              set -e
+                              export KUBECONFIG="\$KUBECONFIG_FILE"
+                              kubectl config use-context "${kubeContext}"
+                              if kubectl -n "${kubeNamespace}" get deploy "${dep}" >/dev/null 2>&1; then
+                                echo "Waiting rollout for deployment/${dep}"
+                                kubectl -n "${kubeNamespace}" rollout status "deployment/${dep}" --timeout="${rolloutTimeoutSeconds}s"
+                              else
+                                echo "Deployment ${dep} not found in namespace ${kubeNamespace}; skipping rollout wait."
+                              fi
+                            """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage("Deploy Application Units") {
+            def unitByName = unitDefs.collectEntries { [(it.name): it] }
+            def bootstrapOrder = ["foundation", "shared", "keycloak", "eureka", "config-server", "keycloak-auth"]
+            def coreParallelUnits = ["user", "project", "offer", "contract", "portfolio", "review", "planning", "task", "notification", "gamification", "chat", "meeting", "freelancia-job", "aimodel"]
+            def tailSequential = ["api-gateway", "frontend", "ingress"]
+            def optionalParallelUnits = ["phpmyadmin", "ollama"]
+
+            bootstrapOrder.each { name ->
+                if (shouldDeployUnit(name)) {
+                    deployUnit(unitByName[name])
+                }
+            }
+
+            def coreBranches = [:]
+            coreParallelUnits.each { name ->
+                if (shouldDeployUnit(name)) {
+                    coreBranches[name] = { deployUnit(unitByName[name]) }
+                }
+            }
+            if (coreBranches) {
+                parallel coreBranches
+            }
+
+            tailSequential.each { name ->
+                if (shouldDeployUnit(name)) {
+                    deployUnit(unitByName[name])
+                }
+            }
+
+            def optionalBranches = [:]
+            optionalParallelUnits.each { name ->
+                if (shouldDeployUnit(name)) {
+                    optionalBranches[name] = { deployUnit(unitByName[name]) }
+                }
+            }
+            if (optionalBranches) {
+                parallel optionalBranches
             }
         }
 
@@ -217,39 +445,6 @@ PY
         }
 
         if (!dryRunOnly) {
-            stage("Rollout Verification") {
-                withCredentials([file(credentialsId: kubeconfigCredentialsId, variable: "KUBECONFIG_FILE")]) {
-                    sh """
-                      set -e
-                      export KUBECONFIG="\$KUBECONFIG_FILE"
-                      kubectl config use-context "${kubeContext}"
-
-                      deployments=\$(kubectl -n "${kubeNamespace}" get deploy -o jsonpath='{range .items[*]}{.metadata.name}{"\\n"}{end}')
-                      if [ -z "\$deployments" ]; then
-                        echo "No deployments found in namespace ${kubeNamespace}"
-                      else
-                        # Auth bootstrap order first, then remaining deployments.
-                        ordered=""
-                        for p in keycloak keycloak-auth eureka config-server api-gateway frontend; do
-                          if echo "\$deployments" | grep -qx "\$p"; then
-                            ordered="\$ordered \$p"
-                          fi
-                        done
-                        for d in \$deployments; do
-                          case " \$ordered " in
-                            *" \$d "*) ;;
-                            *) ordered="\$ordered \$d" ;;
-                          esac
-                        done
-                        for d in \$ordered; do
-                          echo "Waiting rollout for deployment/\$d"
-                          kubectl -n "${kubeNamespace}" rollout status "deployment/\$d" --timeout="${rolloutTimeoutSeconds}s"
-                        done
-                      fi
-                    """
-                }
-            }
-
             stage("Post Deploy Smoke Checks") {
                 withCredentials([file(credentialsId: kubeconfigCredentialsId, variable: "KUBECONFIG_FILE")]) {
                     sh """
@@ -305,6 +500,28 @@ def archiveAndRollbackKube(String kubeconfigCredentialsId, String kubeContext, S
             """
         }
     }
+}
+
+def selectDeployUnits(String rawUnits, Set allowedUnits) {
+    if (!rawUnits?.trim()) {
+        return ["all"] as Set
+    }
+    def parsed = rawUnits
+        .split(",")
+        .collect { it?.trim()?.toLowerCase() }
+        .findAll { it }
+        .toSet()
+    if (!parsed) {
+        return ["all"] as Set
+    }
+    if (parsed.contains("all")) {
+        return ["all"] as Set
+    }
+    def unknown = parsed.findAll { !allowedUnits.contains(it) }
+    if (unknown) {
+        error("Unknown DEPLOY_UNITS values: ${unknown.join(', ')}. Allowed: all, ${allowedUnits.sort().join(', ')}")
+    }
+    return parsed
 }
 
 return this

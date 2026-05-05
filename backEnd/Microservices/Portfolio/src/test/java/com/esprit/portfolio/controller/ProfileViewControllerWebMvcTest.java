@@ -13,7 +13,9 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
+import org.springframework.boot.security.oauth2.server.resource.autoconfigure.servlet.OAuth2ResourceServerAutoConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -24,7 +26,13 @@ import com.esprit.portfolio.dto.ProfileViewRequest;
 import com.esprit.portfolio.dto.ProfileViewStats;
 import com.esprit.portfolio.service.ProfileViewService;
 
-@WebMvcTest(value = ProfileViewController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@WebMvcTest(
+        value = ProfileViewController.class,
+        excludeAutoConfiguration = {
+                SecurityAutoConfiguration.class,
+                OAuth2ResourceServerAutoConfiguration.class
+        })
+@AutoConfigureMockMvc(addFilters = false)
 class ProfileViewControllerWebMvcTest {
 
     @Autowired

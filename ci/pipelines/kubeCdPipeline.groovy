@@ -27,6 +27,7 @@ pipeline {
         booleanParam(name: "DRY_RUN_ONLY", defaultValue: false, description: "Render/apply using server dry-run only")
         string(name: "ROLLOUT_TIMEOUT_SECONDS", defaultValue: "600", description: "Timeout in seconds for each deployment rollout check")
         booleanParam(name: "DEPLOY_INGRESS", defaultValue: true, description: "Apply k8s Ingress (requires ingress-nginx)")
+        string(name: "DEPLOY_UNITS", defaultValue: "", description: "Optional comma-separated deploy units (for example: eureka,config-server,user,api-gateway,frontend). Empty = deploy all.")
         string(name: "GITHUB_TOKEN_CREDENTIALS_ID", defaultValue: "", description: "Optional Jenkins secret text credential ID for Planning GitHub PAT (exports GITHUB_TOKEN)")
         string(name: "MDP_FILE_CREDENTIALS_ID", defaultValue: "", description: "Optional Jenkins secret file credential ID for mdp.local contents")
         string(name: "FIREBASE_CREDENTIALS_ID", defaultValue: "", description: "Optional Jenkins secret file credential ID for firebase admin JSON")
@@ -85,6 +86,7 @@ pipeline {
                         rollbackOnFailure        : params.ROLLBACK_ON_FAILURE,
                         rolloutTimeoutSeconds    : (params.ROLLOUT_TIMEOUT_SECONDS ?: "600").toString().trim(),
                         deployIngress            : params.DEPLOY_INGRESS,
+                        deployUnits              : params.DEPLOY_UNITS?.trim(),
                         githubTokenCredentialsId : params.GITHUB_TOKEN_CREDENTIALS_ID?.trim(),
                         mdpFileCredentialsId     : params.MDP_FILE_CREDENTIALS_ID?.trim(),
                         firebaseCredentialsId    : params.FIREBASE_CREDENTIALS_ID?.trim(),
