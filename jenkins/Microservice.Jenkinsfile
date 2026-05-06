@@ -59,6 +59,24 @@ node {
             planningCalendarCredentialsId : params.PLANNING_CALENDAR_CREDENTIALS_ID?.trim(),
             meetingCalendarCredentialsId  : params.MEETING_CALENDAR_CREDENTIALS_ID?.trim()
         ])
+
+        if (params.K8S_CLEANUP_ENABLED != false) {
+            def k8sCleanup = load("ci/pipelines/k8sCleanup.groovy")
+            k8sCleanup.runK8sCleanup([
+                enabled                 : params.K8S_CLEANUP_ENABLED != false,
+                namespace               : (params.KUBE_NAMESPACE ?: "smart-freelance-dev").trim(),
+                retentionHours          : (params.K8S_CLEANUP_RETENTION_HOURS ?: "24").toString().trim(),
+                labelSelector           : (params.K8S_CLEANUP_LABEL_SELECTOR ?: "app=${deployUnit}").toString().trim(),
+                cleanupCompletedJobs    : true,
+                cleanupFailedPods       : true,
+                pruneHelmHistory        : params.K8S_PRUNE_HELM_HISTORY == true,
+                helmRelease             : (params.K8S_HELM_RELEASE ?: "").toString().trim(),
+                helmChart               : (params.K8S_HELM_CHART ?: "").toString().trim(),
+                helmHistoryMax          : (params.K8S_HELM_HISTORY_MAX ?: "10").toString().trim(),
+                cleanupEphemeralNamespace: params.K8S_EPHEMERAL_NAMESPACE_CLEANUP == true,
+                allowNamespaceDelete    : params.K8S_EPHEMERAL_NAMESPACE_CLEANUP == true
+            ])
+        }
     }
 
     cleanWs(deleteDirs: true, disableDeferredWipeout: true)

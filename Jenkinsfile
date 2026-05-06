@@ -18,6 +18,10 @@ pipeline {
         booleanParam(name: "DEPLOY_TO_K8S", defaultValue: true, description: "After successful CI, render manifests and deploy to Kubernetes")
         string(name: "GIT_CREDENTIALS_ID", defaultValue: "GithubCredentials", description: "Jenkins credentials ID used for Git checkout")
         string(name: "DOCKER_CREDENTIALS_ID", defaultValue: "DockerHubCrendentials", description: "Jenkins username/password credentials ID for Docker Hub")
+        booleanParam(name: "DOCKER_CLEANUP_AFTER_BUILD", defaultValue: true, description: "Remove local image tags and prune dangling images after build")
+        booleanParam(name: "DOCKER_IMAGE_PRUNE", defaultValue: true, description: "Run docker image prune -f after each isolated workspace")
+        booleanParam(name: "DOCKER_BUILDER_PRUNE", defaultValue: false, description: "Run docker builder prune after each isolated workspace")
+        string(name: "DOCKER_BUILDER_KEEP_STORAGE", defaultValue: "8GB", description: "BuildKit keep-storage value when builder prune is enabled")
 
         string(name: "KUBECONFIG_CREDENTIALS_ID", defaultValue: "kubeconfig", description: "Jenkins secret file credential ID for kubeconfig")
         string(name: "KUBE_CONTEXT", defaultValue: "kubernetes-admin@kubernetes", description: "Kubernetes context name from kubeconfig")
@@ -371,9 +375,20 @@ def microRunnerOnce() {
 
 def runInIsolatedWorkspace(String workspaceSuffix, Closure body) {
     ws("${env.WORKSPACE}@${workspaceSuffix}") {
-        deleteDir()
-        unstash "repo-source"
-        body()
+        def dockerCleanup = load("ci/pipelines/dockerDiskCleanup.groovy")
+        try {
+            deleteDir()
+            unstash "repo-source"
+            body()
+        } finally {
+            dockerCleanup.cleanupLocalDockerArtifacts([
+                tags              : [],
+                imagePrune        : params.DOCKER_IMAGE_PRUNE != false,
+                builderPrune      : params.DOCKER_BUILDER_PRUNE == true,
+                builderKeepStorage: (params.DOCKER_BUILDER_KEEP_STORAGE ?: "8GB").toString().trim()
+            ])
+            dockerCleanup.cleanupOrchestrationWorkspace()
+        }
     }
 }
 

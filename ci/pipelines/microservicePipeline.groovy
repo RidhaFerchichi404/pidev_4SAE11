@@ -17,6 +17,10 @@ def runMicroservicePipeline(Map cfg) {
     def tag = (params.IMAGE_TAG?.trim()) ? params.IMAGE_TAG.trim() : env.BUILD_NUMBER
     def dockerImage = "${imageRepo}/${cfg.imageName}"
     def fullImage = "${dockerImage}:${tag}"
+    def dockerCleanupEnabled = params.DOCKER_CLEANUP_AFTER_BUILD != false
+    def dockerImagePruneEnabled = params.DOCKER_IMAGE_PRUNE != false
+    def dockerBuilderPruneEnabled = params.DOCKER_BUILDER_PRUNE == true
+    def dockerBuilderKeepStorage = (params.DOCKER_BUILDER_KEEP_STORAGE ?: "8GB").toString().trim()
     def buildTool = ""
     def npmAvailable = false
     def sonarAnalysisExecuted = false
@@ -358,6 +362,20 @@ def runMicroservicePipeline(Map cfg) {
                         }
                         sh "docker logout docker.io || docker logout || true"
                     }
+                }
+            }
+
+            stage("Cleanup Docker Local Artifacts") {
+                if (dockerCleanupEnabled) {
+                    def dockerCleanup = load("ci/pipelines/dockerDiskCleanup.groovy")
+                    dockerCleanup.cleanupLocalDockerArtifacts([
+                        tags              : [fullImage, "${dockerImage}:latest"],
+                        imagePrune        : dockerImagePruneEnabled,
+                        builderPrune      : dockerBuilderPruneEnabled,
+                        builderKeepStorage: dockerBuilderKeepStorage
+                    ])
+                } else {
+                    echo "Skipping local Docker cleanup (DOCKER_CLEANUP_AFTER_BUILD=false)."
                 }
             }
 

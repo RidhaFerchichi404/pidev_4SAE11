@@ -54,6 +54,10 @@ pipelineJob("services/${keycloakSvc.id}") {
     booleanParam('PUSH_IMAGE', true, 'Push built image')
     stringParam('GIT_CREDENTIALS_ID', 'GithubCredentials', 'Unused by this job; required when triggered from orchestrator')
     stringParam('DOCKER_CREDENTIALS_ID', 'DockerHubCrendentials', 'Docker Hub credentials ID')
+    booleanParam('DOCKER_CLEANUP_AFTER_BUILD', true, 'Remove local image tags and prune dangling images after build')
+    booleanParam('DOCKER_IMAGE_PRUNE', true, 'Run docker image prune -f after build')
+    booleanParam('DOCKER_BUILDER_PRUNE', false, 'Run docker builder prune after build')
+    stringParam('DOCKER_BUILDER_KEEP_STORAGE', '8GB', 'BuildKit cache keep-storage value when builder prune is enabled')
     booleanParam('RUN_SONARQUBE', false, 'Unused for image build; orchestrator passes this for all children')
     booleanParam('TRIGGER_DOWNSTREAM', false, 'Unused; orchestrator sets false')
   }
@@ -91,6 +95,10 @@ microSvcList.each { svc ->
       booleanParam('RUN_SONARQUBE', true, 'Run SonarQube analysis and quality gate')
       stringParam('GIT_CREDENTIALS_ID', 'GithubCredentials', 'Jenkins credentials ID for Git checkout')
       stringParam('DOCKER_CREDENTIALS_ID', 'DockerHubCrendentials', 'Docker Hub credentials ID')
+      booleanParam('DOCKER_CLEANUP_AFTER_BUILD', true, 'Remove local image tags and prune dangling images after build')
+      booleanParam('DOCKER_IMAGE_PRUNE', true, 'Run docker image prune -f after build')
+      booleanParam('DOCKER_BUILDER_PRUNE', false, 'Run docker builder prune after build')
+      stringParam('DOCKER_BUILDER_KEEP_STORAGE', '8GB', 'BuildKit cache keep-storage value when builder prune is enabled')
       stringParam('SERVICE_NAME', svc.id, 'Service id (informational; matches job name)')
       stringParam('SERVICE_PATH', svc.path, 'Module path in repo')
       stringParam('IMAGE_NAME', svc.image, 'Docker image short name (registry prefix from IMAGE_REPO)')
@@ -117,6 +125,14 @@ microSvcList.each { svc ->
       stringParam('FIREBASE_CREDENTIALS_ID', '', 'Optional Firebase JSON secret file')
       stringParam('PLANNING_CALENDAR_CREDENTIALS_ID', '', 'Optional planning calendar JSON')
       stringParam('MEETING_CALENDAR_CREDENTIALS_ID', '', 'Optional meeting calendar JSON')
+      booleanParam('K8S_CLEANUP_ENABLED', true, 'Run post-deploy Kubernetes cleanup tasks')
+      stringParam('K8S_CLEANUP_RETENTION_HOURS', '24', 'Retention window for completed jobs/failed pods')
+      stringParam('K8S_CLEANUP_LABEL_SELECTOR', '', 'Optional label selector for K8s cleanup (default app=<deploy_unit>)')
+      booleanParam('K8S_PRUNE_HELM_HISTORY', false, 'Enforce Helm history max during deploy cleanup')
+      stringParam('K8S_HELM_RELEASE', '', 'Helm release name when K8S_PRUNE_HELM_HISTORY=true')
+      stringParam('K8S_HELM_CHART', '', 'Helm chart path/ref when K8S_PRUNE_HELM_HISTORY=true')
+      stringParam('K8S_HELM_HISTORY_MAX', '10', 'Helm max history revisions when pruning is enabled')
+      booleanParam('K8S_EPHEMERAL_NAMESPACE_CLEANUP', false, 'Delete namespace at end for ephemeral environments only')
     }
     definition {
       cpsScm {
@@ -137,7 +153,7 @@ microSvcList.each { svc ->
 }
 
 pipelineJob('orchestration/full-stack-main') {
-  description('Monolithic CI/CD: root Jenkinsfile (all services in one run). Prefer services/* jobs for isolation.')
+  description('Orchestration fan-out pipeline: triggers services/* jobs with shared parameters.')
   logRotator {
     numToKeep(30)
     daysToKeep(30)
@@ -152,6 +168,10 @@ pipelineJob('orchestration/full-stack-main') {
     booleanParam('DEPLOY_TO_K8S', true, 'After successful CI, deploy to Kubernetes')
     stringParam('GIT_CREDENTIALS_ID', 'GithubCredentials', 'Jenkins credentials ID used for Git checkout')
     stringParam('DOCKER_CREDENTIALS_ID', 'DockerHubCrendentials', 'Jenkins username/password credentials ID for Docker Hub')
+    booleanParam('DOCKER_CLEANUP_AFTER_BUILD', true, 'Pass local Docker cleanup toggle to child jobs')
+    booleanParam('DOCKER_IMAGE_PRUNE', true, 'Pass docker image prune toggle to child jobs')
+    booleanParam('DOCKER_BUILDER_PRUNE', false, 'Pass docker builder prune toggle to child jobs')
+    stringParam('DOCKER_BUILDER_KEEP_STORAGE', '8GB', 'BuildKit keep-storage for child jobs when builder prune is enabled')
 
     stringParam('KUBECONFIG_CREDENTIALS_ID', 'kubeconfig', 'Jenkins secret file credential ID for kubeconfig')
     stringParam('KUBE_CONTEXT', 'kubernetes-admin@kubernetes', 'Kubernetes context name from kubeconfig')
@@ -172,6 +192,16 @@ pipelineJob('orchestration/full-stack-main') {
     stringParam('FIREBASE_CREDENTIALS_ID', '', 'Optional Jenkins secret file credential ID for firebase admin JSON')
     stringParam('PLANNING_CALENDAR_CREDENTIALS_ID', '', 'Optional Jenkins secret file credential ID for planning calendar service account JSON')
     stringParam('MEETING_CALENDAR_CREDENTIALS_ID', '', 'Optional Jenkins secret file credential ID for meeting calendar service account JSON')
+    booleanParam('K8S_CLEANUP_ENABLED', true, 'Pass K8s cleanup toggle to child jobs')
+    stringParam('K8S_CLEANUP_RETENTION_HOURS', '24', 'Retention window passed to child jobs')
+    stringParam('K8S_CLEANUP_LABEL_SELECTOR', '', 'Optional cleanup selector passed to child jobs')
+    booleanParam('K8S_PRUNE_HELM_HISTORY', false, 'Pass Helm history prune toggle to child jobs')
+    stringParam('K8S_HELM_RELEASE', '', 'Helm release passed to child jobs')
+    stringParam('K8S_HELM_CHART', '', 'Helm chart passed to child jobs')
+    stringParam('K8S_HELM_HISTORY_MAX', '10', 'Helm history max passed to child jobs')
+    booleanParam('K8S_EPHEMERAL_NAMESPACE_CLEANUP', false, 'Pass ephemeral namespace cleanup toggle to child jobs')
+    stringParam('SERVICE_IDS', '', 'Comma-separated services ids; empty = default dependency order')
+    booleanParam('PARALLEL', false, 'Run selected services in parallel (no dependency ordering)')
   }
   definition {
     cpsScm {
@@ -184,7 +214,7 @@ pipelineJob('orchestration/full-stack-main') {
           branch(branchSpec)
         }
       }
-      scriptPath('Jenkinsfile')
+      scriptPath('jenkins/Orchestrator.Jenkinsfile')
       lightweight(true)
     }
   }
@@ -205,8 +235,39 @@ pipelineJob('orchestration/trigger-all-services') {
     booleanParam('RUN_SONARQUBE', true, 'Sonar in child jobs')
     stringParam('GIT_CREDENTIALS_ID', 'GithubCredentials', 'Git credentials id')
     stringParam('DOCKER_CREDENTIALS_ID', 'DockerHubCrendentials', 'Docker credentials id')
+    booleanParam('DOCKER_CLEANUP_AFTER_BUILD', true, 'Pass local Docker cleanup toggle to child jobs')
+    booleanParam('DOCKER_IMAGE_PRUNE', true, 'Pass docker image prune toggle to child jobs')
+    booleanParam('DOCKER_BUILDER_PRUNE', false, 'Pass docker builder prune toggle to child jobs')
+    stringParam('DOCKER_BUILDER_KEEP_STORAGE', '8GB', 'BuildKit keep-storage for child jobs when builder prune is enabled')
     stringParam('SERVICE_IDS', '', 'Comma-separated services/keycloak-server ids; empty = default order')
     booleanParam('PARALLEL', false, 'Run all listed services in parallel (no dependency ordering)')
+    booleanParam('DEPLOY_TO_K8S', false, 'Pass deploy toggle to child jobs')
+    stringParam('KUBECONFIG_CREDENTIALS_ID', 'kubeconfig', 'Kubeconfig credential id for child jobs')
+    stringParam('KUBE_CONTEXT', 'kubernetes-admin@kubernetes', 'Kubernetes context for child jobs')
+    stringParam('KUBE_NAMESPACE', 'smart-freelance-dev', 'Namespace for child jobs')
+    stringParam('MANIFEST_PATH', 'k8s', 'Manifest path for child jobs')
+    booleanParam('DEPLOY_MONITORING', true, 'Deploy monitoring in child jobs')
+    stringParam('MONITORING_MANIFEST_PATH', 'k8s/monitoring', 'Monitoring manifest path for child jobs')
+    choiceParam('ENVIRONMENT', ['dev', 'staging', 'prod'], 'Deployment environment for child jobs')
+    booleanParam('REQUIRE_PROD_APPROVAL', true, 'Require prod approval in child jobs')
+    booleanParam('ROLLBACK_ON_FAILURE', true, 'Rollback failed deploy in child jobs')
+    booleanParam('DRY_RUN_ONLY', false, 'Dry-run only in child jobs')
+    stringParam('ROLLOUT_TIMEOUT_SECONDS', '600', 'Rollout timeout passed to child jobs')
+    booleanParam('DEPLOY_INGRESS', true, 'Deploy ingress in child jobs')
+    stringParam('PUBLIC_API_GATEWAY_URL', 'http://api.smartfreelance.example.com', 'Frontend API URL passed to child jobs')
+    stringParam('GITHUB_TOKEN_CREDENTIALS_ID', '', 'Optional secret text passed to child jobs')
+    stringParam('MDP_FILE_CREDENTIALS_ID', '', 'Optional mdp file secret passed to child jobs')
+    stringParam('FIREBASE_CREDENTIALS_ID', '', 'Optional firebase file secret passed to child jobs')
+    stringParam('PLANNING_CALENDAR_CREDENTIALS_ID', '', 'Optional planning calendar secret passed to child jobs')
+    stringParam('MEETING_CALENDAR_CREDENTIALS_ID', '', 'Optional meeting calendar secret passed to child jobs')
+    booleanParam('K8S_CLEANUP_ENABLED', true, 'Pass K8s cleanup toggle to child jobs')
+    stringParam('K8S_CLEANUP_RETENTION_HOURS', '24', 'Retention window passed to child jobs')
+    stringParam('K8S_CLEANUP_LABEL_SELECTOR', '', 'Optional cleanup selector passed to child jobs')
+    booleanParam('K8S_PRUNE_HELM_HISTORY', false, 'Pass Helm history prune toggle to child jobs')
+    stringParam('K8S_HELM_RELEASE', '', 'Helm release passed to child jobs')
+    stringParam('K8S_HELM_CHART', '', 'Helm chart passed to child jobs')
+    stringParam('K8S_HELM_HISTORY_MAX', '10', 'Helm history max passed to child jobs')
+    booleanParam('K8S_EPHEMERAL_NAMESPACE_CLEANUP', false, 'Pass ephemeral namespace cleanup toggle to child jobs')
   }
   definition {
     cpsScm {
