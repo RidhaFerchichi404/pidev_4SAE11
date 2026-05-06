@@ -19,6 +19,7 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8888
+            - containerPort: 9090
           envFrom:
             - configMapRef:
                 name: app-config
@@ -60,10 +61,18 @@ kind: Service
 metadata:
   name: config-server
   namespace: smart-freelance
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /actuator/prometheus
+    prometheus.io/port: "9090"
 spec:
   selector:
     app: config-server
   ports:
-    - port: 8888
+    - name: http
+      port: 8888
       targetPort: 8888
+    - name: metrics
+      port: 9090
+      targetPort: 9090
   type: ClusterIP

@@ -1,4 +1,42 @@
 apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: monitoring
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus-k8s-discovery
+rules:
+  - apiGroups: [""]
+    resources:
+      - nodes
+      - nodes/metrics
+      - nodes/proxy
+      - services
+      - endpoints
+      - pods
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["discovery.k8s.io"]
+    resources:
+      - endpointslices
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus-k8s-discovery
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus-k8s-discovery
+subjects:
+  - kind: ServiceAccount
+    name: prometheus
+    namespace: monitoring
+---
+apiVersion: v1
 kind: ConfigMap
 metadata:
   name: prometheus-config
@@ -14,35 +52,35 @@ data:
         static_configs:
           - targets: ['localhost:9090']
 
+      # Spring services: scrape only the Service port named "metrics" (9090).
       - job_name: kubernetes-services
         kubernetes_sd_configs:
           - role: endpoints
         relabel_configs:
           - source_labels: [__meta_kubernetes_namespace]
-            regex: smart-freelance.*
+            regex: ^__KD_KUBE_NAMESPACE__$
             action: keep
           - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
             regex: true
             action: keep
+          - source_labels: [__meta_kubernetes_endpoint_port_name]
+            regex: metrics
+            action: keep
           - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_path]
-            target_label: __metrics_path__
             regex: (.+)
+            target_label: __metrics_path__
+            replacement: $1
+            action: replace
+          - source_labels: [__metrics_path__]
+            regex: ^$
+            target_label: __metrics_path__
+            replacement: /actuator/prometheus
+            action: replace
           - source_labels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
             target_label: __address__
             regex: ([^:]+)(?::\d+)?;(\d+)
             replacement: $1:$2
             action: replace
-
-      # Default static targets for initial rollout.
-      # Update this list as services/ports evolve.
-      - job_name: platform-services-static
-        metrics_path: /actuator/prometheus
-        static_configs:
-          - targets:
-              - api-gateway.smart-freelance-dev.svc.cluster.local:8078
-              - user.smart-freelance-dev.svc.cluster.local:8090
-              - project.smart-freelance-dev.svc.cluster.local:8084
-              - planning.smart-freelance-dev.svc.cluster.local:8081
 
 ---
 apiVersion: apps/v1
@@ -60,7 +98,8 @@ spec:
       labels:
         app: prometheus
     spec:
-      automountServiceAccountToken: false
+      serviceAccountName: prometheus
+      automountServiceAccountToken: true
       containers:
         - name: prometheus
           image: prom/prometheus:v2.54.1
@@ -180,7 +219,7 @@ data:
           "gridPos": { "h": 7, "w": 8, "x": 0, "y": 0 },
           "targets": [
             {
-              "expr": "sum(kube_pod_status_ready{condition=\"true\",namespace=~\"smart-freelance.*\"})",
+              "expr": "sum(kube_pod_status_ready{condition=\"true\",namespace=~\"^__KD_KUBE_NAMESPACE__$\"})",
               "refId": "A"
             }
           ],
@@ -192,7 +231,7 @@ data:
           "gridPos": { "h": 8, "w": 16, "x": 8, "y": 0 },
           "targets": [
             {
-              "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=~\"smart-freelance.*\",container!=\"\",image!=\"\"}[5m])) by (pod)",
+              "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=~\"^__KD_KUBE_NAMESPACE__$\",container!=\"\",image!=\"\"}[5m])) by (pod)",
               "legendFormat": "{{pod}}",
               "refId": "A"
             }
@@ -205,7 +244,7 @@ data:
           "gridPos": { "h": 8, "w": 12, "x": 0, "y": 7 },
           "targets": [
             {
-              "expr": "sum(container_memory_working_set_bytes{namespace=~\"smart-freelance.*\",container!=\"\",image!=\"\"}) by (pod)",
+              "expr": "sum(container_memory_working_set_bytes{namespace=~\"^__KD_KUBE_NAMESPACE__$\",container!=\"\",image!=\"\"}) by (pod)",
               "legendFormat": "{{pod}}",
               "refId": "A"
             }
@@ -218,7 +257,7 @@ data:
           "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
           "targets": [
             {
-              "expr": "sum(rate(http_server_requests_seconds_count{namespace=~\"smart-freelance.*\"}[5m])) by (service)",
+              "expr": "sum(rate(http_server_requests_seconds_count{namespace=~\"^__KD_KUBE_NAMESPACE__$\"}[5m])) by (service)",
               "legendFormat": "{{service}}",
               "refId": "A"
             }

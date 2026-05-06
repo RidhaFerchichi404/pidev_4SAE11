@@ -325,9 +325,11 @@ import os
 app_namespace = os.environ["KD_KUBE_NAMESPACE"].strip()
 target = pathlib.Path(os.environ["KD_RENDER_DIR"]) / "monitoring"
 
+ns_re = re.escape(app_namespace)
 for file in target.rglob("*.y*ml"):
     data = file.read_text(encoding="utf-8")
     updated = re.sub(r"smart-freelance-dev", app_namespace, data)
+    updated = updated.replace("__KD_KUBE_NAMESPACE__", ns_re)
     if updated != data:
         file.write_text(updated, encoding="utf-8")
 PY

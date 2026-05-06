@@ -19,9 +19,20 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8420
+            - containerPort: 9090
           env:
             - name: SERVER_PORT
               value: "8420"
+            - name: MANAGEMENT_SERVER_PORT
+              value: "9090"
+            - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+              value: "health,info,prometheus,metrics,env,loggers,refresh"
+            - name: MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS
+              value: "always"
+            - name: MANAGEMENT_PROMETHEUS_METRICS_EXPORT_ENABLED
+              value: "true"
+            - name: MANAGEMENT_METRICS_TAGS_PLATFORM
+              value: "smart-freelance"
           resources:
             requests:
               cpu: 100m
@@ -50,10 +61,18 @@ kind: Service
 metadata:
   name: eureka
   namespace: smart-freelance
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /actuator/prometheus
+    prometheus.io/port: "9090"
 spec:
   selector:
     app: eureka
   ports:
-    - port: 8420
+    - name: http
+      port: 8420
       targetPort: 8420
+    - name: metrics
+      port: 9090
+      targetPort: 9090
   type: ClusterIP

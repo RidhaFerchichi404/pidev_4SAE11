@@ -28,7 +28,7 @@ spec:
         - name: keycloak-auth
           image: YOUR_DOCKERHUB_USERNAME/keycloak-auth:latest
           imagePullPolicy: IfNotPresent
-          ports: [{containerPort: 8079}]
+          ports: [{containerPort: 8079}, {containerPort: 9090}]
           envFrom:
             - configMapRef:  {name: app-config}
             - secretRef:     {name: keycloak-secret}
@@ -52,9 +52,15 @@ kind: Service
 metadata:
   name: keycloak-auth
   namespace: smart-freelance
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /actuator/prometheus
+    prometheus.io/port: "9090"
 spec:
   selector: {app: keycloak-auth}
-  ports: [{port: 8079, targetPort: 8079}]
+  ports:
+    - {name: http, port: 8079, targetPort: 8079}
+    - {name: metrics, port: 9090, targetPort: 9090}
 
 ---
 # ─────────────────────────────────── user ───────────────────────────────────
@@ -77,7 +83,7 @@ spec:
         - name: user
           image: YOUR_DOCKERHUB_USERNAME/user:latest
           imagePullPolicy: IfNotPresent
-          ports: [{containerPort: 8090}]
+          ports: [{containerPort: 8090}, {containerPort: 9090}]
           envFrom:
             - configMapRef: {name: app-config}
             - secretRef:    {name: mysql-secret}
@@ -116,9 +122,15 @@ kind: Service
 metadata:
   name: user
   namespace: smart-freelance
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /actuator/prometheus
+    prometheus.io/port: "9090"
 spec:
   selector: {app: user}
-  ports: [{port: 8090, targetPort: 8090}]
+  ports:
+    - {name: http, port: 8090, targetPort: 8090}
+    - {name: metrics, port: 9090, targetPort: 9090}
 
 ---
 # ─────────────────────────────── project ────────────────────────────────────
@@ -139,7 +151,7 @@ spec:
         - name: project
           image: YOUR_DOCKERHUB_USERNAME/project:latest
           imagePullPolicy: IfNotPresent
-          ports: [{containerPort: 8084}]
+          ports: [{containerPort: 8084}, {containerPort: 9090}]
           envFrom:
             - configMapRef: {name: app-config}
             - secretRef:    {name: mysql-secret}
@@ -164,9 +176,15 @@ kind: Service
 metadata:
   name: project
   namespace: smart-freelance
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /actuator/prometheus
+    prometheus.io/port: "9090"
 spec:
   selector: {app: project}
-  ports: [{port: 8084, targetPort: 8084}]
+  ports:
+    - {name: http, port: 8084, targetPort: 8084}
+    - {name: metrics, port: 9090, targetPort: 9090}
 
 ---
 # ─────────────────────────────── offer ──────────────────────────────────────
@@ -187,7 +205,7 @@ spec:
         - name: offer
           image: YOUR_DOCKERHUB_USERNAME/offer:latest
           imagePullPolicy: IfNotPresent
-          ports: [{containerPort: 8082}]
+          ports: [{containerPort: 8082}, {containerPort: 9090}]
           envFrom:
             - configMapRef: {name: app-config}
             - secretRef:    {name: mysql-secret}
@@ -212,9 +230,15 @@ kind: Service
 metadata:
   name: offer
   namespace: smart-freelance
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /actuator/prometheus
+    prometheus.io/port: "9090"
 spec:
   selector: {app: offer}
-  ports: [{port: 8082, targetPort: 8082}]
+  ports:
+    - {name: http, port: 8082, targetPort: 8082}
+    - {name: metrics, port: 9090, targetPort: 9090}
 
 ---
 # ─────────────────────────────── contract ───────────────────────────────────
@@ -235,7 +259,7 @@ spec:
         - name: contract
           image: YOUR_DOCKERHUB_USERNAME/contract:latest
           imagePullPolicy: IfNotPresent
-          ports: [{containerPort: 8083}]
+          ports: [{containerPort: 8083}, {containerPort: 9090}]
           envFrom:
             - configMapRef: {name: app-config}
             - secretRef:    {name: mysql-secret}
@@ -260,9 +284,15 @@ kind: Service
 metadata:
   name: contract
   namespace: smart-freelance
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /actuator/prometheus
+    prometheus.io/port: "9090"
 spec:
   selector: {app: contract}
-  ports: [{port: 8083, targetPort: 8083}]
+  ports:
+    - {name: http, port: 8083, targetPort: 8083}
+    - {name: metrics, port: 9090, targetPort: 9090}
 
 ---
 # ─────────────────────────────── portfolio ──────────────────────────────────
@@ -283,7 +313,7 @@ spec:
         - name: portfolio
           image: YOUR_DOCKERHUB_USERNAME/portfolio:latest
           imagePullPolicy: IfNotPresent
-          ports: [{containerPort: 8086}]
+          ports: [{containerPort: 8086}, {containerPort: 9090}]
           envFrom:
             - configMapRef: {name: app-config}
             - secretRef:    {name: mysql-secret}
@@ -309,9 +339,15 @@ kind: Service
 metadata:
   name: portfolio
   namespace: smart-freelance
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /actuator/prometheus
+    prometheus.io/port: "9090"
 spec:
   selector: {app: portfolio}
-  ports: [{port: 8086, targetPort: 8086}]
+  ports:
+    - {name: http, port: 8086, targetPort: 8086}
+    - {name: metrics, port: 9090, targetPort: 9090}
 
 ---
 # ─────────────────────────────── review ─────────────────────────────────────
@@ -332,7 +368,7 @@ spec:
         - name: review
           image: YOUR_DOCKERHUB_USERNAME/review:latest
           imagePullPolicy: IfNotPresent
-          ports: [{containerPort: 8085}]
+          ports: [{containerPort: 8085}, {containerPort: 9090}]
           envFrom:
             - configMapRef: {name: app-config}
             - secretRef:    {name: mysql-secret}
@@ -360,9 +396,15 @@ kind: Service
 metadata:
   name: review
   namespace: smart-freelance
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /actuator/prometheus
+    prometheus.io/port: "9090"
 spec:
   selector: {app: review}
-  ports: [{port: 8085, targetPort: 8085}]
+  ports:
+    - {name: http, port: 8085, targetPort: 8085}
+    - {name: metrics, port: 9090, targetPort: 9090}
 
 ---
 # ─────────────────────────────── planning ───────────────────────────────────
@@ -383,7 +425,7 @@ spec:
         - name: planning
           image: YOUR_DOCKERHUB_USERNAME/planning:latest
           imagePullPolicy: IfNotPresent
-          ports: [{containerPort: 8081}]
+          ports: [{containerPort: 8081}, {containerPort: 9090}]
           envFrom:
             - configMapRef: {name: app-config}
             - secretRef:    {name: mysql-secret}
@@ -418,9 +460,15 @@ kind: Service
 metadata:
   name: planning
   namespace: smart-freelance
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /actuator/prometheus
+    prometheus.io/port: "9090"
 spec:
   selector: {app: planning}
-  ports: [{port: 8081, targetPort: 8081}]
+  ports:
+    - {name: http, port: 8081, targetPort: 8081}
+    - {name: metrics, port: 9090, targetPort: 9090}
 
 ---
 # ─────────────────────────────── task ───────────────────────────────────────
@@ -441,7 +489,7 @@ spec:
         - name: task
           image: YOUR_DOCKERHUB_USERNAME/task:latest
           imagePullPolicy: IfNotPresent
-          ports: [{containerPort: 8091}]
+          ports: [{containerPort: 8091}, {containerPort: 9090}]
           envFrom:
             - configMapRef: {name: app-config}
             - secretRef:    {name: mysql-secret}
@@ -466,9 +514,15 @@ kind: Service
 metadata:
   name: task
   namespace: smart-freelance
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /actuator/prometheus
+    prometheus.io/port: "9090"
 spec:
   selector: {app: task}
-  ports: [{port: 8091, targetPort: 8091}]
+  ports:
+    - {name: http, port: 8091, targetPort: 8091}
+    - {name: metrics, port: 9090, targetPort: 9090}
 
 ---
 # ─────────────────────────────── notification ───────────────────────────────
@@ -489,7 +543,7 @@ spec:
         - name: notification
           image: YOUR_DOCKERHUB_USERNAME/notification:latest
           imagePullPolicy: IfNotPresent
-          ports: [{containerPort: 8087}]
+          ports: [{containerPort: 8087}, {containerPort: 9090}]
           envFrom:
             - configMapRef: {name: app-config}
           env:
@@ -521,9 +575,15 @@ kind: Service
 metadata:
   name: notification
   namespace: smart-freelance
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /actuator/prometheus
+    prometheus.io/port: "9090"
 spec:
   selector: {app: notification}
-  ports: [{port: 8087, targetPort: 8087}]
+  ports:
+    - {name: http, port: 8087, targetPort: 8087}
+    - {name: metrics, port: 9090, targetPort: 9090}
 
 ---
 # ─────────────────────────────── gamification ───────────────────────────────
@@ -544,7 +604,7 @@ spec:
         - name: gamification
           image: YOUR_DOCKERHUB_USERNAME/gamification:latest
           imagePullPolicy: IfNotPresent
-          ports: [{containerPort: 8088}]
+          ports: [{containerPort: 8088}, {containerPort: 9090}]
           envFrom:
             - configMapRef: {name: app-config}
             - secretRef:    {name: mysql-secret}
@@ -569,9 +629,15 @@ kind: Service
 metadata:
   name: gamification
   namespace: smart-freelance
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /actuator/prometheus
+    prometheus.io/port: "9090"
 spec:
   selector: {app: gamification}
-  ports: [{port: 8088, targetPort: 8088}]
+  ports:
+    - {name: http, port: 8088, targetPort: 8088}
+    - {name: metrics, port: 9090, targetPort: 9090}
 
 ---
 # ─────────────────────────────── chat ───────────────────────────────────────
@@ -592,7 +658,7 @@ spec:
         - name: chat
           image: YOUR_DOCKERHUB_USERNAME/chat:latest
           imagePullPolicy: IfNotPresent
-          ports: [{containerPort: 8093}]
+          ports: [{containerPort: 8093}, {containerPort: 9090}]
           envFrom:
             - configMapRef: {name: app-config}
             - secretRef:    {name: mysql-secret}
@@ -617,9 +683,15 @@ kind: Service
 metadata:
   name: chat
   namespace: smart-freelance
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /actuator/prometheus
+    prometheus.io/port: "9090"
 spec:
   selector: {app: chat}
-  ports: [{port: 8093, targetPort: 8093}]
+  ports:
+    - {name: http, port: 8093, targetPort: 8093}
+    - {name: metrics, port: 9090, targetPort: 9090}
 
 ---
 # ─────────────────────────────── meeting ────────────────────────────────────
@@ -640,7 +712,7 @@ spec:
         - name: meeting
           image: YOUR_DOCKERHUB_USERNAME/meeting:latest
           imagePullPolicy: IfNotPresent
-          ports: [{containerPort: 8101}]
+          ports: [{containerPort: 8101}, {containerPort: 9090}]
           envFrom:
             - configMapRef: {name: app-config}
             - secretRef:    {name: mysql-secret}
@@ -674,9 +746,15 @@ kind: Service
 metadata:
   name: meeting
   namespace: smart-freelance
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /actuator/prometheus
+    prometheus.io/port: "9090"
 spec:
   selector: {app: meeting}
-  ports: [{port: 8101, targetPort: 8101}]
+  ports:
+    - {name: http, port: 8101, targetPort: 8101}
+    - {name: metrics, port: 9090, targetPort: 9090}
 
 ---
 # ─────────────────────────────── freelancia-job ─────────────────────────────
@@ -697,7 +775,7 @@ spec:
         - name: freelancia-job
           image: YOUR_DOCKERHUB_USERNAME/freelancia-job:latest
           imagePullPolicy: IfNotPresent
-          ports: [{containerPort: 8097}]
+          ports: [{containerPort: 8097}, {containerPort: 9090}]
           envFrom:
             - configMapRef: {name: app-config}
             - secretRef:    {name: mysql-secret}
@@ -722,9 +800,15 @@ kind: Service
 metadata:
   name: freelancia-job
   namespace: smart-freelance
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /actuator/prometheus
+    prometheus.io/port: "9090"
 spec:
   selector: {app: freelancia-job}
-  ports: [{port: 8097, targetPort: 8097}]
+  ports:
+    - {name: http, port: 8097, targetPort: 8097}
+    - {name: metrics, port: 9090, targetPort: 9090}
 
 ---
 # ─────────────────────────────── aimodel ─────────────────────────────────────
@@ -745,7 +829,7 @@ spec:
         - name: aimodel
           image: YOUR_DOCKERHUB_USERNAME/aimodel:latest
           imagePullPolicy: IfNotPresent
-          ports: [{containerPort: 8095}]
+          ports: [{containerPort: 8095}, {containerPort: 9090}]
           envFrom:
             - configMapRef: {name: app-config}
           env:
@@ -769,7 +853,13 @@ kind: Service
 metadata:
   name: aimodel
   namespace: smart-freelance
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /actuator/prometheus
+    prometheus.io/port: "9090"
 spec:
   selector: {app: aimodel}
-  ports: [{port: 8095, targetPort: 8095}]
+  ports:
+    - {name: http, port: 8095, targetPort: 8095}
+    - {name: metrics, port: 9090, targetPort: 9090}
 

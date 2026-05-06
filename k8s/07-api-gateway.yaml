@@ -24,6 +24,7 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8078
+            - containerPort: 9090
           envFrom:
             - configMapRef:
                 name: app-config
@@ -58,10 +59,18 @@ kind: Service
 metadata:
   name: api-gateway
   namespace: smart-freelance
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /actuator/prometheus
+    prometheus.io/port: "9090"
 spec:
   selector:
     app: api-gateway
   ports:
-    - port: 8078
+    - name: http
+      port: 8078
       targetPort: 8078
+    - name: metrics
+      port: 9090
+      targetPort: 9090
   type: ClusterIP

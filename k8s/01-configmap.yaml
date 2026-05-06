@@ -28,6 +28,13 @@ data:
   # JPA — auto-create/update schema on first deploy
   SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
 
+  # Actuator / Prometheus — management port 9090 (see docker-compose x-java-env)
+  MANAGEMENT_SERVER_PORT: "9090"
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,prometheus,metrics,env,loggers,refresh"
+  MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: "always"
+  MANAGEMENT_PROMETHEUS_METRICS_EXPORT_ENABLED: "true"
+  MANAGEMENT_METRICS_TAGS_PLATFORM: "smart-freelance"
+
   # Internal service URLs (used by review, user, etc.)
   NOTIFICATION_SERVICE_URL: "http://notification:8087"
   USER_SERVICE_URL: "http://user:8090"
