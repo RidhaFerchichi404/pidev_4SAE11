@@ -612,7 +612,7 @@ services:
       SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8420/eureka
       EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
-      NOTIFICATION_FIREBASE_ENABLED: "true"
+      NOTIFICATION_FIREBASE_ENABLED: "false"
       GOOGLE_APPLICATION_CREDENTIALS: /firebase/firebase-credentials.json
     volumes:
       # Production: set FIREBASE_CREDENTIALS in .env to your service account JSON (host path).

@@ -33,7 +33,7 @@ def runKubernetesDeploy(Map cfg) {
     def unitRenderDir = "${renderDir}/app-units"
 
     def dryShell = dryRunOnly ? "true" : "false"
-    def withClusterAccess = { boolean strictContext = true, Closure body ->
+    def withClusterAccess = { boolean strictContext, Closure body ->
         if (kubeContext) {
             def suffix = strictContext ? "" : " || true"
             sh "kubectl config use-context '${kubeContext}'${suffix}"
