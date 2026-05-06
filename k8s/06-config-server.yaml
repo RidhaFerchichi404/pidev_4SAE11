@@ -25,6 +25,13 @@ spec:
           env:
             - name: SERVER_PORT
               value: "8888"
+            # Config Server must not bootstrap from another config server.
+            # app-config sets SPRING_CONFIG_IMPORT for client services; override it here.
+            - name: SPRING_CONFIG_IMPORT
+              value: ""
+            # Force native backend (classpath:/config) for this deployment.
+            - name: SPRING_PROFILES_ACTIVE
+              value: "native"
           resources:
             requests:
               cpu: 100m
