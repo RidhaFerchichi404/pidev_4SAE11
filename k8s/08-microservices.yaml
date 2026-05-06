@@ -85,6 +85,11 @@ spec:
           resources:
             requests: {cpu: 150m, memory: 256Mi}
             limits:   {cpu: 500m, memory: 512Mi}
+          startupProbe:
+            httpGet: {path: /actuator/health, port: 8090}
+            # Allow up to 5 minutes for first startup (DB + migrations).
+            periodSeconds: 10
+            failureThreshold: 30
           readinessProbe:
             httpGet: {path: /actuator/health, port: 8090}
             initialDelaySeconds: 45
@@ -92,15 +97,17 @@ spec:
             failureThreshold: 6
           livenessProbe:
             httpGet: {path: /actuator/health, port: 8090}
-            initialDelaySeconds: 90
+            initialDelaySeconds: 180
             periodSeconds: 20
+            failureThreshold: 6
           volumeMounts:
             - name: user-uploads
               mountPath: /uploads/avatars
       volumes:
         - name: user-uploads
-          persistentVolumeClaim:
-            claimName: user-uploads-pvc
+          hostPath:
+            path: /var/lib/k8s/user-uploads
+            type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: Service
