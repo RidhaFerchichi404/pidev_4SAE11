@@ -65,6 +65,8 @@ metadata:
   namespace: smart-freelance
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels: {app: user}
   template:
