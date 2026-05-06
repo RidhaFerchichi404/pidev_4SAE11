@@ -205,6 +205,7 @@ file_unit_map = {
     "01-configmap.yaml": "foundation",
     "02-secrets.generated.yaml": "foundation",
     "03-mysql.yaml": "foundation",
+    "13-user-storage.yaml": "foundation",
     "04-keycloak.yaml": "keycloak",
     "05-eureka.yaml": "eureka",
     "06-config-server.yaml": "config-server",
@@ -259,8 +260,15 @@ for file_path in sorted(app_dir.glob("*.y*ml")):
         name = name_match.group(1).strip() if name_match else ""
         unit_name = ms_name_to_unit.get(name, "shared")
         normalized_doc = doc.strip() + "\\n"
-        if kind_match and kind_match.group(1).strip() in ("Service", "Deployment", "PersistentVolumeClaim"):
-            units[unit_name].append(normalized_doc)
+        if kind_match:
+            kind = kind_match.group(1).strip()
+            # Global safety rule: PVCs must exist before workloads that mount them.
+            if kind == "PersistentVolumeClaim":
+                units["foundation"].append(normalized_doc)
+            elif kind in ("Service", "Deployment"):
+                units[unit_name].append(normalized_doc)
+            else:
+                units["shared"].append(normalized_doc)
         else:
             units["shared"].append(normalized_doc)
 
