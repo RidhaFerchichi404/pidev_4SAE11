@@ -123,6 +123,30 @@ PY
                   if [ -f "${renderDir}/app/02-secrets.generated.yaml" ] && grep -nE ':[[:space:]]*""[[:space:]]*(#.*)?' "${renderDir}/app/02-secrets.generated.yaml" >/dev/null; then
                     echo "WARNING: Incomplete values detected in generated secrets; deployment will continue with empty entries where applicable."
                   fi
+                  python3 - <<'PY'
+import os
+import pathlib
+import re
+import sys
+
+render_dir = pathlib.Path(os.environ["KD_RENDER_DIR"])
+cfg_file = render_dir / "app" / "01-configmap.yaml"
+secrets_file = render_dir / "app" / "02-secrets.generated.yaml"
+
+if not cfg_file.exists() or not secrets_file.exists():
+    sys.exit(0)
+
+cfg_text = cfg_file.read_text(encoding="utf-8")
+secrets_text = secrets_file.read_text(encoding="utf-8")
+
+enabled = re.search(r'^\s*NOTIFICATION_FIREBASE_ENABLED:\s*"?true"?\s*$', cfg_text, re.MULTILINE) is not None
+firebase_empty = re.search(r'^\s*firebase-credentials\.json:\s*""\s*$', secrets_text, re.MULTILINE) is not None
+
+if enabled and firebase_empty:
+    print("ERROR: NOTIFICATION_FIREBASE_ENABLED=true but firebase-secret is empty.")
+    print("Provide FIREBASE_CREDENTIALS_ID (Jenkins secret file) or FIREBASE_CREDENTIALS_PATH via mdp.local/env.")
+    sys.exit(1)
+PY
                 """
             def credentialBindings = []
             if (githubTokenCredentialsId) {
