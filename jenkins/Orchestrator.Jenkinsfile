@@ -46,7 +46,7 @@ node {
     def deployK8s = params.DEPLOY_TO_K8S == true
 
     def runOne = { String sid ->
-        build job: "services/${sid}", wait: true, propagate: true, parameters: [
+        def child = build job: "services/${sid}", wait: true, propagate: false, parameters: [
             string(name: "REPO_URL", value: repoVal),
             string(name: "BRANCH", value: branchVal),
             string(name: "IMAGE_REPO", value: imageRepoVal),
@@ -87,11 +87,37 @@ node {
             booleanParam(name: "K8S_EPHEMERAL_NAMESPACE_CLEANUP", value: params.K8S_EPHEMERAL_NAMESPACE_CLEANUP == true),
             booleanParam(name: "TRIGGER_DOWNSTREAM", value: false)
         ]
+        def result = child?.result ?: "UNKNOWN"
+        def num = child?.number ?: "?"
+        echo "services/${sid} #${num} completed: ${result}"
+        return [id: sid, result: result, number: num, url: (child?.absoluteUrl ?: "")]
     }
 
+    def failures = java.util.Collections.synchronizedList([])
+
     if (parallelRun) {
-        parallel ids.collectEntries { sid -> [(sid): { runOne(sid) }] }
+        parallel ids.collectEntries { sid ->
+            [(sid): {
+                def childResult = runOne(sid)
+                if (childResult.result != "SUCCESS") {
+                    failures.add(childResult)
+                }
+            }]
+        }
     } else {
-        ids.each { sid -> runOne(sid) }
+        ids.each { sid ->
+            def childResult = runOne(sid)
+            if (childResult.result != "SUCCESS") {
+                failures.add(childResult)
+            }
+        }
+    }
+
+    if (!failures.isEmpty()) {
+        def summary = failures.collect { f ->
+            def suffix = f.url ? " (${f.url})" : ""
+            return "services/${f.id} #${f.number}: ${f.result}${suffix}"
+        }.join(", ")
+        error("One or more child jobs failed: ${summary}")
     }
 }
