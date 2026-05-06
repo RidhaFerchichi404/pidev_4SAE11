@@ -139,8 +139,8 @@ if not cfg_file.exists() or not secrets_file.exists():
 cfg_text = cfg_file.read_text(encoding="utf-8")
 secrets_text = secrets_file.read_text(encoding="utf-8")
 
-enabled = re.search(r'^\\s*NOTIFICATION_FIREBASE_ENABLED:\\s*"?true"?\\s*$', cfg_text, re.MULTILINE) is not None
-firebase_empty = re.search(r'^\\s*firebase-credentials\\.json:\\s*""\\s*$', secrets_text, re.MULTILINE) is not None
+enabled = re.search(r'^\\s*NOTIFICATION_FIREBASE_ENABLED:\\s*"?true"?\\s*(?:\\r?\\n|\\Z)', cfg_text, re.MULTILINE) is not None
+firebase_empty = re.search(r'^\\s*firebase-credentials\\.json:\\s*""\\s*(?:\\r?\\n|\\Z)', secrets_text, re.MULTILINE) is not None
 
 if enabled and firebase_empty:
     print("ERROR: NOTIFICATION_FIREBASE_ENABLED=true but firebase-secret is empty.")
