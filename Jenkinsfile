@@ -14,7 +14,7 @@ pipeline {
         string(name: "IMAGE_REPO", defaultValue: "docker.io/ridhaferchichi", description: "Registry/repo prefix for images and manifest rendering")
         string(name: "IMAGE_TAG", defaultValue: "", description: "Optional immutable tag; if empty, BUILD_NUMBER is used for build and deploy")
         booleanParam(name: "PUSH_IMAGE", defaultValue: true, description: "Push images to Docker Hub")
-        booleanParam(name: "RUN_SONARQUBE", defaultValue: true, description: "Run SonarQube analysis per service")
+        booleanParam(name: "RUN_SONARQUBE", defaultValue: false, description: "Run SonarQube analysis per service")
         booleanParam(name: "DEPLOY_TO_K8S", defaultValue: true, description: "After successful CI, render manifests and deploy to Kubernetes")
         string(name: "GIT_CREDENTIALS_ID", defaultValue: "GithubCredentials", description: "Jenkins credentials ID used for Git checkout")
         string(name: "DOCKER_CREDENTIALS_ID", defaultValue: "DockerHubCrendentials", description: "Jenkins username/password credentials ID for Docker Hub")
