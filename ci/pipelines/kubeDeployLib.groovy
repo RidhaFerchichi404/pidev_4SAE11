@@ -1,6 +1,6 @@
 /**
  * Kubernetes deploy steps (no checkout). Caller must have the repo workspace at the job root.
- * cfg keys: kubeContext, kubeNamespace, manifestPath, imageRepo, imageTag, kubeconfigCredentialsId,
+ * cfg keys: kubeContext, kubeNamespace, manifestPath, imageRepo, imageTag,
  *   deployMonitoring, monitoringManifestPath, deployEnvironment, requireProdApproval, dryRunOnly,
  *   rollbackOnFailure, rolloutTimeoutSeconds, renderDir (optional), deployIngress (optional, default true),
  *   githubTokenCredentialsId (optional Jenkins secret text credential ID),
@@ -11,12 +11,11 @@
  */
 def runKubernetesDeploy(Map cfg) {
     def renderDir = (cfg.renderDir ?: ".cd-rendered").toString()
-    def kubeContext = cfg.kubeContext?.trim() ?: error("kubeContext is required")
+    def kubeContext = cfg.kubeContext?.trim()
     def kubeNamespace = cfg.kubeNamespace?.trim() ?: error("kubeNamespace is required")
     def manifestPath = cfg.manifestPath?.trim() ?: "k8s"
     def imageRepo = cfg.imageRepo?.trim() ?: error("imageRepo is required")
     def imageTag = cfg.imageTag?.toString()?.trim() ?: error("imageTag is required")
-    def kubeconfigCredentialsId = cfg.kubeconfigCredentialsId?.trim() ?: "kubeconfig"
     def deployIngress = cfg.deployIngress != false
     def githubTokenCredentialsId = cfg.githubTokenCredentialsId?.toString()?.trim()
     def mdpFileCredentialsId = cfg.mdpFileCredentialsId?.toString()?.trim()
@@ -34,6 +33,13 @@ def runKubernetesDeploy(Map cfg) {
     def unitRenderDir = "${renderDir}/app-units"
 
     def dryShell = dryRunOnly ? "true" : "false"
+    def withClusterAccess = { boolean strictContext = true, Closure body ->
+        if (kubeContext) {
+            def suffix = strictContext ? "" : " || true"
+            sh "kubectl config use-context '${kubeContext}'${suffix}"
+        }
+        body()
+    }
 
     stage("Validate K8s Inputs") {
         sh """
@@ -54,11 +60,9 @@ def runKubernetesDeploy(Map cfg) {
 
     try {
         stage("Cluster Connectivity") {
-            withCredentials([file(credentialsId: kubeconfigCredentialsId, variable: "KUBECONFIG_FILE")]) {
+            withClusterAccess(true) {
                 sh """
                   set -e
-                  export KUBECONFIG="\$KUBECONFIG_FILE"
-                  kubectl config use-context "${kubeContext}"
                   kubectl cluster-info
                   kubectl get nodes -o wide
                 """
@@ -351,11 +355,9 @@ PY
                     echo "Skipping ${unitName}: rendered manifest file not found (${unitFile})."
                     return
                 }
-                withCredentials([file(credentialsId: kubeconfigCredentialsId, variable: "KUBECONFIG_FILE")]) {
+                withClusterAccess(true) {
                     sh """
                       set -e
-                      export KUBECONFIG="\$KUBECONFIG_FILE"
-                      kubectl config use-context "${kubeContext}"
                       kubectl create namespace "${kubeNamespace}" --dry-run=client -o yaml | kubectl apply -f -
 
                       if [ "${dryShell}" = "true" ]; then
@@ -368,8 +370,6 @@ PY
                         unit.deployments.each { dep ->
                             sh """
                               set -e
-                              export KUBECONFIG="\$KUBECONFIG_FILE"
-                              kubectl config use-context "${kubeContext}"
                               if kubectl -n "${kubeNamespace}" get deploy "${dep}" >/dev/null 2>&1; then
                                 echo "Waiting rollout for deployment/${dep}"
                                 kubectl -n "${kubeNamespace}" rollout status "deployment/${dep}" --timeout="${rolloutTimeoutSeconds}s"
@@ -425,11 +425,9 @@ PY
 
         if (deployMonitoring) {
             stage("Deploy Monitoring Stack") {
-                withCredentials([file(credentialsId: kubeconfigCredentialsId, variable: "KUBECONFIG_FILE")]) {
+                withClusterAccess(true) {
                     sh """
                       set -e
-                      export KUBECONFIG="\$KUBECONFIG_FILE"
-                      kubectl config use-context "${kubeContext}"
                       test -d "${monitoringManifestPath}" || { echo "Monitoring manifest path not found: ${monitoringManifestPath}"; exit 1; }
                       test -d "${renderDir}/monitoring" || { echo "Rendered monitoring path not found: ${renderDir}/monitoring"; exit 1; }
                       kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
@@ -446,11 +444,9 @@ PY
 
         if (!dryRunOnly) {
             stage("Post Deploy Smoke Checks") {
-                withCredentials([file(credentialsId: kubeconfigCredentialsId, variable: "KUBECONFIG_FILE")]) {
+                withClusterAccess(true) {
                     sh """
                       set -e
-                      export KUBECONFIG="\$KUBECONFIG_FILE"
-                      kubectl config use-context "${kubeContext}"
                       kubectl -n "${kubeNamespace}" get pods -o wide
                       kubectl -n "${kubeNamespace}" get svc
                       kubectl -n monitoring get pods,svc || true
@@ -460,7 +456,6 @@ PY
         }
     } catch (Throwable t) {
         archiveAndRollbackKube(
-            kubeconfigCredentialsId,
             kubeContext,
             kubeNamespace,
             dryRunOnly,
@@ -470,35 +465,30 @@ PY
     }
 }
 
-def archiveAndRollbackKube(String kubeconfigCredentialsId, String kubeContext, String kubeNamespace, boolean dryRunOnly, boolean rollbackOnFailure) {
-    withCredentials([file(credentialsId: kubeconfigCredentialsId, variable: "KUBECONFIG_FILE")]) {
-        sh """
-          set +e
-          export KUBECONFIG="\$KUBECONFIG_FILE"
-          kubectl config use-context "${kubeContext}" || true
-          kubectl -n "${kubeNamespace}" get events --sort-by=.metadata.creationTimestamp > kube-events.log 2>/dev/null || true
-          kubectl -n "${kubeNamespace}" get pods -o wide > kube-pods.log 2>/dev/null || true
-          exit 0
-        """
-    }
+def archiveAndRollbackKube(String kubeContext, String kubeNamespace, boolean dryRunOnly, boolean rollbackOnFailure) {
+    sh """
+      set +e
+      ${kubeContext ? "kubectl config use-context \"${kubeContext}\" || true" : "true"}
+      kubectl -n "${kubeNamespace}" get events --sort-by=.metadata.creationTimestamp > kube-events.log 2>/dev/null || true
+      kubectl -n "${kubeNamespace}" get pods -o wide > kube-pods.log 2>/dev/null || true
+      exit 0
+    """
     archiveArtifacts allowEmptyArchive: true, artifacts: "kube-events.log,kube-pods.log"
     if (!dryRunOnly && rollbackOnFailure) {
-        withCredentials([file(credentialsId: kubeconfigCredentialsId, variable: "KUBECONFIG_FILE")]) {
-            sh """
-              set +e
-              export KUBECONFIG="\$KUBECONFIG_FILE"
-              kubectl config use-context "${kubeContext}"
-              deployments=\$(kubectl -n "${kubeNamespace}" get deploy -o jsonpath='{range .items[*]}{.metadata.name}{"\\n"}{end}')
-              for d in \$deployments; do
-                echo "Attempting rollback for deployment/\$d"
-                if kubectl -n "${kubeNamespace}" rollout history "deployment/\$d" >/dev/null 2>&1; then
-                  kubectl -n "${kubeNamespace}" rollout undo "deployment/\$d" || true
-                else
-                  echo "No rollout history for deployment/\$d; skipping rollback"
-                fi
-              done
-            """
-        }
+        def rollbackScript = """
+          set +e
+          ${kubeContext ? "kubectl config use-context \"${kubeContext}\" || true" : "true"}
+          deployments=\$(kubectl -n "${kubeNamespace}" get deploy -o jsonpath='{range .items[*]}{.metadata.name}{"\\n"}{end}')
+          for d in \$deployments; do
+            echo "Attempting rollback for deployment/\$d"
+            if kubectl -n "${kubeNamespace}" rollout history "deployment/\$d" >/dev/null 2>&1; then
+              kubectl -n "${kubeNamespace}" rollout undo "deployment/\$d" || true
+            else
+              echo "No rollout history for deployment/\$d; skipping rollback"
+            fi
+          done
+        """
+        sh rollbackScript
     }
 }
 

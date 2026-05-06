@@ -23,9 +23,8 @@ pipeline {
         booleanParam(name: "DOCKER_BUILDER_PRUNE", defaultValue: false, description: "Run docker builder prune after each isolated workspace")
         string(name: "DOCKER_BUILDER_KEEP_STORAGE", defaultValue: "8GB", description: "BuildKit keep-storage value when builder prune is enabled")
 
-        string(name: "KUBECONFIG_CREDENTIALS_ID", defaultValue: "kubeconfig", description: "Jenkins secret file credential ID for kubeconfig")
-        string(name: "KUBE_CONTEXT", defaultValue: "kubernetes-admin@kubernetes", description: "Kubernetes context name from kubeconfig")
-        string(name: "KUBE_NAMESPACE", defaultValue: "smart-freelance-dev", description: "Application namespace to deploy")
+        string(name: "KUBE_CONTEXT", defaultValue: "", description: "Optional Kubernetes context name (empty to use current/in-cluster context)")
+        string(name: "KUBE_NAMESPACE", defaultValue: "freelance", description: "Application namespace to deploy")
         string(name: "MANIFEST_PATH", defaultValue: "k8s", description: "Path to app manifests in repo")
         booleanParam(name: "DEPLOY_MONITORING", defaultValue: true, description: "Deploy Prometheus and Grafana stack")
         string(name: "MONITORING_MANIFEST_PATH", defaultValue: "k8s/monitoring", description: "Path to monitoring manifests")

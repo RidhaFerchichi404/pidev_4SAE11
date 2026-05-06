@@ -13,9 +13,8 @@ pipeline {
         string(name: "REPO_URL", defaultValue: "https://github.com/RidhaFerchichi404/pidev_4SAE11.git", description: "Git repository URL containing Kubernetes manifests")
         string(name: "BRANCH", defaultValue: "main", description: "Branch to deploy from")
         string(name: "GIT_CREDENTIALS_ID", defaultValue: "GithubCredentials", description: "Jenkins credentials ID used for Git checkout")
-        string(name: "KUBECONFIG_CREDENTIALS_ID", defaultValue: "kubeconfig", description: "Jenkins secret file credential ID for kubeconfig")
-        string(name: "KUBE_CONTEXT", defaultValue: "kubernetes-admin@kubernetes", description: "Kubernetes context name from kubeconfig (required)")
-        string(name: "KUBE_NAMESPACE", defaultValue: "smart-freelance-dev", description: "Application namespace to deploy")
+        string(name: "KUBE_CONTEXT", defaultValue: "", description: "Optional Kubernetes context name (empty to use current/in-cluster context)")
+        string(name: "KUBE_NAMESPACE", defaultValue: "freelance", description: "Application namespace to deploy")
         string(name: "MANIFEST_PATH", defaultValue: "k8s", description: "Path to app manifests in repo")
         string(name: "IMAGE_REPO", defaultValue: "ridhaferchichi", description: "Registry/repository prefix (example: ridhaferchichi)")
         string(name: "IMAGE_TAG", defaultValue: "", description: "Immutable image tag; if empty, BUILD_NUMBER is used")
@@ -53,11 +52,6 @@ pipeline {
 
         stage("Validate Inputs") {
             steps {
-                script {
-                    if (!params.KUBE_CONTEXT?.trim()) {
-                        error("KUBE_CONTEXT is required")
-                    }
-                }
                 sh """
                   set -e
                   command -v kubectl >/dev/null 2>&1 || { echo 'kubectl is not installed on this Jenkins agent'; exit 1; }
@@ -72,12 +66,11 @@ pipeline {
                 script {
                     def kd = load("ci/pipelines/kubeDeployLib.groovy")
                     kd.runKubernetesDeploy([
-                        kubeContext              : params.KUBE_CONTEXT.trim(),
+                        kubeContext              : params.KUBE_CONTEXT?.trim(),
                         kubeNamespace            : params.KUBE_NAMESPACE.trim(),
                         manifestPath             : params.MANIFEST_PATH.trim(),
                         imageRepo                : params.IMAGE_REPO.trim(),
                         imageTag                 : env.EFFECTIVE_IMAGE_TAG,
-                        kubeconfigCredentialsId  : params.KUBECONFIG_CREDENTIALS_ID.trim(),
                         deployMonitoring         : params.DEPLOY_MONITORING,
                         monitoringManifestPath   : params.MONITORING_MANIFEST_PATH.trim(),
                         deployEnvironment        : params.ENVIRONMENT,

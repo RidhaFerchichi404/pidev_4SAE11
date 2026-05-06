@@ -31,19 +31,15 @@ node {
 
     if (deployK8s) {
         def kubeCtx = params.KUBE_CONTEXT?.trim()
-        if (!kubeCtx) {
-            error("KUBE_CONTEXT is required when DEPLOY_TO_K8S is enabled")
-        }
         env.EFFECTIVE_IMAGE_TAG = (params.IMAGE_TAG?.trim()) ? params.IMAGE_TAG.trim() : env.BUILD_NUMBER
         def kd = load("ci/pipelines/kubeDeployLib.groovy")
         def deployUnit = (params.DEPLOY_UNIT?.trim()) ?: imageName
         kd.runKubernetesDeploy([
             kubeContext                   : kubeCtx,
-            kubeNamespace                 : (params.KUBE_NAMESPACE ?: "smart-freelance-dev").trim(),
+            kubeNamespace                 : (params.KUBE_NAMESPACE ?: "freelance").trim(),
             manifestPath                  : (params.MANIFEST_PATH ?: "k8s").trim(),
             imageRepo                     : (params.IMAGE_REPO ?: "docker.io/ridhaferchichi").trim(),
             imageTag                      : env.EFFECTIVE_IMAGE_TAG,
-            kubeconfigCredentialsId       : (params.KUBECONFIG_CREDENTIALS_ID ?: "kubeconfig").trim(),
             deployMonitoring              : params.DEPLOY_MONITORING != false,
             monitoringManifestPath        : (params.MONITORING_MANIFEST_PATH ?: "k8s/monitoring").trim(),
             deployEnvironment             : (params.ENVIRONMENT ?: "dev").toString(),
@@ -64,7 +60,7 @@ node {
             def k8sCleanup = load("ci/pipelines/k8sCleanup.groovy")
             k8sCleanup.runK8sCleanup([
                 enabled                 : params.K8S_CLEANUP_ENABLED != false,
-                namespace               : (params.KUBE_NAMESPACE ?: "smart-freelance-dev").trim(),
+                namespace               : (params.KUBE_NAMESPACE ?: "freelance").trim(),
                 retentionHours          : (params.K8S_CLEANUP_RETENTION_HOURS ?: "24").toString().trim(),
                 labelSelector           : (params.K8S_CLEANUP_LABEL_SELECTOR ?: "app=${deployUnit}").toString().trim(),
                 cleanupCompletedJobs    : true,
