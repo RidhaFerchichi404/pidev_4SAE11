@@ -1,0 +1,3 @@
+services:
+  project:
+    mem_limit: 0
