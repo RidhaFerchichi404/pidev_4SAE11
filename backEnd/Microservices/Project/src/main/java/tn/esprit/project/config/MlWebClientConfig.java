@@ -1,4 +1,4 @@
-package tn.esprit.project.Config;
+package tn.esprit.project.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

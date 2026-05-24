@@ -1,5 +1,7 @@
-# ========== Gateway routes (dynamic: targets resolved via Eureka) ==========
-# Each route: /<prefix>/** -> lb://<service-id> with first path segment stripped.
+# ========== Gateway routes ==========
+# Each route: /<prefix>/** -> downstream base URL with first path segment stripped.
+# Local profile: many services use fixed localhost/127.0.0.1 URIs to avoid 502 when Eureka
+# advertises an unreachable IP. Docker profile uses lb:// service IDs in application-docker.yml.
 # Service instances are resolved at runtime from Eureka. Add a new route block
 # for any new microservice (same pattern: id, uri lb://<eureka-service-id>, Path, StripPrefix=1).
 spring:
@@ -76,9 +78,10 @@ spring:
             connect-timeout: 10000
 
 
-        # Planning: use Eureka load balancing (serviceId = planning)
+        # Planning: direct URL (port 8081 from Config Server) — avoids 502 when Eureka advertises a LAN IP
+        # Netty cannot use, or when the registry is empty. Docker: application-docker.yml uses lb://PLANNING.
         - id: planning
-          uri: lb://planning
+          uri: ${GATEWAY_PLANNING_URI:http://127.0.0.1:8081}
           predicates:
             - Path=/planning/**
           filters:
@@ -173,9 +176,9 @@ spring:
           filters:
             - StripPrefix=1
 
-        # Task AI: match first — metadata response-timeout in milliseconds (4h) for slow Ollama. Uses Eureka (serviceId = task).
+        # Task AI: match first — long timeouts for Ollama. Direct URL avoids Eureka 502 (same pattern as planning).
         - id: task-ai
-          uri: lb://task
+          uri: ${GATEWAY_TASK_URI:http://127.0.0.1:8091}
           order: -1
           predicates:
             - Path=/task/api/tasks/ai/**
@@ -185,9 +188,9 @@ spring:
             response-timeout: 14400000
             connect-timeout: 30000
 
-        # Task: use Eureka load balancing (serviceId = task)
+        # Task microservice (port 8091)
         - id: task
-          uri: lb://task
+          uri: ${GATEWAY_TASK_URI:http://127.0.0.1:8091}
           predicates:
             - Path=/task/**
           filters:

@@ -22,6 +22,11 @@ import java.io.InputStream;
 @ConditionalOnProperty(name = "notification.firebase.enabled", havingValue = "true")
 public class FirebaseConfig {
 
+    private static final String[] KNOWN_CREDENTIAL_FILENAMES = {
+        "notificationsystem-3bd2f-firebase-adminsdk-fbsvc-a00d605692.json",
+        "firebase-credentials.json",
+    };
+
     @Value("${notification.firebase.credentials-path:}")
     private String credentialsPath;
 
@@ -31,7 +36,9 @@ public class FirebaseConfig {
             InputStream stream = credentialsStream();
             if (stream == null) {
                 throw new IllegalStateException(
-                    "Firebase credentials not set. Set GOOGLE_APPLICATION_CREDENTIALS env var or notification.firebase.credentials-path");
+                    "Firebase credentials not found. Set GOOGLE_APPLICATION_CREDENTIALS, notification.firebase.credentials-path, "
+                        + "or place your service account JSON under <repo>/firebase-credentials/ (see firebase-credentials/README.md). "
+                        + "user.dir=" + System.getProperty("user.dir"));
             }
             FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(stream))
@@ -56,19 +63,40 @@ public class FirebaseConfig {
             File f = new File(envPath.trim());
             if (f.isFile()) return new FileInputStream(f);
         }
-        // Fallback: firebase-credentials folder at project root (gitignored; for local dev only)
-        try {
-            File fromModule = new File(System.getProperty("user.dir"), "../../../firebase-credentials").getCanonicalFile();
-            if (fromModule.isDirectory()) {
-                File[] files = fromModule.listFiles((d, n) -> n != null && n.endsWith(".json") && n.contains("firebase-adminsdk"));
-                if (files != null && files.length > 0) return new FileInputStream(files[0]);
-            }
-        } catch (IOException ignored) { }
-        File fromRoot = new File(System.getProperty("user.dir"), "firebase-credentials");
-        if (fromRoot.isDirectory()) {
-            File[] files = fromRoot.listFiles((d, n) -> n != null && n.endsWith(".json") && n.contains("firebase-adminsdk"));
-            if (files != null && files.length > 0) return new FileInputStream(files[0]);
+        File credDir = findProjectFirebaseCredentialsDir();
+        if (credDir == null) {
+            return null;
+        }
+        for (String name : KNOWN_CREDENTIAL_FILENAMES) {
+            File f = new File(credDir, name);
+            if (f.isFile()) return new FileInputStream(f);
+        }
+        File[] adminsdk = credDir.listFiles(
+            (d, n) -> n != null && n.endsWith(".json") && n.contains("firebase-adminsdk"));
+        if (adminsdk != null && adminsdk.length > 0) {
+            return new FileInputStream(adminsdk[0]);
         }
         return null;
+    }
+
+    /**
+     * Walks up from {@code user.dir} (IDE / Maven working directory varies) until a
+     * {@code firebase-credentials} folder containing at least one {@code .json} file is found.
+     */
+    private static File findProjectFirebaseCredentialsDir() throws IOException {
+        File dir = new File(System.getProperty("user.dir")).getCanonicalFile();
+        for (int depth = 0; depth < 12 && dir != null; depth++) {
+            File candidate = new File(dir, "firebase-credentials");
+            if (candidate.isDirectory() && directoryHasJsonFile(candidate)) {
+                return candidate;
+            }
+            dir = dir.getParentFile();
+        }
+        return null;
+    }
+
+    private static boolean directoryHasJsonFile(File dir) {
+        File[] files = dir.listFiles((d, n) -> n != null && n.endsWith(".json"));
+        return files != null && files.length > 0;
     }
 }

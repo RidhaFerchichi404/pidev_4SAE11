@@ -240,7 +240,7 @@ If Jenkins agents do not already have them, install these CLIs on the Jenkins VM
    - Build step -> **Process Job DSLs**
    - DSL scripts: `jobs.groovy`
    - Save
-4. **Run `seed-jobs` once** to generate all pipeline jobs.
+4. **Run `seed-jobs` once** to generate all pipeline jobs. To run it automatically on every Git push, enable the GitHub webhook flow described under **Run `seed-jobs` automatically on every GitHub push** below.
 5. Open generated `orchestration/full-stack-main` and click **Build with Parameters**:
    - Keep defaults for one-click run (`BRANCH=main`, `PUSH_IMAGE=true`, `DEPLOY_TO_K8S=true`).
    - Set only project-specific values if needed: `REPO_URL`, `IMAGE_REPO`, `PUBLIC_API_GATEWAY_URL`.
@@ -287,6 +287,20 @@ You do **not** need to change the app manifests for a standard ingress-nginx bar
 4. **Optional:** If JWT validation fails after logging in via the public auth hostname, see the comment block in `k8s/01-configmap.yaml` (issuer/JWKS vs in-cluster `keycloak` DNS).
 
 No extra Jenkins plugins are required for browser access.
+
+### Run `seed-jobs` automatically on every GitHub push
+
+The seed job only needs to run when `jobs.groovy` (or related Jenkins definitions) change. If you still want it to fire on every push:
+
+1. **Install the GitHub plugin** on Jenkins (`Manage Jenkins` → `Plugins`) if it is not already installed (it exposes the `/github-webhook/` endpoint).
+2. Open **`seed-jobs`** → `Configure` → **Build Triggers** → enable **GitHub hook trigger for GITScm polling** (this works because the job already uses Git SCM in the bootstrap steps above).
+3. On GitHub: your repository → **Settings** → **Webhooks** → **Add webhook**:
+   - **Payload URL:** `https://<your-jenkins-host>/github-webhook/` (must be reachable from GitHub; use your real Jenkins base URL).
+   - **Content type:** `application/json`
+   - **Events:** **Just the push event** (narrow further in GitHub if you only want specific branches).
+4. Save the webhook and push a commit; `seed-jobs` should start without a manual build.
+
+**Reachability:** GitHub must reach Jenkins over the network. A Jenkins instance only on `localhost` will not receive webhooks unless you use a tunnel (for example ngrok) or enable **Poll SCM** on `seed-jobs` as a slower fallback.
 
 ### Full deploy vs single service deploy
 

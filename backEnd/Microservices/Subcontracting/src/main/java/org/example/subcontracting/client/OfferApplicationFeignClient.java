@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
-@FeignClient(name = "OFFER", path = "/api/applications")
+@FeignClient(name = "OFFER", contextId = "offerApplicationsFeignClient", path = "/api/applications")
 public interface OfferApplicationFeignClient {
 
     @GetMapping("/freelancer/{freelancerId}/accepted")
