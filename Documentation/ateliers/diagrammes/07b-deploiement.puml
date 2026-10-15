@@ -1,0 +1,37 @@
+@startuml 07b-deploiement
+title Atelier 4 — Déploiement (2/2)\nblocs restants, identité externe et données
+top to bottom direction
+skinparam dpi 120
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+
+node "Exécution de mission" {
+  artifact "task :8091 — taskdb\nplanning :8081 — planningdb\nchat :8096 — chatdb <<sans route gateway>>\nmeeting :8101 — meetingdb <<sans route gateway>>" as exea
+}
+node "Support" {
+  artifact "notification :8098 — Firestore, pas MySQL\nticket :8094 — ticketdb\nsubcontracting :8110 — gestion_subcontracting_db\nvendor :8093 — gestion_vendor_db" as supa
+}
+node "Aide à la décision" {
+  artifact "aimodel :8095 — sans base applicative\nservice ML :8102 — appelé seulement par project" as deca
+}
+node "Keycloak" {
+  artifact "port 8080\nrealm smart-freelance\nbase keycloakdb\nappelé par keycloak-auth" as kca
+}
+database "MySQL :3306\nune instance du cluster\nune base par service SQL\nnotification reste sur Firestore" as mysql
+node "Ollama" {
+  artifact "port 11434\n1 réplica\nappelé par aimodel" as olla
+}
+
+exea -[hidden]down- supa
+supa -[hidden]down- deca
+deca -down-> olla
+deca -[hidden]down- kca
+kca -[hidden]down- mysql
+
+note bottom
+  Config Server obligatoire pour offer, vendor, subcontracting, task et planning.
+  En local : Angular sur le port 4200, MySQL publié sur le port 3307.
+  phpMyAdmin (db.smartfreelance.example.com) est un outil de laboratoire.
+end note
+@enduml

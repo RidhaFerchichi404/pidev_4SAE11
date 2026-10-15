@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Ateliers 2, 3 et 4 — Smart Freelance</title>
+<style>
+  @page { size: A4; margin: 14mm 13mm 16mm; }
+  @page land { size: A4 landscape; margin: 12mm 12mm 14mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", Calibri, sans-serif;
+    font-size: 11pt;
+    line-height: 1.4;
+    color: #1c1c1c;
+    margin: 0;
+  }
+  h1 { font-size: 18pt; margin: 0 0 4px; }
+  h2 { font-size: 14pt; margin: 18px 0 8px; page-break-after: avoid; }
+  h3 { font-size: 12pt; margin: 14px 0 6px; page-break-after: avoid; }
+  p { margin: 0 0 8px; }
+  ul { margin: 4px 0 10px; padding-left: 18px; }
+  li { margin: 2px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0 12px; font-size: 10pt; page-break-inside: avoid; }
+  th, td { border: 1px solid #c8c8c8; padding: 4px 6px; vertical-align: top; text-align: left; }
+  th { background: #f2f4f6; }
+  figure { margin: 8px 0 14px; page-break-inside: avoid; text-align: center; }
+  figcaption { font-size: 9.5pt; color: #333; margin-top: 4px; text-align: left; }
+  img { max-width: 100%; width: auto; height: auto; }
+  img.narrow { max-height: 210mm; }
+  img.mid { max-height: 195mm; }
+  .land { page: land; }
+  .land img { max-height: 145mm; max-width: 100%; }
+  figure.break { break-before: page; }
+  .cover { margin-bottom: 16px; }
+  .meta { color: #333; margin: 0; }
+  .note { font-size: 10pt; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <p class="meta">ESPRIT — École Supérieure Privée d'Ingénierie et de Technologie</p>
+  <h1>Smart Freelance and Project Matching Platform</h1>
+  <p class="meta">Ateliers 2, 3 et 4 — exigences, vue building block, vues de contexte, de déploiement et de runtime</p>
+  <p class="meta">12 octobre 2026</p>
+</section>
+
+<p>Les sept blocs portent le même nom dans tout le rapport. Les ports, bases et méthodes cités sont ceux du dépôt.</p>
+
+<table>
+  <thead><tr><th>Bloc</th><th>Contenu retenu</th></tr></thead>
+  <tbody>
+    <tr><td>Plateforme</td><td>Angular, API Gateway :8078, Eureka :8420, Config Server :8888</td></tr>
+    <tr><td>Identité et comptes</td><td>keycloak-auth :8079, user :8090 (userdb)</td></tr>
+    <tr><td>Mise en relation</td><td>project :8084, offer :8082, contract :8083, freelancia-job :8097</td></tr>
+    <tr><td>Profil et réputation</td><td>portfolio :8086, review :8085, gamification :8088</td></tr>
+    <tr><td>Exécution de mission</td><td>task :8091, planning :8081, chat :8096, meeting :8101</td></tr>
+    <tr><td>Support</td><td>notification :8098, ticket :8094, subcontracting :8110, vendor :8093</td></tr>
+    <tr><td>Aide à la décision</td><td>aimodel :8095, service ML :8102</td></tr>
+  </tbody>
+</table>
+
+<h2>1. Atelier 2 — Exigences fonctionnelles</h2>
+<p>Hiérarchie demandée : module, sous-module, fonctionnalité. La figure ne montre que les deux premiers niveaux. Les fonctionnalités sont les puces.</p>
+
+<figure class="break">
+  <img class="narrow" src="images/01-arborescence.png" alt="Modules et sous-modules">
+  <figcaption>Figure 1. Modules et sous-modules.</figcaption>
+</figure>
+
+<h3>Identité et comptes</h3>
+<p><strong>Authentification.</strong></p>
+<ul>
+  <li>Inscrire un utilisateur dans le realm Keycloak <em>smart-freelance</em>.</li>
+  <li>Connecter un utilisateur et obtenir un jeton JWT, via keycloak-auth (:8079), préfixe <em>/keycloak-auth</em>.</li>
+</ul>
+<p><strong>Utilisateurs et rôles.</strong></p>
+<ul>
+  <li>Gérer le profil dans le service user (:8090, base userdb).</li>
+  <li>Distinguer les rôles Client, Freelancer et Admin.</li>
+</ul>
+
+<h3>Mise en relation</h3>
+<p><strong>Projets</strong> (Project :8084, base projectdb).</p>
+<ul>
+  <li>Créer, modifier, supprimer et lister un projet (<em>addProject</em>, <em>updateProject</em>, <em>deleteProject</em>, <em>getAllProjects</em>).</li>
+  <li>Consulter le risque, la satisfaction et le segment client (<em>getProjectRisk</em>, <em>getProjectSatisfaction</em>, <em>getClientSegment</em>).</li>
+</ul>
+<p><strong>Offres et candidatures</strong> (Offer :8082, base gestion_offre_db).</p>
+<ul>
+  <li>Créer, publier, rechercher et recommander une offre.</li>
+  <li>Postuler à une offre (<em>applyToOffer</em>). Cette étape n'envoie pas de notification.</li>
+  <li>Accepter une candidature et créer un contrat brouillon (<em>acceptApplication</em>).</li>
+  <li>Poser une question sur une offre et notifier le freelancer (<em>addQuestion</em>).</li>
+  <li>Traduire le titre et la description via Google Translate.</li>
+</ul>
+<p><strong>Emplois Freelancia.</strong> Publier et consulter une annonce (FreelanciaJob :8097, base freelancia_job_db). Ce service n'a pas de route sur la passerelle.</p>
+<p><strong>Contrats.</strong> Enregistrer le contrat issu d'une candidature acceptée (Contract :8083, base gestion_contract_db).</p>
+
+<h3>Profil et réputation</h3>
+<ul>
+  <li>Portfolio (:8086) : enregistrer expériences et compétences.</li>
+  <li>Avis (:8085) : noter, répondre, et notifier l'autre partie lorsqu'une réponse est créée.</li>
+  <li>Gamification (:8088) : suivre niveaux, XP et succès.</li>
+</ul>
+
+<h3>Exécution de mission</h3>
+<ul>
+  <li>Tâches (:8091) : suivre les tâches et demander une génération au service AImodel.</li>
+  <li>Planning (:8081) : publier un avancement, créer un événement Google Calendar, lire branches et commits GitHub.</li>
+  <li>Chat (:8096) et réunions (:8101) : échanger et planifier. Aucune route gateway n'est configurée pour ces deux services.</li>
+</ul>
+
+<h3>Support</h3>
+<ul>
+  <li>Tickets (:8094) : ouvrir, lire et rouvrir un ticket.</li>
+  <li>Notifications (:8098) : créer une notification (<em>POST /api/notifications</em>), stockée dans Firestore.</li>
+  <li>Sous-traitance (:8110) : suivre une mission déléguée.</li>
+  <li>Fournisseurs (:8093) : tenir le référentiel Vendor.</li>
+</ul>
+
+<h3>Aide à la décision</h3>
+<ul>
+  <li>AImodel (:8095) : générer un texte ou des tâches, puis appeler Ollama (:11434).</li>
+  <li>Service ML (:8102) : estimer le risque d'un projet par <em>POST /predict</em>. Seul le service Project l'appelle.</li>
+</ul>
+
+<h2>2. Atelier 2 — Exigences non fonctionnelles</h2>
+<p>Une ligne marquée <strong>cible</strong> est un objectif de ce rapport. Une ligne marquée <strong>constat</strong> est une valeur déjà présente dans la configuration.</p>
+
+<table>
+  <thead><tr><th>Exigence</th><th>Quantification</th><th>Statut</th></tr></thead>
+  <tbody>
+    <tr><td>Temps de réponse des API métier, hors intelligence artificielle</td><td>≤ 2 s au 95e percentile</td><td>Cible</td></tr>
+    <tr><td>Timeout global du client HTTP de la passerelle</td><td>4 h (routes comprises, à cause du LLM local)</td><td>Constat</td></tr>
+    <tr><td>Timeout de la route planning</td><td>30 s</td><td>Constat</td></tr>
+    <tr><td>Timeout de la route portfolio</td><td>120 s</td><td>Constat</td></tr>
+    <tr><td>Timeout des routes IA (tâches AI et AImodel)</td><td>14 400 000 ms, soit 4 h</td><td>Constat</td></tr>
+    <tr><td>Réplicas de l'API Gateway et du frontend</td><td>2 réplicas chacun, maxUnavailable = 0</td><td>Constat</td></tr>
+    <tr><td>Taille de corps à l'ingress</td><td>50 Mo</td><td>Constat</td></tr>
+    <tr><td>Mémoire du codec de la passerelle</td><td>10 Mo</td><td>Constat</td></tr>
+    <tr><td>Lecture proxy de l'ingress</td><td>3 600 s</td><td>Constat</td></tr>
+    <tr><td>Authentification</td><td>OAuth2 / JWT, realm smart-freelance, rôles Client, Freelancer, Admin</td><td>Constat</td></tr>
+    <tr><td>Origines CORS du profil local</td><td>http://localhost:4200 et http://127.0.0.1:4200</td><td>Constat</td></tr>
+    <tr><td>Données relationnelles</td><td>Une base MySQL par microservice. Notification utilise Firestore, pas MySQL.</td><td>Constat</td></tr>
+    <tr><td>Accès direct aux microservices</td><td>Refusé sans l'en-tête X-Internal-Gateway posé par la passerelle</td><td>Constat</td></tr>
+  </tbody>
+</table>
+
+<h2>3. Atelier 3 — Vue building block</h2>
+
+<h3>3.1 Boîte noire</h3>
+<p>Chaque bloc est fermé. Les noms qui suivent sont les interfaces qu'il fournit.</p>
+<figure class="break">
+  <img class="narrow" src="images/02-boite-noire.png" alt="Boîte noire">
+  <figcaption>Figure 2. Paquets en boîte noire et interfaces fournies.</figcaption>
+</figure>
+
+<h3>3.2 Dépendances</h3>
+<p>La passerelle retire le premier segment d'URL (<em>StripPrefix=1</em>). Les flèches de la figure 4 n'existent que si le code contient l'appel.</p>
+<figure>
+  <img class="narrow" src="images/03-dependances.png" alt="Routes de la passerelle">
+  <figcaption>Figure 3. Routes de la passerelle vers les blocs.</figcaption>
+</figure>
+<figure>
+  <img class="mid" src="images/03b-appels.png" alt="Appels entre blocs">
+  <figcaption>Figure 4. Appels entre blocs. Offer vers Contract reste interne à Mise en relation.</figcaption>
+</figure>
+
+<h3>3.3 Boîte blanche de Mise en relation</h3>
+<div class="land">
+<figure>
+  <img src="images/04-boite-blanche-relation.png" alt="Boîte blanche Mise en relation">
+  <figcaption>Figure 5. Sous-paquets, composants, interfaces et dépendances de Mise en relation. L'acceptation d'une candidature appelle ContractClient.createContractFromAcceptedApplication.</figcaption>
+</figure>
+</div>
+
+<h3>3.4 Classes et méthodes</h3>
+<p>Seuls Project et Offer sont ouverts jusqu'aux classes. Les méthodes sont celles des types du dépôt. Les autres blocs restent au niveau composant.</p>
+<figure>
+  <img class="mid" src="images/05a-classes-projet.png" alt="Classes Project">
+  <figcaption>Figure 6. ProjectController, IProjectService et ProjectRiskService.</figcaption>
+</figure>
+<div class="land">
+<figure>
+  <img src="images/05b-classes-offre.png" alt="Classes Offer">
+  <figcaption>Figure 7. OfferController, IOfferService, candidature, question et NotificationService. Le lien vers ContractClient ne part que de l'acceptation.</figcaption>
+</figure>
+</div>
+
+<h2>4. Atelier 4 — Contexte, déploiement, runtime</h2>
+
+<h3>4.1 Vue de contexte</h3>
+<p>Les acteurs n'entrent que par Plateforme. Keycloak, MySQL, Firebase, Ollama, GitHub, Google Calendar et Google Translate sont hors des sept blocs.</p>
+<figure>
+  <img class="mid" src="images/06-contexte.png" alt="Vue de contexte">
+  <figcaption>Figure 8. Vue de contexte. Les flèches Planning partent d'Exécution de mission vers GitHub et Google Calendar. La flèche Offer part de Mise en relation vers Google Translate. La flèche ML :8102 part de Mise en relation vers Aide à la décision.</figcaption>
+</figure>
+
+<h3>4.2 Vue de déploiement</h3>
+<p>Le schéma décrit le dossier <em>k8s/</em>, namespace <em>smart-freelance</em>. Les nœuds portent les noms des blocs de l'atelier 3. Keycloak et Ollama sont dans le cluster, mais hors de ces blocs métier.</p>
+<figure class="break">
+  <img class="narrow" src="images/07a-deploiement.png" alt="Déploiement partie 1">
+  <figcaption>Figure 9. Déploiement, entrée et premiers blocs. Le navigateur atteint le frontend et la passerelle par l'ingress. L'hôte auth atteint Keycloak, montré à la figure suivante.</figcaption>
+</figure>
+<figure>
+  <img class="mid" src="images/07b-deploiement.png" alt="Déploiement partie 2">
+  <figcaption>Figure 10. Déploiement, blocs restants, Keycloak, MySQL :3306 et Ollama :11434. En local, Angular écoute 4200 et MySQL est publié sur 3307.</figcaption>
+</figure>
+
+<table>
+  <thead><tr><th>Service</th><th>Port</th><th>Préfixe gateway</th><th>Donnée</th></tr></thead>
+  <tbody>
+    <tr><td>Eureka</td><td>8420</td><td>—</td><td>—</td></tr>
+    <tr><td>Config Server</td><td>8888</td><td>—</td><td>obligatoire pour offer, vendor, subcontracting, task, planning</td></tr>
+    <tr><td>API Gateway</td><td>8078</td><td>—</td><td>—</td></tr>
+    <tr><td>keycloak-auth</td><td>8079</td><td>/keycloak-auth</td><td>Keycloak :8080</td></tr>
+    <tr><td>user</td><td>8090</td><td>/user</td><td>userdb</td></tr>
+    <tr><td>planning</td><td>8081</td><td>/planning</td><td>planningdb</td></tr>
+    <tr><td>offer</td><td>8082</td><td>/offer</td><td>gestion_offre_db</td></tr>
+    <tr><td>contract</td><td>8083</td><td>/contract</td><td>gestion_contract_db</td></tr>
+    <tr><td>project</td><td>8084</td><td>/project</td><td>projectdb</td></tr>
+    <tr><td>review</td><td>8085</td><td>/review</td><td>reviewdb</td></tr>
+    <tr><td>portfolio</td><td>8086</td><td>/portfolio</td><td>portfolio_db</td></tr>
+    <tr><td>gamification</td><td>8088</td><td>/gamification</td><td>gamificationdb</td></tr>
+    <tr><td>task</td><td>8091</td><td>/task</td><td>taskdb</td></tr>
+    <tr><td>vendor</td><td>8093</td><td>/vendor</td><td>gestion_vendor_db</td></tr>
+    <tr><td>ticket</td><td>8094</td><td>/ticket</td><td>ticketdb</td></tr>
+    <tr><td>aimodel</td><td>8095</td><td>/aimodel</td><td>Ollama, pas de base applicative</td></tr>
+    <tr><td>chat</td><td>8096</td><td>aucune</td><td>chatdb</td></tr>
+    <tr><td>freelancia-job</td><td>8097</td><td>aucune</td><td>freelancia_job_db</td></tr>
+    <tr><td>notification</td><td>8098</td><td>/notification</td><td>Firestore</td></tr>
+    <tr><td>meeting</td><td>8101</td><td>aucune</td><td>meetingdb</td></tr>
+    <tr><td>service ML</td><td>8102</td><td>aucune</td><td>appel serveur, depuis project</td></tr>
+    <tr><td>subcontracting</td><td>8110</td><td>/subcontracting</td><td>gestion_subcontracting_db</td></tr>
+  </tbody>
+</table>
+
+<h3>4.3 Vue runtime</h3>
+<p>Deux scénarios. Les lignes de vie utilisent les blocs de l'atelier 3.</p>
+
+<div class="land">
+<figure>
+  <img src="images/08-runtime-risque.png" alt="Séquence risque">
+  <figcaption>Figure 11. Le client publie un projet (POST /project/projects/add). Cet appel ne calcule pas le risque. Une deuxième requête, GET /project/projects/{id}/risk, charge le projet, interroge Task et Review si les agrégats sont activés, puis envoie POST /predict au service ML :8102.</figcaption>
+</figure>
+</div>
+
+<div class="land">
+<figure>
+  <img src="images/09-runtime-offre.png" alt="Séquence offre">
+  <figcaption>Figure 12. Le client postule (POST /offer/api/applications) : la candidature est PENDING et Notification n'est pas appelé. Ensuite il pose une question (POST /offer/api/offers/{id}/questions). OfferQuestionService enregistre la question, appelle NotificationService.createNotification (POST /api/notifications, port 8098), relit l'utilisateur, puis envoie un e-mail SMTP si le mail est activé. L'hôte par défaut du service Offer est smtp.gmail.com.</figcaption>
+</figure>
+</div>
+
+<p class="note">Les lifelines « Candidature » et « Question » sont OfferApplicationService et OfferQuestionService, dans le bloc Mise en relation. La base de la figure 12 est gestion_offre_db.</p>
+
+</body>
+</html>

@@ -1,0 +1,33 @@
+@startuml 05a-classes-projet
+title Atelier 3 — Classes du composant Project
+skinparam dpi 130
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam classAttributeIconSize 0
+skinparam wrapWidth 240
+
+package "Projets — Project :8084" <<Boîte blanche>> {
+  class ProjectController {
+    + addProject(request): Project
+    + updateProject(project): Project
+    + deleteProject(id): void
+    + getAllProjects(): List
+    + getProjectRisk(id): ProjectRiskResponse
+  }
+  interface IProjectService {
+    + addProject(request): Project
+    + updateProject(project): Project
+    + deleteProject(id): void
+    + getAllProjectResponses(): List
+  }
+  class ProjectRiskService {
+    + getProjectRisk(projectId): ProjectRiskResponse
+    + getProjectSatisfaction(projectId): ProjectSatisfactionResponse
+    + getClientSegment(clientId): ProjectClientSegmentResponse
+  }
+}
+
+ProjectController --> IProjectService
+ProjectController --> ProjectRiskService
+@enduml

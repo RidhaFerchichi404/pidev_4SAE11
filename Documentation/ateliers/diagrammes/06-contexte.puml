@@ -1,0 +1,70 @@
+@startuml 06-contexte
+title Atelier 4 — Vue de contexte
+
+skinparam dpi 130
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam componentStyle rectangle
+skinparam nodesep 10
+skinparam ranksep 16
+skinparam wrapWidth 180
+
+actor Client
+actor Freelancer
+actor Administrateur
+
+rectangle "Smart Freelance" {
+  component "Plateforme" as plat
+  together {
+    component "Identité\net comptes" as idn
+    component "Mise en\nrelation" as rel
+    component "Profil et\nréputation" as rep
+  }
+  together {
+    component "Exécution\nde mission" as exe
+    component "Support" as sup
+    component "Aide à la\ndécision" as dec
+  }
+}
+
+Client --> plat
+Freelancer --> plat
+Administrateur --> plat
+plat --> idn
+plat --> rel
+plat --> rep
+plat --> exe
+plat --> sup
+plat --> dec
+
+together {
+  cloud "Keycloak\n:8080" as kc
+  database "MySQL\nune base par service" as db
+  cloud "Firebase\nFirestore" as fb
+}
+together {
+  cloud "Ollama\n:11434" as ol
+  cloud "GitHub" as gh
+  cloud "Google\nCalendar" as gcal
+  cloud "Google\nTranslate" as gtr
+}
+
+idn --> kc : JWT
+idn --> db
+rel --> db
+rep --> db
+exe --> db
+sup --> fb : Notification
+dec --> ol : AImodel
+exe --> gh : Planning
+exe --> gcal : Planning
+rel --> gtr : Offer
+rel --> dec : ML :8102
+
+note bottom
+  Les trois acteurs entrent uniquement par Plateforme.
+  Les sept blocs portent les mêmes noms qu'à l'atelier 3.
+end note
+
+@enduml

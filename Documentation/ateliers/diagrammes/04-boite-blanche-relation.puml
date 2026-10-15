@@ -1,0 +1,45 @@
+@startuml 04-boite-blanche-relation
+title Atelier 3 — Boîte blanche : Mise en relation
+top to bottom direction
+skinparam dpi 120
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam nodesep 8
+skinparam ranksep 12
+
+package "Mise en relation" <<Boîte blanche>> {
+  together {
+    component "Project :8084\nprojectdb\n<<IProjet>>" as project
+    component "Offer :8082\ngestion_offre_db\n<<IOffre>>" as offer
+  }
+  together {
+    component "FreelanciaJob :8097\nfreelancia_job_db\n<<IEmploi, sans route gateway>>" as job
+    component "Contract :8083\ngestion_contract_db\n<<IContrat>>" as contract
+  }
+}
+
+offer -down-> contract : acceptApplication\ncreateContractFromAcceptedApplication
+
+together {
+  component "Gateway\n/project /offer /contract" as gw
+  component "Task\nExécution de mission" as task
+  component "Review\nProfil et réputation" as review
+}
+together {
+  component "Notification\nSupport" as notif
+  component "User\nIdentité et comptes" as user
+  component "ML :8102\nAide à la décision" as ml
+}
+
+gw --> project
+gw --> offer
+gw --> contract
+project --> task : stats tâches
+project --> review : avis du projet
+project --> ml : POST /predict
+offer --> notif : POST /api/notifications
+offer --> user : getUserById
+@enduml

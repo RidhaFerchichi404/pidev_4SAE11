@@ -1,0 +1,43 @@
+@startuml 09-runtime-offre
+title Atelier 4 — Vue runtime\nCandidature à une offre, puis question notifiée
+
+skinparam dpi 110
+skinparam ParticipantPadding 4
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam defaultFontName SansSerif
+
+actor Client
+participant "Angular\nPlateforme" as FE
+participant "Gateway\n:8078" as GW
+participant "Candidature\nMise en relation" as APP
+participant "Question\nMise en relation" as QS
+participant "User\nIdentité" as US
+participant "NotificationService" as NS
+participant "Notification\nSupport :8098" as NT
+database "MySQL\noffre" as DB
+
+== Candidature : pas de notification ==
+Client -> FE : postuler à une offre
+FE -> GW : POST /offer/api/applications
+GW -> APP : StripPrefix=1\nPOST /api/applications
+APP -> DB : statut PENDING
+DB --> APP
+APP --> FE : OfferApplicationResponse\n(aucun appel Notification)
+
+== Question : notification du freelancer ==
+Client -> FE : poser une question
+FE -> GW : POST /offer/api/offers/{id}/questions
+GW -> QS : addQuestion(offerId, clientId, request)
+QS -> DB : enregistre OfferQuestion
+QS -> NS : createNotification(\nfreelancerId, NEW_QUESTION, ...)
+NS -> NT : POST /api/notifications
+NT --> NS : notification créée
+QS -> US : UserFeignClient.getUserById
+US --> QS : e-mail du freelancer
+QS -> QS : EmailService.sendNewQuestionEmail\n(asynchrone ; hôte défaut smtp.gmail.com)
+QS --> FE : 201 OfferQuestionResponse
+FE --> Client : question envoyée
+
+@enduml

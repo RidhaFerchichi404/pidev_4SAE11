@@ -1,0 +1,22 @@
+@startuml 01-arborescence
+title Atelier 2 — Modules et sous-modules
+top to bottom direction
+skinparam dpi 130
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam rectangleFontSize 13
+
+rectangle "Identité et comptes\nAuthentification — Keycloak, JWT, keycloak-auth :8079\nUtilisateurs et rôles — user :8090, Client, Freelancer, Admin" as a
+rectangle "Mise en relation\nProjets — Project :8084\nOffres et candidatures — Offer :8082\nEmplois Freelancia — :8097, sans route gateway\nContrats — Contract :8083" as b
+rectangle "Profil et réputation\nPortfolio :8086\nAvis — Review :8085\nGamification :8088" as c
+rectangle "Exécution de mission\nTâches :8091\nPlanning :8081 — calendrier, GitHub\nChat :8096 — sans route gateway\nRéunions :8101 — sans route gateway" as d
+rectangle "Support\nTickets :8094\nNotifications :8098 — Firestore\nSous-traitance :8110\nFournisseurs :8093" as e
+rectangle "Aide à la décision\nAImodel :8095 — Ollama\nRisque ML :8102 — POST /predict" as f
+
+a -[hidden]down- b
+b -[hidden]down- c
+c -[hidden]down- d
+d -[hidden]down- e
+e -[hidden]down- f
+@enduml

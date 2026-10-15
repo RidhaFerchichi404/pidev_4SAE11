@@ -1,0 +1,53 @@
+@startuml 05b-classes-offre
+title Atelier 3 — Classes du composant Offer
+skinparam dpi 120
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam classAttributeIconSize 0
+skinparam wrapWidth 220
+
+package "Offres — Offer :8082" <<Boîte blanche>> {
+  class OfferController {
+    + createOffer(request): OfferResponse
+    + publishOffer(id, freelancerId): OfferResponse
+    + searchOffers(filter): Page
+    + getRecommendedOffers(clientId, limit): List
+    + addOfferQuestion(offerId, clientId, request)
+  }
+  interface IOfferService {
+    + createOffer(request): OfferResponse
+    + publishOffer(id, freelancerId): OfferResponse
+    + searchOffers(filter): Page
+    + deleteOffer(id, freelancerId): void
+  }
+  class SmartMatchingService {
+    + getRecommendedOffersForClient(clientId, limit): List
+  }
+  class OfferApplicationService {
+    + applyToOffer(request): OfferApplicationResponse
+    + acceptApplication(id, freelancerId): OfferApplicationResponse
+  }
+  class OfferQuestionService {
+    + addQuestion(offerId, clientId, request): OfferQuestionResponse
+  }
+  class NotificationService {
+    + createNotification(userId, type, title, body, offerId, relatedId): void
+  }
+}
+
+class "ContractClient\n(Contrats)" as ContractClient {
+  + createContractFromAcceptedApplication(request): void
+}
+
+OfferController --> IOfferService
+OfferController --> SmartMatchingService
+OfferController --> OfferQuestionService
+OfferQuestionService --> NotificationService
+OfferApplicationService --> ContractClient : si acceptation
+
+note bottom
+  applyToOffer n'appelle pas Notification.
+  L'appel part de addQuestion.
+end note
+@enduml

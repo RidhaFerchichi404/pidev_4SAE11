@@ -1,0 +1,38 @@
+@startuml 07a-deploiement
+title Atelier 4 — Déploiement (1/2)\nentrée, plateforme et premiers blocs
+top to bottom direction
+skinparam dpi 120
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+
+node "Poste client" {
+  artifact "Navigateur" as nav
+}
+node "Ingress Nginx" {
+  artifact "smartfreelance.example.com → frontend :80\napi.smartfreelance.example.com → api-gateway :8078\nauth.smartfreelance.example.com → keycloak :8080" as hosts
+}
+node "Plateforme" {
+  artifact "frontend ×2, port 80, maxUnavailable 0\napi-gateway ×2, port 8078, maxUnavailable 0\neureka ×1, port 8420\nconfig-server ×1, port 8888" as plat
+}
+node "Identité et comptes" {
+  artifact "keycloak-auth :8079\nuser :8090 — userdb" as ida
+}
+node "Mise en relation" {
+  artifact "project :8084 — projectdb\noffer :8082 — gestion_offre_db\ncontract :8083 — gestion_contract_db\nfreelancia-job :8097 — freelancia_job_db\n<<sans route gateway>>" as rela
+}
+node "Profil et réputation" {
+  artifact "portfolio :8086 — portfolio_db\nreview :8085 — reviewdb\ngamification :8088 — gamificationdb" as repa
+}
+
+nav -down-> hosts
+hosts -down-> plat
+plat -[hidden]down- ida
+ida -[hidden]down- rela
+rela -[hidden]down- repa
+
+note bottom
+  Suite : exécution, support, aide à la décision, Keycloak, MySQL, Ollama.
+  Namespace Kubernetes : smart-freelance.
+end note
+@enduml

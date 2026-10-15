@@ -1,0 +1,38 @@
+@startuml 03-dependances
+title Atelier 3 — Routes de la passerelle vers les blocs
+top to bottom direction
+skinparam dpi 120
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam componentStyle rectangle
+skinparam nodesep 8
+skinparam ranksep 12
+
+component "Plateforme\nAPI Gateway :8078" as plat
+component "Identité et comptes\n/keycloak-auth  /user" as idn
+component "Mise en relation\n/project  /offer  /contract" as rel
+component "Profil et réputation\n/portfolio  /review  /gamification" as rep
+component "Exécution de mission\n/task  /planning" as exe
+component "Support\n/notification  /ticket\n/subcontracting  /vendor" as sup
+component "Aide à la décision\n/aimodel" as dec
+
+plat -down-> idn
+plat -down-> rel
+plat -down-> rep
+plat -down-> exe
+plat -down-> sup
+plat -down-> dec
+
+idn -[hidden]down- rel
+rel -[hidden]down- rep
+rep -[hidden]down- exe
+exe -[hidden]down- sup
+sup -[hidden]down- dec
+
+note bottom
+  FreelanciaJob :8097, Chat :8096 et Meeting :8101
+  ne figurent pas : ils n'ont pas de route gateway.
+  Le service ML :8102 n'est pas appelé par la passerelle.
+end note
+@enduml

@@ -1,0 +1,54 @@
+@startuml 08-runtime-risque
+title Atelier 4 — Vue runtime\nPublication d'un projet, puis score de risque
+
+skinparam dpi 110
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 6
+skinparam BoxPadding 4
+
+actor Client
+participant "Angular\nPlateforme" as FE
+participant "Gateway\n:8078" as GW
+participant "ProjectController\nMise en relation" as PC
+participant "IProjectService" as PS
+database "MySQL\nprojectdb" as DB
+participant "ProjectRiskService" as RS
+participant "Task\nExécution" as TK
+participant "Review\nProfil" as RV
+participant "ML :8102\nAide à la décision" as ML
+
+== Publication (ne calcule pas le risque) ==
+Client -> FE : créer un projet
+FE -> GW : POST /project/projects/add
+GW -> PC : StripPrefix=1\nPOST /projects/add
+PC -> PS : addProject(request)
+PS -> DB : persiste Project
+DB --> PS
+PS --> PC : Project
+PC --> FE : Project
+FE --> Client : projet créé
+
+== Consultation du risque (deuxième requête) ==
+Client -> FE : consulter le risque
+FE -> GW : GET /project/projects/{id}/risk
+GW -> PC : GET /projects/{id}/risk
+PC -> RS : getProjectRisk(id)
+RS -> DB : charge le projet
+opt agrégats activés (ml.risk.use-task-aggregates)
+  RS -> TK : GET /api/tasks/stats/project/{id}
+  TK --> RS : TaskStatsFeignDto
+end
+opt agrégats activés (ml.risk.use-review-aggregates)
+  RS -> RV : GET /api/reviews/project/{id}
+  RV --> RS : avis du projet
+end
+RS -> ML : POST /predict\n{ features }
+ML --> RS : successProbability, riskPercent
+RS --> PC : ProjectRiskResponse
+PC --> FE : ProjectRiskResponse
+FE --> Client : risque et probabilité
+
+@enduml

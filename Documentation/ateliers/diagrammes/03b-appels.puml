@@ -1,0 +1,38 @@
+@startuml 03b-appels
+title Atelier 3 — Appels entre blocs (présents dans le code)
+top to bottom direction
+skinparam dpi 120
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam componentStyle rectangle
+skinparam nodesep 10
+skinparam ranksep 14
+
+component "Mise en relation" as rel
+component "Identité et comptes" as idn
+component "Exécution de mission" as exe
+component "Profil et réputation" as rep
+component "Support" as sup
+component "Aide à la décision" as dec
+
+rel --> idn : Offer → User\ngetUserById
+rel --> exe : Project → Task\nstats du projet
+rel --> rep : Project → Review\navis du projet
+rel --> sup : Offer → Notification\nPOST /api/notifications
+rel --> dec : Project → ML :8102\nPOST /predict
+rep --> sup : Review → Notification\nréponse à un avis
+exe --> sup : Planning et Task\n→ Notification
+exe --> dec : Task → AImodel :8095\nPOST /api/ai/generate*
+
+rel -[hidden]down- exe
+exe -[hidden]down- rep
+rep -[hidden]down- sup
+sup -[hidden]down- dec
+idn -[hidden]down- rel
+
+note bottom
+  Offer → Contract reste dans Mise en relation
+  (voir la boîte blanche). Il n'est pas un appel entre blocs.
+end note
+@enduml

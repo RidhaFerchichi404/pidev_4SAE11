@@ -1,0 +1,27 @@
+@startuml 02-boite-noire
+title Atelier 3 — Boîte noire\ninterfaces fournies
+top to bottom direction
+skinparam dpi 130
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+
+rectangle "Plateforme  <<Boîte noire>>\nIPasserelle" as a
+rectangle "Identité et comptes  <<Boîte noire>>\nIAuthentification\nIUtilisateur" as b
+rectangle "Mise en relation  <<Boîte noire>>\nIProjet    IOffre    IContrat\nIEmploi  <<sans route gateway>>" as c
+rectangle "Profil et réputation  <<Boîte noire>>\nIPortfolio    IAvis    IGamification" as d
+rectangle "Exécution de mission  <<Boîte noire>>\nITache    IPlanning\nIChat  <<sans route gateway>>\nIReunion  <<sans route gateway>>" as e
+rectangle "Support  <<Boîte noire>>\nINotification    ITicket\nISousTraitance    IFournisseur" as f
+rectangle "Aide à la décision  <<Boîte noire>>\nIAssistanceIA    IRisqueML" as g
+
+a -[hidden]down- b
+b -[hidden]down- c
+c -[hidden]down- d
+d -[hidden]down- e
+e -[hidden]down- f
+f -[hidden]down- g
+
+note bottom of g
+  Boîte noire : l'intérieur de chaque bloc n'est pas ouvert.
+end note
+@enduml
